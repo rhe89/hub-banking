@@ -1,0 +1,11 @@
+{
+  "profiles": {
+    "Sbanken.Workers.Accounts": {
+      "commandName": "Project",
+      "launchBrowser": true,
+      "environmentVariables": {
+        "DOTNET_ENVIRONMENT": "Development"
+      }
+    }
+  }
+}

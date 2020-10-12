@@ -1,0 +1,17 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>netcoreapp3.1</TargetFramework>
+  </PropertyGroup>
+  
+  <ItemGroup>
+    <ProjectReference Include="..\Sbanken.BackgroundTasks\Sbanken.BackgroundTasks.csproj" />
+    <ProjectReference Include="..\Sbanken.Providers\Sbanken.Providers.csproj" />
+  </ItemGroup>
+  
+  <ItemGroup>
+    <PackageReference Include="Hub.Web.ApiControllers" Version="1.0.0" />
+    <PackageReference Include="Hub.Web.HostBuilder" Version="1.0.0" />
+  </ItemGroup>
+  
+</Project>

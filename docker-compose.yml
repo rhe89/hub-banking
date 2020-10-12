@@ -1,0 +1,40 @@
+version: '3.7'
+
+networks:
+    default: 
+        external:
+            name: hub-network
+            name: hub-db-network
+            
+services:
+    sbanken-workers:
+        container_name: "sbanken_worker"
+        build:
+            context: ./src/Sbanken
+            dockerfile: Sbanken.BackgroundWorker/Dockerfile
+        image: "sbanken/worker"
+        environment:
+            - ASPNETCORE_ENVIRONMENT=${ASPNETCORE_ENVIRONMENT}
+            - SQL_DB_SBANKEN=${SQL_DB_SBANKEN}
+        restart: on-failure
+        networks:
+            - hub-network
+            - hub-db-network
+
+    sbanken-api:
+        container_name: "sbanken_api"
+        build: 
+            context: ./src/Sbanken
+            dockerfile: Sbanken.Web.Api/Dockerfile
+        image: "sbanken/api"
+        hostname: "sbanken-api"
+        ports:
+            - "${SBANKEN_API_PORT}:80"
+        environment: 
+            - ASPNETCORE_ENVIRONMENT=${ASPNETCORE_ENVIRONMENT}
+            - ASPNETCORE_URLS=http://+
+            - SQL_DB_SBANKEN=${SQL_DB_SBANKEN}
+        restart: on-failure
+        networks:
+            - hub-network
+            - hub-db-network

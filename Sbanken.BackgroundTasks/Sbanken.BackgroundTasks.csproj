@@ -1,0 +1,17 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>netstandard2.1</TargetFramework>
+    </PropertyGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\Sbanken.Constants\Sbanken.Constants.csproj" />
+      <ProjectReference Include="..\Sbanken.Data\Sbanken.Data.csproj" />
+      <ProjectReference Include="..\Sbanken.Integration\Sbanken.Integration.csproj" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <PackageReference Include="Hub.HostedServices" Version="1.0.0" />
+    </ItemGroup>
+
+</Project>

@@ -1,0 +1,15 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.1</TargetFramework>
+  </PropertyGroup>  
+  <ItemGroup>
+    <PackageReference Include="Hub.Storage.Providers" Version="1.0.0" />
+    <PackageReference Include="Hub.Web.Http" Version="1.0.0" />
+    <PackageReference Include="IdentityModel" Version="4.2.0" />
+  </ItemGroup>  
+  <ItemGroup>
+    <ProjectReference Include="..\Sbanken.Constants\Sbanken.Constants.csproj" />
+    <ProjectReference Include="..\Sbanken.Dto\Sbanken.Dto.csproj" />
+  </ItemGroup>  
+</Project>
