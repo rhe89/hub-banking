@@ -10,7 +10,7 @@ services:
     sbanken-workers:
         container_name: "sbanken_worker"
         build:
-            context: ./src/Sbanken
+            context: ./hub-sbanken
             dockerfile: Sbanken.BackgroundWorker/Dockerfile
         image: "sbanken/worker"
         environment:
@@ -24,7 +24,7 @@ services:
     sbanken-api:
         container_name: "sbanken_api"
         build: 
-            context: ./src/Sbanken
+            context: ./hub-sbanken
             dockerfile: Sbanken.Web.Api/Dockerfile
         image: "sbanken/api"
         hostname: "sbanken-api"
