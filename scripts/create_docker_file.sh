@@ -1,4 +1,7 @@
 #!/usr/bin/env bash
+
+nuget_access_token=$1
+
 read_project_file() 
 {
     csproj_file=$1
@@ -47,11 +50,11 @@ done
 
 echo "" >> Dockerfile
 
-echo COPY ./NuGet.Config ./NuGet.Config >> Dockerfile
+echo RUN dotnet nuget add source https://nuget.pkg.github.com/rhe89/index.json -n nuget -u rhe89 -p $nuget_access_token --store-password-in-clear-text >> Dockerfile
 
 echo "" >> Dockerfile
 
-echo RUN dotnet restore ./$project_name/$project_name.csproj --configfile NuGet.Config -p:HideWarningsAndErrors=true -p:EmitAssetsLogMessages=false >> Dockerfile
+echo RUN dotnet restore ./$project_name/$project_name.csproj -p:HideWarningsAndErrors=true -p:EmitAssetsLogMessages=false >> Dockerfile
 
 echo "" >> Dockerfile
 

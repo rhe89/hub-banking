@@ -1,4 +1,6 @@
 #!/usr/bin/env bash
+nuget_access_token=$1
+
 csproj_files=($(find * -name *.csproj))
 
 #Loop throuh all project files. If a project should be a deployable project, generate dockerfile for it.
@@ -12,7 +14,7 @@ do
 
         cd "$project_folder"
 
-        bash ../scripts/create_docker_file.sh
+        bash ../scripts/create_docker_file.sh $nuget_access_token
 
         cd ../
     fi
