@@ -17,7 +17,8 @@ steps:
 - task: Bash@3
   displayName: "Create docker files"
   inputs:
-    filePath: 'scripts/create_docker_files.sh $(nugetAccessToken)'
+    filePath: 'scripts/create_docker_files.sh'
+    arguments: '$(nugetAccessToken)'
 
 - task: DockerCompose@0
   displayName: "docker-compose build"
