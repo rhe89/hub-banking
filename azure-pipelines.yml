@@ -22,8 +22,6 @@ steps:
 - task: DockerCompose@0
   inputs:
     containerregistrytype: 'Azure Container Registry'
-    azureSubscription: $(azureSubscription)
-    azureContainerRegistry: $(azureContainerRegistry) 
     dockerComposeFile: '**/docker-compose.yml'
     dockerComposeFileArgs: |
       ASPNETCORE_ENVIRONMENT=Production
