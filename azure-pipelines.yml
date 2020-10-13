@@ -36,7 +36,7 @@ steps:
   inputs:
     containerregistrytype: 'Azure Container Registry'
     azureSubscription: $(azureSubscription)
-    azureContainerRegistry: $(azureContainerRegistry)
+    azureContainerRegistry: "{'loginServer':'rhesystemscontainerregistry.azurecr.io', 'id':'/subscriptions/1fc9558a-bc74-46df-9a2e-d54c65f169b0/resourceGroups/rhe-systems-rg/providers/microsoft.containerregistry/registries/rhesystemscontainerregistry'}"
     dockerComposeFile: '**/docker-compose.yml'
     dockerComposeFileArgs: |
       ASPNETCORE_ENVIRONMENT=Production
