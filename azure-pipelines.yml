@@ -19,29 +19,18 @@ steps:
   inputs:
     filePath: 'scripts/create_docker_files.sh'
 
-
 - task: DockerCompose@0
+  displayName: "docker-compose build"
   inputs:
     containerregistrytype: 'Container Registry'
     dockerRegistryEndpoint: 'docker-hub'
     dockerComposeFile: '**/docker-compose.yml'
-    dockerComposeFileArgs: |
-      ASPNETCORE_ENVIRONMENT=Production
-      SQL_DB_SBANKEN=$(sqlDbSbanken)
-      SBANKEN_API_PORT=8081
-    projectName: 'hub-sbanken'
     action: 'Build services'
-    additionalImageTags: 'rhe89'
 
 - task: DockerCompose@0
+  displayName: "docker-compose push"
   inputs:
     containerregistrytype: 'Container Registry'
     dockerRegistryEndpoint: 'docker-hub'
     dockerComposeFile: '**/docker-compose.yml'
-    dockerComposeFileArgs: |
-      ASPNETCORE_ENVIRONMENT=Production
-      SQL_DB_SBANKEN=$(sqlDbSbanken)
-      SBANKEN_API_PORT=8081
-    projectName: 'hub-sbanken'
     action: 'Push services'
-    additionalImageTags: 'rhe89'
