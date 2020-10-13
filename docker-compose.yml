@@ -1,16 +1,17 @@
 version: '3.7'
 
 networks:
-    default: 
-        external:
-            name: hub-network
-            name: hub-db-network
+    hub-network:
+        name: hub-network
+    hub-db-network:
+        name: hub-db-network
+        
             
 services:
     sbanken-workers:
         container_name: "sbanken_worker"
         build:
-            context: ./hub-sbanken
+            context: ./
             dockerfile: Sbanken.BackgroundWorker/Dockerfile
         image: "sbanken/worker"
         environment:
@@ -24,7 +25,7 @@ services:
     sbanken-api:
         container_name: "sbanken_api"
         build: 
-            context: ./hub-sbanken
+            context: ./
             dockerfile: Sbanken.Web.Api/Dockerfile
         image: "sbanken/api"
         hostname: "sbanken-api"
