@@ -13,7 +13,7 @@ services:
         build:
             context: ./
             dockerfile: Sbanken.BackgroundWorker/Dockerfile
-        image: "sbanken/worker"
+        image: "rhe89/hub/sbanken/worker"
         environment:
             - ASPNETCORE_ENVIRONMENT=${ASPNETCORE_ENVIRONMENT}
             - SQL_DB_SBANKEN=${SQL_DB_SBANKEN}
@@ -27,7 +27,7 @@ services:
         build: 
             context: ./
             dockerfile: Sbanken.Web.Api/Dockerfile
-        image: "sbanken/api"
+        image: "rhe89/hub/sbanken/api"
         hostname: "sbanken-api"
         ports:
             - "${SBANKEN_API_PORT}:80"
