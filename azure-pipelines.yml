@@ -21,22 +21,20 @@ steps:
 
 - task: DockerCompose@0
   inputs:
-    containerregistrytype: 'Azure Container Registry'
-    azureSubscription: 'Pay-As-You-Go(1fc9558a-bc74-46df-9a2e-d54c65f169b0)'
-    azureContainerRegistry: '{"loginServer":"rhesystemscontainerregistry.azurecr.io", "id" : "/subscriptions/1fc9558a-bc74-46df-9a2e-d54c65f169b0/resourceGroups/rhe-systems-rg/providers/Microsoft.ContainerRegistry/registries/rhesystemscontainerregistry"}'
+    containerregistrytype: 'Container Registry'
+    dockerRegistryEndpoint: 'docker-hub'
     dockerComposeFile: '**/docker-compose.yml'
     dockerComposeFileArgs: |
       ASPNETCORE_ENVIRONMENT=Production
       SQL_DB_SBANKEN=$(sqlDbSbanken)
       SBANKEN_API_PORT=8081
-    projectName: "hub-sbanken"
+    projectName: 'hub-sbanken'
     action: 'Build services'
 
 - task: DockerCompose@0
   inputs:
-    containerregistrytype: 'Azure Container Registry'
-    azureSubscription: 'Pay-As-You-Go(1fc9558a-bc74-46df-9a2e-d54c65f169b0)'
-    azureContainerRegistry: '{"loginServer":"rhesystemscontainerregistry.azurecr.io", "id" : "/subscriptions/1fc9558a-bc74-46df-9a2e-d54c65f169b0/resourceGroups/rhe-systems-rg/providers/Microsoft.ContainerRegistry/registries/rhesystemscontainerregistry"}'
+    containerregistrytype: 'Container Registry'
+    dockerRegistryEndpoint: 'docker-hub'
     dockerComposeFile: '**/docker-compose.yml'
     dockerComposeFileArgs: |
       ASPNETCORE_ENVIRONMENT=Production
