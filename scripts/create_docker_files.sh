@@ -12,7 +12,7 @@ do
 
         cd "$project_folder"
 
-        sh ../scripts/create_docker_file.sh
+        bash ../scripts/create_docker_file.sh
 
         cd ../
     fi
