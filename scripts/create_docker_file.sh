@@ -2,8 +2,6 @@ read_project_file()
 {
     csproj_file=$1
 
-    local project_references1=()
-
     while IFS= read -r line
     do
     if [[ $line == *"ProjectReference"* ]]; then
