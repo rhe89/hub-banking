@@ -14,8 +14,15 @@ variables:
 
 steps:
 - task: Bash@3
+  displayName: "Create docker files"
   inputs:
     filePath: 'scripts/create_docker_files.sh'
+
+- task: DockerInstaller@0
+  displayName: "Install docker"
+  inputs:
+    dockerVersion: '19.03.13'
+
 - task: Docker@2
   inputs:
     command: 'build'
