@@ -18,6 +18,10 @@ steps:
   displayName: "Create docker files"
   inputs:
     filePath: 'scripts/create_docker_files.sh'
+- task: Docker@2
+  inputs:
+    containerRegistry: 'docker-hub'
+    command: 'login'
 
 - task: DockerCompose@0
   inputs:
