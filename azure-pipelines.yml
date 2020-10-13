@@ -18,10 +18,7 @@ steps:
   displayName: "Create docker files"
   inputs:
     filePath: 'scripts/create_docker_files.sh'
-- task: Docker@2
-  inputs:
-    containerRegistry: 'docker-hub'
-    command: 'login'
+
 
 - task: DockerCompose@0
   inputs:
@@ -34,6 +31,7 @@ steps:
       SBANKEN_API_PORT=8081
     projectName: 'hub-sbanken'
     action: 'Build services'
+    additionalImageTags: 'rhe89'
 
 - task: DockerCompose@0
   inputs:
@@ -46,3 +44,4 @@ steps:
       SBANKEN_API_PORT=8081
     projectName: 'hub-sbanken'
     action: 'Push services'
+    additionalImageTags: 'rhe89'
