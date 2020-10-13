@@ -1,3 +1,4 @@
+#!/usr/bin/env bash
 csproj_files=($(find * -name *.csproj))
 
 #Loop throuh all project files. If a project should be a deployable project, generate dockerfile for it.

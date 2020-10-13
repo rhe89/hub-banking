@@ -1,3 +1,4 @@
+#!/usr/bin/env bash
 read_project_file() 
 {
     csproj_file=$1
