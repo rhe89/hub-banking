@@ -1,5 +1,8 @@
 cd ..
 
+echo "ls after cd .. ---------------"
+ls 
+
 csproj_files=($(find * -name *.csproj))
 
 #Loop throuh all project files. If a project should be a deployable project, generate dockerfile for it.
@@ -10,13 +13,20 @@ do
         project_folder=${project_folder%.csproj*}
 
         domain=${project_folder%%.*}
+        echo "before pwd -> cd project_folder ---------------"
+        pwd 
 
         cd "$project_folder"
+
+        echo "before pwd -> running create docker file ---------------"
+        pwd 
 
         sh ../scripts/create_docker_file.sh
 
         cd ../
-
+        
+        echo "after pwd -> cd ../ ---------------"
+        pwd 
     fi
 done
 
