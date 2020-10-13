@@ -23,8 +23,6 @@ csproj_file=$(find *.csproj)
 project_name=${csproj_file##./}
 project_name=${project_name%.csproj*}
 
-project_references=()
-
 # Read all project references in "project reference tree" recursively 
 project_references+=($(read_project_file $csproj_file))
 
