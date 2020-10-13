@@ -27,4 +27,14 @@ steps:
       ASPNETCORE_ENVIRONMENT=Production
       SQL_DB_SBANKEN=$(sqlDbSbanken)
       SBANKEN_API_PORT=8081
+    action: 'Build services'
+
+- task: DockerCompose@0
+  inputs:
+    containerregistrytype: 'Azure Container Registry'
+    dockerComposeFile: '**/docker-compose.yml'
+    dockerComposeFileArgs: |
+      ASPNETCORE_ENVIRONMENT=Production
+      SQL_DB_SBANKEN=$(sqlDbSbanken)
+      SBANKEN_API_PORT=8081
     action: 'Push services'
