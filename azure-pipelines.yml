@@ -23,6 +23,6 @@ steps:
   inputs:
     containerRegistry: 'rhe-systems-container-registry'
     repository: 'hub-sbanken'
-    command: 'build'
+    command: 'buildAndPush'
     Dockerfile: '**/Dockerfile'
     buildContext: './'
