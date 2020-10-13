@@ -13,9 +13,9 @@ variables:
   buildConfiguration: 'Release'
 
 steps:
-- task: CmdLine@2
+- task: Bash@3
   inputs:
-    script: 'sh scripts/create_docker_files.sh'
+    filePath: 'scripts/create_docker_files.sh'
 - task: Docker@2
   inputs:
     command: 'build'
