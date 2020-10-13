@@ -27,6 +27,7 @@ steps:
       ASPNETCORE_ENVIRONMENT=Production
       SQL_DB_SBANKEN=$(sqlDbSbanken)
       SBANKEN_API_PORT=8081
+    projectName: "hub-sbanken"
     action: 'Build services'
 
 - task: DockerCompose@0
@@ -39,4 +40,5 @@ steps:
       ASPNETCORE_ENVIRONMENT=Production
       SQL_DB_SBANKEN=$(sqlDbSbanken)
       SBANKEN_API_PORT=8081
+    projectName: "hub-sbanken"
     action: 'Push services'
