@@ -1,5 +1,3 @@
-cd ..
-
 echo "ls after cd .. ---------------"
 ls 
 
@@ -29,5 +27,3 @@ do
         pwd 
     fi
 done
-
-cd scripts
