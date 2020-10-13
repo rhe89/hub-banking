@@ -12,15 +12,11 @@ pool:
 variables:
   buildConfiguration: 'Release'
 
-
 steps:
 - task: Bash@3
   inputs:
-    targetType: 'inline'
-    script: |
-      # Write your commands here
-      
-      ls
-- task: Bash@3
-  inputs:
     filePath: 'scripts/create_docker_files.sh'
+- task: Docker@2
+  inputs:
+    command: 'build'
+    Dockerfile: '**/Dockerfile'
