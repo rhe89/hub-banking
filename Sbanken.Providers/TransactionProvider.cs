@@ -22,7 +22,7 @@ namespace Sbanken.Providers
         {
             var transactions = await _dbRepository
                 .GetManyAsync<Transaction>(
-                    x => x.Text.ToLower(new CultureInfo("no")).Contains(text.ToLower()), nameof(Transaction.Account));
+                    x => x.Text.ToLowerInvariant().Contains(text.ToLowerInvariant()), nameof(Transaction.Account));
             
             return transactions.Select(EntityToDtoMapper.Map).ToList();
         }
