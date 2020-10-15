@@ -126,11 +126,7 @@ namespace Sbanken.BackgroundTasks
             _logger.LogInformation($"Updating account {accountDto.Name}");
 
             accountInDb.CurrentBalance = accountDto.Available;
-
-            if (accountInDb.AccountType != accountDto.AccountType)
-            {
-                accountInDb.AccountType = accountDto.AccountType;
-            }
+            accountInDb.AccountType = accountDto.AccountType;
             
             dbRepository.Update(accountInDb);
         }
