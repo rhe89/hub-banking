@@ -50,7 +50,7 @@ done
 
 echo "" >> Dockerfile
 
-echo RUN dotnet nuget add source https://nuget.pkg.github.com/rhe89/index.json -n github -u rhe89 -p $nuget_access_token --store-password-in-clear-text >> Dockerfile
+echo RUN dotnet nuget add source https://nuget.pkg.github.com/rhe89/index.json -n github -u rhe89 -p "$nuget_access_token" --store-password-in-clear-text >> Dockerfile
 
 echo "" >> Dockerfile
 
