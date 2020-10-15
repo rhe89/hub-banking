@@ -67,11 +67,15 @@ namespace Sbanken.Integration
 
                 var response = await Get<TransactionResponseDto>(endpoint, requestParameters);
 
-                if (!response.Success) 
+                if (!response.Success)
+                {
                     continue;
+                }
                 
                 foreach (var item in response.Data.Items)
+                {
                     item.AccountName = account.Name;
+                }
 
                 transactions.AddRange(response.Data.Items);
             }
@@ -93,10 +97,10 @@ namespace Sbanken.Integration
                 ClientId = clientId,
                 ClientSecret = secret,
             });
-
+            
             if (tokenResponse.IsError)
             {
-                throw new Exception(tokenResponse.ErrorDescription);
+                throw new HttpRequestException(tokenResponse.ErrorDescription);
             }
 
             HttpClient.SetBearerToken(tokenResponse.AccessToken);

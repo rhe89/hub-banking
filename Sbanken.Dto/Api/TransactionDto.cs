@@ -13,9 +13,14 @@ namespace Sbanken.Dto.Api
         public int CompareTo(TransactionDto other)
         {
             if (CreatedDate > other.CreatedDate)
+            {
                 return 1;
+            } 
+            
             if (CreatedDate < other.CreatedDate)
+            {
                 return -1;
+            }
 
             return 0;
         }

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Threading.Tasks;
 using Hub.Storage.Repository;
@@ -21,7 +22,7 @@ namespace Sbanken.Providers
         {
             var transactions = await _dbRepository
                 .GetManyAsync<Transaction>(
-                    x => x.Text.ToLower().Contains(text.ToLower()), nameof(Transaction.Account));
+                    x => x.Text.ToLower(new CultureInfo("no")).Contains(text.ToLower()), nameof(Transaction.Account));
             
             return transactions.Select(EntityToDtoMapper.Map).ToList();
         }

@@ -2,7 +2,7 @@ using Microsoft.Extensions.Hosting;
 
 namespace Sbanken.BackgroundWorker
 {
-    public class Program
+    public static class Program
     {
         public static void Main(string[] args)
         {

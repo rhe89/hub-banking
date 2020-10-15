@@ -49,9 +49,13 @@ namespace Sbanken.Dto.Api
         public int CompareTo(Period other)
         {
             if (_periodDate > other._periodDate)
+            {
                 return 1;
+            }
             if (_periodDate < other._periodDate)
+            {
                 return -1;
+            }
 
             return 0;
         }

@@ -2,22 +2,22 @@
 {
     public static class SettingConstants
     {
-        public const string SbankenClientId = "SbankenApiClientId";
+        public static readonly string SbankenClientId = "SbankenApiClientId";
 
-        public const string SbankenSecret = "SbankenApiSecret";
+        public static readonly string SbankenSecret = "SbankenApiSecret";
 
-        public const string SbankenCustomerId = "SbankenApiCustomerId";
+        public static readonly string SbankenCustomerId = "SbankenApiCustomerId";
 
-        public const string SbankenDiscoveryEndpoint = "SbankenApiDiscoveryEndpoint";
+        public static readonly string SbankenDiscoveryEndpoint = "SbankenApiDiscoveryEndpoint";
 
-        public const string SbankenApiBaseAddress = "SbankenApiBaseAdress";
+        public static readonly string SbankenApiBaseAddress = "SbankenApiBaseAdress";
 
-        public const string SbankenBankBasePath = "SbankenApiBankBasePath";
+        public static readonly string SbankenBankBasePath = "SbankenApiBankBasePath";
 
-        public const string SbankenCustomersBasePath = "SbankenApiCustomersBasePath";
+        public static readonly string SbankenCustomersBasePath = "SbankenApiCustomersBasePath";
 
-        public const string TransactionsStartDate = "TransactionsStartDate";
+        public static readonly string TransactionsStartDate = "TransactionsStartDate";
 
-        public const string TransactionsEndDate = "TransactionsEndDate";
+        public static readonly string TransactionsEndDate = "TransactionsEndDate";
     }
 }

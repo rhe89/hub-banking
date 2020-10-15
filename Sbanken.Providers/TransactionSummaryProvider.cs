@@ -64,7 +64,9 @@ namespace Sbanken.Providers
             var hasTransactionsInCurrentPeriod = savingPeriods.TryGetValue(currentPeriod, out var currentTransactionPeriod);
 
             if (!hasTransactionsInCurrentPeriod)
+            {
                 return null;
+            }
             
             var previousPeriodDate = currentPeriod.PreviousPeriodDate();
 
@@ -73,7 +75,9 @@ namespace Sbanken.Providers
             var hasTransactionsInPreviousPeriod = savingPeriods.TryGetValue(previousPeriod, out var previousTransactionPeriod);
 
             if (!hasTransactionsInPreviousPeriod)
+            {
                 return currentTransactionPeriod;
+            }
 
             currentTransactionPeriod.PreviousPeriodAmount = previousTransactionPeriod.Amount;
             currentTransactionPeriod.PreviousPeriodTransactions = previousTransactionPeriod.Transactions;

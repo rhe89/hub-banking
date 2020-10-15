@@ -37,7 +37,7 @@ namespace Sbanken.BackgroundTasks
             await FetchAndUpdateCurrentAccountBalances();
         }
 
-        public async Task FetchAndUpdateCurrentAccountBalances()
+        private async Task FetchAndUpdateCurrentAccountBalances()
         {
             var accountDtos = await FetchCurrentAccountBalances();
 
@@ -70,7 +70,9 @@ namespace Sbanken.BackgroundTasks
                 }
             }
             if (ex != null)
-                throw (ex);
+            {
+                throw ex;
+            }
 
             _logger.LogInformation($"Finished fetching accounts from Sbanken. Found {accounts.Count} accounts.");
 
@@ -91,9 +93,13 @@ namespace Sbanken.BackgroundTasks
                 var accountInDb = existingAccounts.FirstOrDefault(x => x.Name == accountDto.Name);
 
                 if (accountInDb == null)
+                {
                     CreateAccount(accountDto, dbRepository);
+                }
                 else
+                {
                     UpdateAccount(accountInDb, accountDto, dbRepository);
+                }
 
                 UpdateAccountBalanceHistory(accountInDb, dbRepository);
             }
@@ -122,8 +128,9 @@ namespace Sbanken.BackgroundTasks
             accountInDb.CurrentBalance = accountDto.Available;
 
             if (accountInDb.AccountType != accountDto.AccountType)
+            {
                 accountInDb.AccountType = accountDto.AccountType;
-                
+            }
             
             dbRepository.Update(accountInDb);
         }

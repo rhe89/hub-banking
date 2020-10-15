@@ -40,7 +40,7 @@ namespace Sbanken.BackgroundTasks
             await UpdateTransactions();
         }
 
-        public async Task UpdateTransactions()
+        private async Task UpdateTransactions()
         {
             using var scope = _serviceScopeFactory.CreateScope();
 
@@ -53,7 +53,10 @@ namespace Sbanken.BackgroundTasks
             var accounts = dbRepository.GetMany<Account>()
                 .ToList();
 
-            if (!accounts.Any()) return;
+            if (!accounts.Any())
+            {
+                return;
+            }
 
             SetStartAndEndDate(out var startDate, out var endDate);
 
@@ -68,15 +71,21 @@ namespace Sbanken.BackgroundTasks
             foreach (var transactionDto in transactionDtos)
             {
                 if (transactionDto.IsReservation)
+                {
                     continue;
+                }
 
                 var accountId = accounts.First(x => x.Name == transactionDto.AccountName)?.Id;
 
                 if (accountId == null)
+                {
                     continue;
+                }
 
                 if (transactions.Any(x => x.Text == transactionDto.Text && x.TransactionDate == transactionDto.AccountingDate))
+                {
                     continue;
+                }
 
                 var transactionId = transactionDto.TransactionDetails != null
                     ? transactionDto.TransactionDetails.TransactionId
@@ -95,7 +104,6 @@ namespace Sbanken.BackgroundTasks
                 dbRepository.Add(transaction);
                 
                 transactionsAdded++;
-                
             }
             
             _logger.LogInformation($"Added {transactionsAdded} transactions to DB");
@@ -107,7 +115,7 @@ namespace Sbanken.BackgroundTasks
         {
             startDate = _settingProvider.GetSetting<DateTime>(SettingConstants.TransactionsStartDate);
             endDate = _settingProvider.GetSetting<DateTime?>(SettingConstants.TransactionsEndDate);
-
+    
             if (!endDate.HasValue)
             {
                 startDate = DateTime.Now.AddDays(-365);
@@ -120,15 +128,20 @@ namespace Sbanken.BackgroundTasks
                     $"Start and end date spanned more than 365 days. Setting start date to {startDate.ToShortDateString()} ");
             }
 
-
+            var logMessage = $"Getting transactions made after {startDate.ToShortDateString()}";
+            
+            
             if (endDate.HasValue)
-                _logger.LogInformation(
-                    $"Getting transactions made between {startDate.ToShortDateString()}-{endDate.Value.ToShortDateString()}");
-            else
-                _logger.LogInformation($"Getting transactions made after {startDate.ToShortDateString()}");
+            {
+                logMessage = $"Getting transactions made between {startDate.ToShortDateString()}-{endDate.Value.ToShortDateString()}";
+            }
+                
+            _logger.LogInformation(logMessage);
 
             if (startDate.Date < DateTime.Now.Date)
+            {
                 startDate = startDate.AddDays(1);
+            }
         }
     }
 }

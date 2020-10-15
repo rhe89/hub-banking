@@ -18,7 +18,7 @@ namespace Sbanken.Web.Api
 
         protected override void RegisterDomainDependenciesForQueueHostedService(IServiceCollection serviceCollection, IConfiguration configuration)
         {
-            
+            // Not needed since all dependencies are registered elsewhere
         }
 
         protected override void RegisterDomainDependenciesForApi(IServiceCollection serviceCollection, IConfiguration configuration)
