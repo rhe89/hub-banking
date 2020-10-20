@@ -11,7 +11,7 @@
     </ItemGroup>
 
     <ItemGroup>
-      <PackageReference Include="Hub.HostedServices" Version="1.0.0" />
+      <PackageReference Include="Hub.HostedServices" Version="1.0.6" />
     </ItemGroup>
 
 </Project>
