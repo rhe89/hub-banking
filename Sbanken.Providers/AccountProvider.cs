@@ -2,49 +2,47 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Hub.Storage.Repository;
-using Sbanken.Data.Entities;
-using Sbanken.Dto.Api;
+using Hub.Storage.Core.Repository;
+using Microsoft.EntityFrameworkCore;
+using Sbanken.Core.Dto.Data;
+using Sbanken.Core.Entities;
+using Sbanken.Core.Providers;
 
 namespace Sbanken.Providers
 {
     public class AccountProvider : IAccountProvider
     {
-        private readonly IDbRepository _dbRepository;
+        private readonly IHubDbRepository _dbRepository;
 
-        public AccountProvider(IDbRepository dbRepository)
+        public AccountProvider(IHubDbRepository dbRepository)
         {
             _dbRepository = dbRepository;
         }
         
         public async Task<IEnumerable<AccountDto>> GetAccounts()
         {
-            var accounts = await _dbRepository.GetManyAsync<Account>();
-            
-            return accounts.Select(x => new AccountDto
-            {
-                Name = x.Name,
-                Balance = x.CurrentBalance
-            });
+            var accounts = await _dbRepository.AllAsync<Account, AccountDto>();
+
+            return accounts;
         }
         
         public async Task<IEnumerable<AccountDto>> GetStandardAccounts()
         {
-            var accounts = await GetAccountsOfType("Standard account", nameof(Account.Transactions));
-            
-            return accounts.Select(EntityToDtoMapper.Map);
+            var accounts = await GetAccountsOfType("Standard account");
+
+            return _dbRepository.Map<IEnumerable<Account>, IEnumerable<AccountDto>>(accounts);
         }
 
         public async Task<IEnumerable<AccountDto>> GetCreditAccounts()
         {
-            var accounts = await GetAccountsOfType("Creditcard account", nameof(Account.Transactions));
+            var accounts = await GetAccountsOfType("Creditcard account");
             
-            return accounts.Select(EntityToDtoMapper.Map);
+            return _dbRepository.Map<IEnumerable<Account>, IEnumerable<AccountDto>>(accounts);
         }
 
         public async Task<IEnumerable<AccountDto>> GetSavingsAccounts()
         {
-            var accounts =  await GetAccountsOfType("High interest account", nameof(Account.Transactions), nameof(Account.AccountBalances));
+            var accounts =  await GetAccountsOfType("High interest account");
             
             var accountDtos = new List<AccountDto>();
 
@@ -53,7 +51,7 @@ namespace Sbanken.Providers
                 var lastMonthsBalance = GetLastMonthsBalance(account);
                 var lastYearsBalance = GetLastYearsBalance(account);
 
-                var accountDto = EntityToDtoMapper.Map(account);
+                var accountDto = _dbRepository.Map<Account, AccountDto>(account);
 
                 accountDto.LastMonthBalance = lastMonthsBalance?.Balance ?? 0;
                 accountDto.LastYearBalance = lastYearsBalance?.Balance ?? 0;
@@ -64,12 +62,13 @@ namespace Sbanken.Providers
             return accountDtos;
         }
         
-        private async Task<IEnumerable<Account>> GetAccountsOfType(string accountType, params string[] includes)
+        private async Task<IEnumerable<Account>> GetAccountsOfType(string accountType)
         {
             var accounts = await _dbRepository
-                .GetManyAsync<Account>(
-                    x => x.AccountType == accountType, 
-                    includes);
+                .Where<Account>(x => x.AccountType == accountType)
+                .Include(x => x.Transactions)
+                .Include(x => x.AccountBalances)
+                .ToListAsync();
 
             return accounts;
         }

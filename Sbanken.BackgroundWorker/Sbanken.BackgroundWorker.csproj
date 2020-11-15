@@ -6,5 +6,10 @@
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\Sbanken.BackgroundTasks\Sbanken.BackgroundTasks.csproj" />
+    <ProjectReference Include="..\Sbanken.Data\Sbanken.Data.csproj" />
+    <ProjectReference Include="..\Sbanken.Integration\Sbanken.Integration.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="Hub.Web.Http" Version="1.0.1" />
   </ItemGroup>
 </Project>

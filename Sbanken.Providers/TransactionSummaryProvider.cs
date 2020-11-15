@@ -2,7 +2,9 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Sbanken.Dto.Api;
+using Sbanken.Core.Dto.Api;
+using Sbanken.Core.Dto.Data;
+using Sbanken.Core.Providers;
 
 namespace Sbanken.Providers
 {
@@ -54,7 +56,7 @@ namespace Sbanken.Providers
 
             foreach (var transaction in transactions)
             {
-                var periodKey = GetPeriod(periodType, transaction.CreatedDate);
+                var periodKey = GetPeriod(periodType, transaction.TransactionDate);
 
                 AddOrUpdatePeriod(periodKey, transaction, savingPeriods);
             }

@@ -13,13 +13,11 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Workers", "Workers", "{F05F
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Sbanken.Providers", "Sbanken.Providers\Sbanken.Providers.csproj", "{12560314-08C7-4455-88D6-486756CD96A4}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Sbanken.Dto", "Sbanken.Dto\Sbanken.Dto.csproj", "{C1CD339D-0AE0-478C-A098-FBD537AC8459}"
-EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Web", "Web", "{89FD8883-B3A1-4EEC-AE12-CF1B487B4499}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Sbanken.BackgroundTasks", "Sbanken.BackgroundTasks\Sbanken.BackgroundTasks.csproj", "{8AEE4057-0312-49EC-83AA-3BF0972F340C}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Sbanken.Constants", "Sbanken.Constants\Sbanken.Constants.csproj", "{61867F98-964C-4CBF-9867-20B0143280D9}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Sbanken.Core", "Sbanken.Core\Sbanken.Core.csproj", "{1594F939-115A-4B97-B904-C8E585B85C22}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -51,18 +49,14 @@ Global
 		{12560314-08C7-4455-88D6-486756CD96A4}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{12560314-08C7-4455-88D6-486756CD96A4}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{12560314-08C7-4455-88D6-486756CD96A4}.Release|Any CPU.Build.0 = Release|Any CPU
-		{C1CD339D-0AE0-478C-A098-FBD537AC8459}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{C1CD339D-0AE0-478C-A098-FBD537AC8459}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{C1CD339D-0AE0-478C-A098-FBD537AC8459}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{C1CD339D-0AE0-478C-A098-FBD537AC8459}.Release|Any CPU.Build.0 = Release|Any CPU
 		{8AEE4057-0312-49EC-83AA-3BF0972F340C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{8AEE4057-0312-49EC-83AA-3BF0972F340C}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{8AEE4057-0312-49EC-83AA-3BF0972F340C}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{8AEE4057-0312-49EC-83AA-3BF0972F340C}.Release|Any CPU.Build.0 = Release|Any CPU
-		{61867F98-964C-4CBF-9867-20B0143280D9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{61867F98-964C-4CBF-9867-20B0143280D9}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{61867F98-964C-4CBF-9867-20B0143280D9}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{61867F98-964C-4CBF-9867-20B0143280D9}.Release|Any CPU.Build.0 = Release|Any CPU
+		{1594F939-115A-4B97-B904-C8E585B85C22}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1594F939-115A-4B97-B904-C8E585B85C22}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1594F939-115A-4B97-B904-C8E585B85C22}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1594F939-115A-4B97-B904-C8E585B85C22}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{1243C7B6-EC39-480A-BF2A-872DFA29F722} = {F05FC68A-1B98-4B5E-9297-840846F216E7}

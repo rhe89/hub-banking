@@ -1,18 +1,16 @@
-using Hub.Storage.Entities;
+using Hub.Storage.Repository.DatabaseContext;
 using Microsoft.EntityFrameworkCore;
-using Sbanken.Data.Entities;
+using Sbanken.Core.Entities;
 
 namespace Sbanken.Data
 {
-    public class SbankenDbContext : DbContext
+    public class SbankenDbContext : HostedServiceDbContext
     {
         public SbankenDbContext(DbContextOptions<SbankenDbContext> options) : base(options) { }
 
         protected override void OnModelCreating(ModelBuilder builder)
         {
-            builder.AddSettingEntity();
-            builder.AddWorkerLogEntity();
-            builder.AddBackgroundTaskConfigurationEntity();
+            base.OnModelCreating(builder);
             
             builder.Entity<Account> ()
                 .ToTable(schema: "dbo", name: "Account");

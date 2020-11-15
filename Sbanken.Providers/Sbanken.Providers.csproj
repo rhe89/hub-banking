@@ -5,12 +5,11 @@
     </PropertyGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\Sbanken.Data\Sbanken.Data.csproj" />
-      <ProjectReference Include="..\Sbanken.Dto\Sbanken.Dto.csproj" />
+      <ProjectReference Include="..\Sbanken.Core\Sbanken.Core.csproj" />
     </ItemGroup>
 
     <ItemGroup>
-      <PackageReference Include="Hub.Storage.Repository" Version="1.0.2" />
+      <PackageReference Include="Microsoft.EntityFrameworkCore" Version="3.1.8" />
     </ItemGroup>
 
 </Project>

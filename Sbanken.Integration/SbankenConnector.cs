@@ -1,13 +1,14 @@
-﻿using Sbanken.Dto.Sbanken;
-using IdentityModel.Client;
+﻿using IdentityModel.Client;
 using System;
 using System.Collections.Generic;
 using System.Net.Http;
 using System.Threading.Tasks;
-using Hub.Storage.Providers;
+using Hub.Storage.Core.Providers;
 using Hub.Web.Http;
 using Microsoft.Extensions.Logging;
-using Sbanken.Constants;
+using Sbanken.Core.Constants;
+using Sbanken.Core.Dto.Sbanken;
+using Sbanken.Core.Integration;
 
 namespace Sbanken.Integration
 {
@@ -29,7 +30,7 @@ namespace Sbanken.Integration
             HttpClient.BaseAddress = new Uri(apiBaseAddress);
         }
 
-        public async Task<List<AccountDto>> GetAccounts()
+        public async Task<List<SbankenAccount>> GetAccounts()
         {
             await AuthenticateClient();
 
@@ -37,12 +38,12 @@ namespace Sbanken.Integration
 
             var endpoint = $"{bankBasePath}/api/v1/Accounts";
             
-            var response = await Get<AccountResponseDto>(endpoint);
+            var response = await Get<SbankenAccountResponse>(endpoint);
 
-            return !response.Success ? new List<AccountDto>() : response.Data.Items;
+            return !response.Success ? new List<SbankenAccount>() : response.Data.Items;
         }
 
-        public async Task<IList<TransactionDto>> GetTransactions(DateTime startDate, DateTime? endDate)
+        public async Task<IList<SbankenTransaction>> GetTransactions(DateTime startDate, DateTime? endDate)
         {
             var query = endDate.HasValue ? 
                 $"startDate={startDate.ToShortDateString()}&endDate={endDate.Value.ToShortDateString()}" : 
@@ -51,7 +52,7 @@ namespace Sbanken.Integration
             return await GetTransactions(query);
         }
 
-        private async Task<IList<TransactionDto>> GetTransactions(string requestParameters)
+        private async Task<IList<SbankenTransaction>> GetTransactions(string requestParameters)
         {
             await AuthenticateClient();
 
@@ -59,13 +60,13 @@ namespace Sbanken.Integration
             
             var bankBasePath = _settingProvider.GetSetting<string>(SettingConstants.SbankenBankBasePath);
 
-            var transactions = new List<TransactionDto>();
+            var transactions = new List<SbankenTransaction>();
 
             foreach (var account in accounts)
             {
                 var endpoint = $"{bankBasePath}/api/v1/transactions/{account.AccountId}";
 
-                var response = await Get<TransactionResponseDto>(endpoint, requestParameters);
+                var response = await Get<SbankenTransactionResponse>(endpoint, requestParameters);
 
                 if (!response.Success)
                 {

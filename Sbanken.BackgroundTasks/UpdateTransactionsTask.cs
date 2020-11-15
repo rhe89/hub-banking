@@ -3,14 +3,15 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Hub.HostedServices.Tasks;
-using Hub.Storage.Factories;
-using Hub.Storage.Providers;
-using Hub.Storage.Repository;
+using Hub.Storage.Core.Factories;
+using Hub.Storage.Core.Providers;
+using Hub.Storage.Core.Repository;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using Sbanken.Constants;
-using Sbanken.Data.Entities;
-using Sbanken.Integration;
+using Sbanken.Core.Constants;
+using Sbanken.Core.Dto.Data;
+using Sbanken.Core.Entities;
+using Sbanken.Core.Integration;
 
 namespace Sbanken.BackgroundTasks
 {
@@ -44,13 +45,13 @@ namespace Sbanken.BackgroundTasks
         {
             using var scope = _serviceScopeFactory.CreateScope();
 
-            using var dbRepository = scope.ServiceProvider.GetService<IScopedDbRepository>();
+            using var dbRepository = scope.ServiceProvider.GetService<IScopedHubDbRepository>();
             
-            var transactions = dbRepository.GetMany<Transaction>()
-                .OrderByDescending(transaction => transaction.CreatedDate)
+            var transactions = dbRepository.All<Transaction, TransactionDto>()
+                .OrderByDescending(transaction => transaction.TransactionDate)
                 .ToList();
 
-            var accounts = dbRepository.GetMany<Account>()
+            var accounts = dbRepository.All<Account, AccountDto>()
                 .ToList();
 
             if (!accounts.Any())
@@ -82,7 +83,7 @@ namespace Sbanken.BackgroundTasks
                     continue;
                 }
 
-                if (transactions.Any(x => x.Text == transactionDto.Text && x.TransactionDate == transactionDto.AccountingDate))
+                if (transactions.Any(x => x.Name == transactionDto.Text && x.TransactionDate == transactionDto.AccountingDate))
                 {
                     continue;
                 }
@@ -91,17 +92,17 @@ namespace Sbanken.BackgroundTasks
                     ? transactionDto.TransactionDetails.TransactionId
                     : transactionDto.CardDetails?.TransactionId;
 
-                var transaction = new Transaction
+                var transaction = new TransactionDto
                 {
                     Amount = transactionDto.Amount,
-                    Text = transactionDto.Text,
+                    Name = transactionDto.Text,
                     TransactionType = transactionDto.TransactionTypeCode,
                     TransactionDate = transactionDto.AccountingDate,
                     AccountId = accountId.Value,
-                    TransactionId = transactionId
+                    TransactionIdentifier = transactionId
                 };
 
-                dbRepository.Add(transaction);
+                dbRepository.Add<Transaction, TransactionDto>(transaction);
                 
                 transactionsAdded++;
             }

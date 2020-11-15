@@ -1,4 +1,6 @@
+using Hub.HostedServices.Timer;
 using Microsoft.Extensions.Hosting;
+using Sbanken.Data;
 
 namespace Sbanken.BackgroundWorker
 {
@@ -6,7 +8,10 @@ namespace Sbanken.BackgroundWorker
     {
         public static void Main(string[] args)
         {
-            new SbankenWorkerTimerHostBuilder(args).Build().Run();
+            new BackgroundWorker<DependencyRegistrationFactory, SbankenDbContext>(args, "SQL_DB_SBANKEN")
+                .CreateHostBuilder()
+                .Build()
+                .Run();
         }
     }
 }

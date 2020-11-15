@@ -5,11 +5,7 @@
     </PropertyGroup>
 
     <ItemGroup>
-      <PackageReference Include="Hub.HostedServices" Version="1.0.7" />
-    </ItemGroup>
-
-    <ItemGroup>
-      <ProjectReference Include="..\Sbanken.Core\Sbanken.Core.csproj" />
+      <PackageReference Include="Hub.Storage.Core" Version="1.0.4" />
     </ItemGroup>
 
 </Project>

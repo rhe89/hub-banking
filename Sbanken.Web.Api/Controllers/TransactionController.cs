@@ -1,7 +1,7 @@
 ﻿using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
-using Sbanken.Providers;
+using Sbanken.Core.Providers;
 
 namespace Sbanken.Web.Api.Controllers
 {
