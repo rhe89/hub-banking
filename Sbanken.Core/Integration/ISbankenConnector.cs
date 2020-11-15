@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using Sbanken.Core.Dto.Sbanken;
+using Sbanken.Core.Dto.Integration;
 
 namespace Sbanken.Core.Integration
 {

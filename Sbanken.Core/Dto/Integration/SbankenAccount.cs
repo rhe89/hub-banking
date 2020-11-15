@@ -1,4 +1,4 @@
-﻿namespace Sbanken.Core.Dto.Sbanken
+﻿namespace Sbanken.Core.Dto.Integration
 {
     public class SbankenAccount
     {

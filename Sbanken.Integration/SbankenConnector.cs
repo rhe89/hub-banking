@@ -7,7 +7,7 @@ using Hub.Storage.Core.Providers;
 using Hub.Web.Http;
 using Microsoft.Extensions.Logging;
 using Sbanken.Core.Constants;
-using Sbanken.Core.Dto.Sbanken;
+using Sbanken.Core.Dto.Integration;
 using Sbanken.Core.Integration;
 
 namespace Sbanken.Integration

@@ -1,10 +1,10 @@
 ﻿using System.Collections.Generic;
 
-namespace Sbanken.Core.Dto.Sbanken
+namespace Sbanken.Core.Dto.Integration
 {
-    public class SbankenAccountResponse
+    public class SbankenTransactionResponse
     {
-        public List<SbankenAccount> Items { get; set; }
+        public List<SbankenTransaction> Items { get; set; }
         public bool IsError { get; set; }
         public string ErrorMessage { get; set; }
     }

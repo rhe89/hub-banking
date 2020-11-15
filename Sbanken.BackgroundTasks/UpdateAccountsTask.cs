@@ -10,7 +10,7 @@ using Hub.Storage.Core.Repository;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Sbanken.Core.Dto.Data;
-using Sbanken.Core.Dto.Sbanken;
+using Sbanken.Core.Dto.Integration;
 using Sbanken.Core.Entities;
 using Sbanken.Core.Integration;
 
