@@ -1,4 +1,4 @@
-using Hub.HostedServices.Timer;
+using Hub.HostedServices.TimerHost;
 using Microsoft.Extensions.Hosting;
 using Sbanken.Data;
 
