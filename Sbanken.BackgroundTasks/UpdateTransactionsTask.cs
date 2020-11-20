@@ -6,7 +6,6 @@ using Hub.HostedServices.Tasks;
 using Hub.Storage.Core.Factories;
 using Hub.Storage.Core.Providers;
 using Hub.Storage.Core.Repository;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Sbanken.Core.Constants;
 using Sbanken.Core.Dto.Data;
@@ -18,7 +17,7 @@ namespace Sbanken.BackgroundTasks
     public class UpdateTransactionsTask : BackgroundTask
     {
         private readonly ISettingProvider _settingProvider;
-        private readonly IServiceScopeFactory _serviceScopeFactory;
+        private readonly IHubDbRepository _dbRepository;
         private readonly ISbankenConnector _sbankenConnector;
         private readonly ILogger<UpdateTransactionsTask> _logger;
 
@@ -26,13 +25,13 @@ namespace Sbanken.BackgroundTasks
             IBackgroundTaskConfigurationFactory backgroundTaskConfigurationFactory,
             ISbankenConnector sbankenConnector, 
             ILoggerFactory loggerFactory, 
-            IServiceScopeFactory serviceScopeFactory,
-            ISettingProvider settingProvider) : base(backgroundTaskConfigurationProvider, backgroundTaskConfigurationFactory)
+            ISettingProvider settingProvider,
+            IHubDbRepository dbRepository) : base(backgroundTaskConfigurationProvider, backgroundTaskConfigurationFactory)
         {
             _settingProvider = settingProvider;
+            _dbRepository = dbRepository;
             _logger = loggerFactory.CreateLogger<UpdateTransactionsTask>();
             _sbankenConnector = sbankenConnector;
-            _serviceScopeFactory = serviceScopeFactory;        
         }
         
         
@@ -43,15 +42,13 @@ namespace Sbanken.BackgroundTasks
 
         private async Task UpdateTransactions()
         {
-            using var scope = _serviceScopeFactory.CreateScope();
-
-            using var dbRepository = scope.ServiceProvider.GetService<IScopedHubDbRepository>();
-            
-            var transactions = dbRepository.All<Transaction, TransactionDto>()
+            _dbRepository.ToggleDispose(false);
+                
+            var transactions = _dbRepository.All<Transaction, TransactionDto>()
                 .OrderByDescending(transaction => transaction.TransactionDate)
                 .ToList();
 
-            var accounts = dbRepository.All<Account, AccountDto>()
+            var accounts = _dbRepository.All<Account, AccountDto>()
                 .ToList();
 
             if (!accounts.Any())
@@ -102,14 +99,16 @@ namespace Sbanken.BackgroundTasks
                     TransactionIdentifier = transactionId
                 };
 
-                dbRepository.Add<Transaction, TransactionDto>(transaction);
+                _dbRepository.Add<Transaction, TransactionDto>(transaction);
                 
                 transactionsAdded++;
             }
             
             _logger.LogInformation($"Added {transactionsAdded} transactions to DB");
+            
+            _dbRepository.ToggleDispose(true);
 
-            await dbRepository.SaveChangesAsync();
+            await _dbRepository.SaveChangesAsync();
         }
 
         private void SetStartAndEndDate(out DateTime startDate, out DateTime? endDate)

@@ -22,7 +22,7 @@ namespace Sbanken.Providers
         {
             var transactions = _dbRepository
                 .Where<Transaction>(
-                    x => x.Text.ToLowerInvariant().Contains(text.ToLowerInvariant()))
+                    x => x.Text.ToLower().Contains(text.ToLower()))
                 .Include(x => x.Account);
             
             return await _dbRepository.ProjectAsync<Transaction, TransactionDto>(transactions);

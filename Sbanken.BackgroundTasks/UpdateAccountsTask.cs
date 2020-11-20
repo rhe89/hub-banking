@@ -7,7 +7,6 @@ using Hub.HostedServices.Tasks;
 using Hub.Storage.Core.Factories;
 using Hub.Storage.Core.Providers;
 using Hub.Storage.Core.Repository;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Sbanken.Core.Dto.Data;
 using Sbanken.Core.Dto.Integration;
@@ -19,18 +18,18 @@ namespace Sbanken.BackgroundTasks
     public class UpdateAccountsTask : BackgroundTask
     {
         private readonly ISbankenConnector _sbankenConnector;
+        private readonly IHubDbRepository _dbRepository;
         private readonly ILogger<UpdateAccountsTask> _logger;
-        private readonly IServiceScopeFactory _serviceScopeFactory;
 
         public UpdateAccountsTask(IBackgroundTaskConfigurationProvider backgroundTaskConfigurationProvider,
             IBackgroundTaskConfigurationFactory backgroundTaskConfigurationFactory,
-            IServiceScopeFactory serviceScopeFactory,
             ILoggerFactory loggerFactory,
-            ISbankenConnector sbankenConnector) : base(backgroundTaskConfigurationProvider, backgroundTaskConfigurationFactory)
+            ISbankenConnector sbankenConnector,
+            IHubDbRepository dbRepository) : base(backgroundTaskConfigurationProvider, backgroundTaskConfigurationFactory)
         {
             _logger = loggerFactory.CreateLogger<UpdateAccountsTask>();
             _sbankenConnector = sbankenConnector;
-            _serviceScopeFactory = serviceScopeFactory;
+            _dbRepository = dbRepository;
         }
         
         public override async Task Execute(CancellationToken cancellationToken)
@@ -83,11 +82,9 @@ namespace Sbanken.BackgroundTasks
 
         private async Task UpdateCurrentAccountBalances(IList<SbankenAccount> accountsFromSbanken)
         {
-            using var scope = _serviceScopeFactory.CreateScope();
-
-            using var dbRepository = scope.ServiceProvider.GetService<IScopedHubDbRepository>();
+            _dbRepository.ToggleDispose(false);
             
-            var existingAccounts = dbRepository.All<Account, AccountDto>().ToList();
+            var existingAccounts = _dbRepository.All<Account, AccountDto>().ToList();
 
             foreach (var sbankenAccount in accountsFromSbanken)
             {
@@ -95,21 +92,23 @@ namespace Sbanken.BackgroundTasks
 
                 if (accountInDb == null)
                 {
-                    CreateAccount(sbankenAccount, dbRepository);
+                    CreateAccount(sbankenAccount);
                 }
                 else
                 {
-                    UpdateAccount(accountInDb, sbankenAccount, dbRepository);
+                    UpdateAccount(accountInDb, sbankenAccount);
                 }
 
-                UpdateAccountBalanceHistory(accountInDb, dbRepository);
+                UpdateAccountBalanceHistory(accountInDb);
             }
             
-            await dbRepository.SaveChangesAsync();
+            _dbRepository.ToggleDispose(true);
+            
+            await _dbRepository.SaveChangesAsync();
         }
 
         
-        private void CreateAccount(SbankenAccount sbankenAccount, IScopedHubDbRepository dbRepository)
+        private void CreateAccount(SbankenAccount sbankenAccount)
         {
             _logger.LogInformation($"Adding new account {sbankenAccount.Name}");
             
@@ -120,24 +119,24 @@ namespace Sbanken.BackgroundTasks
                 AccountType = sbankenAccount.AccountType
             };
 
-            dbRepository.Add<Account, AccountDto>(account);
+            _dbRepository.Add<Account, AccountDto>(account);
         }
 
-        private void UpdateAccount(AccountDto accountInDb, SbankenAccount sbankenAccount, IScopedHubDbRepository dbRepository)
+        private void UpdateAccount(AccountDto accountInDb, SbankenAccount sbankenAccount)
         {
             _logger.LogInformation($"Updating account {sbankenAccount.Name}");
 
             accountInDb.Balance = sbankenAccount.Available;
             accountInDb.AccountType = sbankenAccount.AccountType;
             
-            dbRepository.Update<Account, AccountDto>(accountInDb);
+            _dbRepository.Update<Account, AccountDto>(accountInDb);
         }
         
-        private void UpdateAccountBalanceHistory(AccountDto accountDto, IScopedHubDbRepository dbRepository)
+        private void UpdateAccountBalanceHistory(AccountDto accountDto)
         {
             var now = DateTime.Now;
 
-            var accountBalanceForCurrentDay = dbRepository.Where<AccountBalance>(x =>
+            var accountBalanceForCurrentDay = _dbRepository.Where<AccountBalance>(x =>
                     x.AccountId == accountDto.Id &&
                     x.CreatedDate.Year == now.Year &&
                     x.CreatedDate.Month == now.Month &&
@@ -145,7 +144,7 @@ namespace Sbanken.BackgroundTasks
                 .FirstOrDefault();
 
             var accountBalanceForCurrentDayDto =
-                dbRepository.Map<AccountBalance, AccountBalanceDto>(accountBalanceForCurrentDay);
+                _dbRepository.Map<AccountBalance, AccountBalanceDto>(accountBalanceForCurrentDay);
             
             if (accountBalanceForCurrentDayDto == null)
             {
@@ -155,13 +154,13 @@ namespace Sbanken.BackgroundTasks
                     Balance = accountDto.Balance
                 };
 
-                dbRepository.Add<AccountBalance, AccountBalanceDto>(accountBalanceForCurrentDayDto);
+                _dbRepository.Add<AccountBalance, AccountBalanceDto>(accountBalanceForCurrentDayDto);
             }
             else
             {
                 accountBalanceForCurrentDayDto.Balance = accountDto.Balance;
                 
-                dbRepository.Update<AccountBalance, AccountBalanceDto>(accountBalanceForCurrentDayDto);
+                _dbRepository.Update<AccountBalance, AccountBalanceDto>(accountBalanceForCurrentDayDto);
             }
         }
     }

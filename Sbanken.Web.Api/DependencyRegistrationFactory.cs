@@ -15,7 +15,7 @@ using Sbanken.Providers;
 
 namespace Sbanken.Web.Api
 {
-    public class DependencyRegistrationFactory : DependencyRegistrationFactoryBase<SbankenDbContext>
+    public class DependencyRegistrationFactory : DependencyRegistrationFactoryWithHostedServiceBase<SbankenDbContext>
     {
         public DependencyRegistrationFactory() : base("SQL_DB_SBANKEN", "Sbanken.Data")
         {
