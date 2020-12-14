@@ -13,9 +13,11 @@ namespace Sbanken.Data.AutoMapper
                 .ForMember(dest => dest.Balance,
                     opt => opt.MapFrom(x => x.CurrentBalance))
                 .ForMember(dest => dest.Transactions,
-                    opt => opt.Condition(src => src.CreatedDate > DateTime.Now.AddDays(-30)))
-                .ReverseMap();
+                    opt => opt.Condition(src => src.CreatedDate > DateTime.Now.AddDays(-30)));
 
+            CreateMap<AccountDto, Account>()
+                .ForMember(dest => dest.CurrentBalance,
+                    opt => opt.MapFrom(x => x.Balance));
         }
     }
 }
