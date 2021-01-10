@@ -16,8 +16,8 @@ namespace Sbanken.Integration
     {
         private readonly ISettingProvider _settingProvider;
 
-        public SbankenConnector(ISettingProvider settingProvider, HttpClient httpClient, ILogger<SbankenConnector> logger) 
-            : base(httpClient, logger, "Sbanken")
+        public SbankenConnector(ISettingProvider settingProvider, HttpClient httpClient) 
+            : base(httpClient, "Sbanken")
         {
             _settingProvider = settingProvider;
             

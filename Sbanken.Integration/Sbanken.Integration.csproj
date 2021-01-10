@@ -4,7 +4,7 @@
     <TargetFramework>netstandard2.1</TargetFramework>
   </PropertyGroup>  
   <ItemGroup>
-    <PackageReference Include="Hub.Web.Http" Version="1.0.1" />
+    <PackageReference Include="Hub.Web.Http" Version="2.0.12" />
     <PackageReference Include="IdentityModel" Version="4.2.0" />
   </ItemGroup>  
   <ItemGroup>
