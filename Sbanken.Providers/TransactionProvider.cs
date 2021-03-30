@@ -31,7 +31,7 @@ namespace Sbanken.Providers
         public async Task<IList<TransactionDto>> GetTransactionsInAccount(string accountName)
         {
             var transactions = _dbRepository
-                .Where<Transaction>(x => x.Account.Name == accountName)
+                .Where<Transaction>(x => x.Account.Name == accountName && x.TransactionDate.Month == DateTime.Now.Month && x.TransactionDate.Year == DateTime.Now.Year)
                 .Include(x => x.Account);
 
             return await _dbRepository.ProjectAsync<Transaction, TransactionDto>(transactions);

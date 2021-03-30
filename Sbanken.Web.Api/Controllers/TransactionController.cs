@@ -1,6 +1,7 @@
 ﻿using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
+using Sbanken.Core.Constants;
 using Sbanken.Core.Providers;
 
 namespace Sbanken.Web.Api.Controllers
@@ -11,20 +12,16 @@ namespace Sbanken.Web.Api.Controllers
     {
         private readonly ITransactionProvider _transactionProvider;
         private readonly ITransactionSummaryProvider _transactionSummaryProvider;
-        private readonly ILogger<TransactionController> _logger;
 
-        public TransactionController(ITransactionProvider transactionProvider, ITransactionSummaryProvider transactionSummaryProvider, ILogger<TransactionController> logger)
+        public TransactionController(ITransactionProvider transactionProvider, ITransactionSummaryProvider transactionSummaryProvider)
         {
             _transactionProvider = transactionProvider;
             _transactionSummaryProvider = transactionSummaryProvider;
-            _logger = logger;
         }
         
         [HttpGet("mikrospar")]
         public async Task<IActionResult> Mikrospar()
         {
-            _logger.LogInformation("Request received");
-
             var savings = await _transactionSummaryProvider.GetMikrosparTransactions();
 
             return Ok(savings);
@@ -33,8 +30,6 @@ namespace Sbanken.Web.Api.Controllers
         [HttpGet("investments")]
         public async Task<IActionResult> Investments()
         {
-            _logger.LogInformation("Request received");
-
             var savings = await _transactionSummaryProvider.GetInvestmentTransactions();
 
             return Ok(savings);
@@ -43,9 +38,15 @@ namespace Sbanken.Web.Api.Controllers
         [HttpGet("transactions")]
         public async Task<IActionResult> Transactions(int ageInDays)
         {
-            _logger.LogInformation("Request received");
-
             var transactions = await _transactionProvider.GetTransactions(ageInDays);
+
+            return Ok(transactions);
+        }
+        
+        [HttpGet("BillingAccountTransactions")]
+        public async Task<IActionResult> GetBillingAccountTransactions()
+        {
+            var transactions = await _transactionProvider.GetTransactionsInAccount(AccountConstants.BillingAccountName);
 
             return Ok(transactions);
         }

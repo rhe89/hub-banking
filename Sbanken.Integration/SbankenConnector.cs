@@ -1,11 +1,11 @@
 ﻿using IdentityModel.Client;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Net.Http;
 using System.Threading.Tasks;
 using Hub.Storage.Core.Providers;
 using Hub.Web.Http;
-using Microsoft.Extensions.Logging;
 using Sbanken.Core.Constants;
 using Sbanken.Core.Dto.Integration;
 using Sbanken.Core.Integration;
@@ -84,8 +84,53 @@ namespace Sbanken.Integration
             return transactions;
         }
 
-       
+        public async Task<IList<object>> GetTransactionsRaw(string accountName = null)
+        {
+            await AuthenticateClient();
 
+            var accounts = await GetAccounts();
+
+            if (accountName != null)
+            {
+                accounts = accounts.Where(x => x.Name == accountName).ToList();
+            }
+            
+            var bankBasePath = _settingProvider.GetSetting<string>(SettingConstants.SbankenBankBasePath);
+
+            var transactions = new List<object>();
+
+            var query = $"startDate={DateTime.Now.AddDays(-30).ToShortDateString()}&length=1000";
+            
+            foreach (var account in accounts)
+            {
+                var endpoint = $"{bankBasePath}/api/v1/transactions/{account.AccountId}";
+
+                var response = await Get<object>(endpoint, query);
+
+                if (!response.Success)
+                {
+                    continue;
+                }
+
+                transactions.Add(response.Data);
+            }
+
+            return transactions;
+        }
+        
+        public async Task<object> GetAccountsRaw()
+        {
+            await AuthenticateClient();
+
+            var bankBasePath = _settingProvider.GetSetting<string>(SettingConstants.SbankenBankBasePath);
+
+            var endpoint = $"{bankBasePath}/api/v1/Accounts";
+            
+            var response = await Get<object>(endpoint);
+
+            return response;
+        }
+        
         private async Task AuthenticateClient()
         {
             var clientId = _settingProvider.GetSetting<string>(SettingConstants.SbankenClientId);
