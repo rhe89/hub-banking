@@ -82,8 +82,6 @@ namespace Sbanken.BackgroundTasks
 
         private async Task UpdateCurrentAccountBalances(IList<SbankenAccount> accountsFromSbanken)
         {
-            _dbRepository.ToggleDispose(false);
-            
             var existingAccounts = _dbRepository.All<Account, AccountDto>().ToList();
 
             foreach (var sbankenAccount in accountsFromSbanken)
@@ -102,9 +100,9 @@ namespace Sbanken.BackgroundTasks
                 UpdateAccountBalanceHistory(accountInDb);
             }
             
-            _dbRepository.ToggleDispose(true);
+            await _dbRepository.ExecuteQueueAsync();
             
-            await _dbRepository.SaveChangesAsync();
+            _logger.LogInformation($"Finished updating accounts");
         }
 
         
@@ -119,7 +117,7 @@ namespace Sbanken.BackgroundTasks
                 AccountType = sbankenAccount.AccountType
             };
 
-            _dbRepository.Add<Account, AccountDto>(account);
+            _dbRepository.QueueAdd<Account, AccountDto>(account);
         }
 
         private void UpdateAccount(AccountDto accountInDb, SbankenAccount sbankenAccount)
@@ -129,38 +127,36 @@ namespace Sbanken.BackgroundTasks
             accountInDb.Balance = sbankenAccount.Available;
             accountInDb.AccountType = sbankenAccount.AccountType;
             
-            _dbRepository.Update<Account, AccountDto>(accountInDb);
+            _dbRepository.QueueUpdate<Account, AccountDto>(accountInDb);
         }
         
         private void UpdateAccountBalanceHistory(AccountDto accountDto)
         {
             var now = DateTime.Now;
 
-            var accountBalanceForCurrentDay = _dbRepository.Where<AccountBalance>(x =>
-                    x.AccountId == accountDto.Id &&
-                    x.CreatedDate.Year == now.Year &&
-                    x.CreatedDate.Month == now.Month &&
-                    x.CreatedDate.Day == now.Day)
-                .FirstOrDefault();
+            _logger.LogInformation($"Updating account balance history for account {accountDto.Name}");
 
-            var accountBalanceForCurrentDayDto =
-                _dbRepository.Map<AccountBalance, AccountBalanceDto>(accountBalanceForCurrentDay);
+            var accountBalanceForCurrentDay = _dbRepository.FirstOrDefault<AccountBalance, AccountBalanceDto>(x =>
+                x.AccountId == accountDto.Id &&
+                x.CreatedDate.Year == now.Year &&
+                x.CreatedDate.Month == now.Month &&
+                x.CreatedDate.Day == now.Day);
             
-            if (accountBalanceForCurrentDayDto == null)
+            if (accountBalanceForCurrentDay == null)
             {
-                accountBalanceForCurrentDayDto = new AccountBalanceDto
+                accountBalanceForCurrentDay = new AccountBalanceDto
                 {
                     AccountId = accountDto.Id,
                     Balance = accountDto.Balance
                 };
 
-                _dbRepository.Add<AccountBalance, AccountBalanceDto>(accountBalanceForCurrentDayDto);
+                _dbRepository.QueueAdd<AccountBalance, AccountBalanceDto>(accountBalanceForCurrentDay);
             }
             else
             {
-                accountBalanceForCurrentDayDto.Balance = accountDto.Balance;
+                accountBalanceForCurrentDay.Balance = accountDto.Balance;
                 
-                _dbRepository.Update<AccountBalance, AccountBalanceDto>(accountBalanceForCurrentDayDto);
+                _dbRepository.QueueUpdate<AccountBalance, AccountBalanceDto>(accountBalanceForCurrentDay);
             }
         }
     }

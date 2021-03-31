@@ -33,8 +33,7 @@ namespace Sbanken.BackgroundTasks
             _logger = loggerFactory.CreateLogger<UpdateTransactionsTask>();
             _sbankenConnector = sbankenConnector;
         }
-        
-        
+
         public override async Task Execute(CancellationToken cancellationToken)
         {
             await UpdateTransactions();
@@ -42,8 +41,6 @@ namespace Sbanken.BackgroundTasks
 
         private async Task UpdateTransactions()
         {
-            _dbRepository.ToggleDispose(false);
-                
             var transactions = _dbRepository.All<Transaction, TransactionDto>()
                 .OrderByDescending(transaction => transaction.TransactionDate)
                 .ToList();
@@ -99,16 +96,14 @@ namespace Sbanken.BackgroundTasks
                     TransactionIdentifier = transactionId
                 };
 
-                _dbRepository.Add<Transaction, TransactionDto>(transaction);
+                _dbRepository.QueueAdd<Transaction, TransactionDto>(transaction);
                 
                 transactionsAdded++;
             }
             
             _logger.LogInformation($"Added {transactionsAdded} transactions to DB");
             
-            _dbRepository.ToggleDispose(true);
-
-            await _dbRepository.SaveChangesAsync();
+            await _dbRepository.ExecuteQueueAsync();
         }
 
         private void SetStartAndEndDate(out DateTime startDate, out DateTime? endDate)
