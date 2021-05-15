@@ -3,41 +3,31 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Hub.HostedServices.Tasks;
-using Hub.Storage.Core.Factories;
-using Hub.Storage.Core.Providers;
-using Hub.Storage.Core.Repository;
+using Hub.Storage.Repository.Core;
 using Microsoft.Extensions.Logging;
 using Sbanken.Core.Dto.Data;
 using Sbanken.Core.Dto.Integration;
 using Sbanken.Core.Entities;
 using Sbanken.Core.Integration;
 
-namespace Sbanken.BackgroundTasks
+namespace Sbanken.HostedServices.ServiceBusQueueHost.CommandHandlers
 {
-    public class UpdateAccountsTask : BackgroundTask
+    public class UpdateSbankenAccountsCommandHandler : IUpdateSbankenAccountsCommandHandler
     {
         private readonly ISbankenConnector _sbankenConnector;
         private readonly IHubDbRepository _dbRepository;
-        private readonly ILogger<UpdateAccountsTask> _logger;
+        private readonly ILogger<UpdateSbankenAccountsCommandHandler> _logger;
 
-        public UpdateAccountsTask(IBackgroundTaskConfigurationProvider backgroundTaskConfigurationProvider,
-            IBackgroundTaskConfigurationFactory backgroundTaskConfigurationFactory,
-            ILoggerFactory loggerFactory,
+        public UpdateSbankenAccountsCommandHandler(ILogger<UpdateSbankenAccountsCommandHandler> logger,
             ISbankenConnector sbankenConnector,
-            IHubDbRepository dbRepository) : base(backgroundTaskConfigurationProvider, backgroundTaskConfigurationFactory)
+            IHubDbRepository dbRepository)
         {
-            _logger = loggerFactory.CreateLogger<UpdateAccountsTask>();
+            _logger = logger;
             _sbankenConnector = sbankenConnector;
             _dbRepository = dbRepository;
         }
         
-        public override async Task Execute(CancellationToken cancellationToken)
-        {
-            await FetchAndUpdateCurrentAccountBalances();
-        }
-
-        private async Task FetchAndUpdateCurrentAccountBalances()
+        public async Task FetchAndUpdateCurrentAccountBalances()
         {
             var accountDtos = await FetchCurrentAccountBalances();
 
@@ -96,13 +86,20 @@ namespace Sbanken.BackgroundTasks
                 {
                     UpdateAccount(accountInDb, sbankenAccount);
                 }
+            }
+            
+            await _dbRepository.ExecuteQueueAsync();
+
+            foreach (var sbankenAccount in accountsFromSbanken)
+            {
+                var accountInDb = existingAccounts.FirstOrDefault(x => x.Name == sbankenAccount.Name);
 
                 UpdateAccountBalanceHistory(accountInDb);
             }
             
             await _dbRepository.ExecuteQueueAsync();
             
-            _logger.LogInformation($"Finished updating accounts");
+            _logger.LogInformation("Finished updating accounts");
         }
 
         
@@ -136,7 +133,7 @@ namespace Sbanken.BackgroundTasks
 
             _logger.LogInformation($"Updating account balance history for account {accountDto.Name}");
 
-            var accountBalanceForCurrentDay = _dbRepository.FirstOrDefault<AccountBalance, AccountBalanceDto>(x =>
+            var accountBalanceForCurrentDay = accountDto.AccountBalances.FirstOrDefault(x =>
                 x.AccountId == accountDto.Id &&
                 x.CreatedDate.Year == now.Year &&
                 x.CreatedDate.Month == now.Month &&

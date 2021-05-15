@@ -1,4 +1,4 @@
-using Hub.Storage.Core.Dto;
+using Hub.Storage.Repository.Dto;
 
 namespace Sbanken.Core.Dto.Data
 {

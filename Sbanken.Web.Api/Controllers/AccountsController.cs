@@ -7,18 +7,17 @@ namespace Sbanken.Web.Api.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
-    public class AccountController : ControllerBase
+    public class AccountsController : ControllerBase
     {
         private readonly IAccountProvider _accountProvider;
-        private readonly ILogger<AccountController> _logger;
+        private readonly ILogger<AccountsController> _logger;
 
-        public AccountController(IAccountProvider accountProvider, ILogger<AccountController> logger)
+        public AccountsController(IAccountProvider accountProvider, ILogger<AccountsController> logger)
         {
             _accountProvider = accountProvider;
             _logger = logger;
         }
         
-        [HttpGet("accounts")]
         public async Task<IActionResult> Accounts()
         {
             _logger.LogInformation("Request received");

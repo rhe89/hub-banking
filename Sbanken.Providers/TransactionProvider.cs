@@ -1,7 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
-using Hub.Storage.Core.Repository;
+using Hub.Storage.Repository.Core;
 using Microsoft.EntityFrameworkCore;
 using Sbanken.Core.Dto.Data;
 using Sbanken.Core.Entities;
@@ -20,30 +21,47 @@ namespace Sbanken.Providers
         
         public async Task<IList<TransactionDto>> GetTransactionsWithText(string text)
         {
-            var transactions = _dbRepository
-                .Where<Transaction>(
-                    x => x.Text.ToLower().Contains(text.ToLower()))
-                .Include(x => x.Account);
-            
-            return await _dbRepository.ProjectAsync<Transaction, TransactionDto>(transactions);
+            var transactions = await _dbRepository
+                .WhereAsync<Transaction, TransactionDto>(
+                    x => x.Text.ToLower().Contains(text.ToLower()),
+                    source => source
+                .Include(x => x.Account));
+
+            return transactions
+                .OrderByDescending(x => x.TransactionDate)
+                .ToList();
         }
         
         public async Task<IList<TransactionDto>> GetTransactionsInAccount(string accountName)
         {
-            var transactions = _dbRepository
-                .Where<Transaction>(x => x.Account.Name == accountName && x.TransactionDate.Month == DateTime.Now.Month && x.TransactionDate.Year == DateTime.Now.Year)
-                .Include(x => x.Account);
+            return await GetTransactionsInAccount(accountName, DateTime.Now.Month, DateTime.Now.Year);
+        }
 
-            return await _dbRepository.ProjectAsync<Transaction, TransactionDto>(transactions);
+        public async Task<IList<TransactionDto>> GetTransactionsInAccount(string accountName, int? month, int? year)
+        {
+            month ??= DateTime.Now.Month;
+            year ??= DateTime.Now.Year;
+            
+            var transactions = await _dbRepository
+                .WhereAsync<Transaction, TransactionDto>(x => x.Account.Name == accountName && 
+                                                              x.TransactionDate.Month == month  && 
+                                                              x.TransactionDate.Year == year,
+                    source => source.Include(x => x.Account));
+
+            return transactions
+                .OrderByDescending(x => x.TransactionDate)
+                .ToList();        
         }
 
         public async Task<IList<TransactionDto>> GetTransactions(int ageInDays)
         {
-            var transactions = _dbRepository
-                .Where<Transaction>(x => x.TransactionDate > DateTime.Now.AddDays(-ageInDays))
-                .Include(x => x.Account);
+            var transactions = await _dbRepository
+                .WhereAsync<Transaction, TransactionDto>(x => x.TransactionDate > DateTime.Now.AddDays(-ageInDays),
+                    source => source.Include(x => x.Account));
 
-            return await _dbRepository.ProjectAsync<Transaction, TransactionDto>(transactions);
+            return transactions
+                .OrderByDescending(x => x.TransactionDate)
+                .ToList();        
         }
     }
 }

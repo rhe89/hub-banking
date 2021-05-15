@@ -10,6 +10,7 @@ namespace Sbanken.Core.Integration
         Task<List<SbankenAccount>> GetAccounts();
         Task<IList<SbankenTransaction>> GetTransactions(DateTime startDate, DateTime? endDate);
         Task<IList<object>> GetTransactionsRaw(string accountName = null);
+        Task<IList<object>> GetArchivedTransactionsRaw(string accountName = null);
         Task<object> GetAccountsRaw();
 
     }

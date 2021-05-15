@@ -1,6 +1,6 @@
 {
   "profiles": {
-    "Sbanken.Workers.Accounts": {
+    "Sbanken.HostedServices.ScheduledHost": {
       "commandName": "Project",
       "launchBrowser": true,
       "environmentVariables": {

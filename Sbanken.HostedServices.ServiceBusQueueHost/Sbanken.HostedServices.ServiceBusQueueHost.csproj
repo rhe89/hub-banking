@@ -1,17 +1,18 @@
-<Project Sdk="Microsoft.NET.Sdk.Web">
+<Project Sdk="Microsoft.NET.Sdk.Worker">
 	<PropertyGroup>
 		<TargetFramework>netcoreapp3.1</TargetFramework>
 	</PropertyGroup>
 
 	<ItemGroup>
+		<PackageReference Include="Hub.HostedServices.ServiceBusQueue" Version="3.0.6" />
 		<PackageReference Include="AutoMapper.Extensions.Microsoft.DependencyInjection" Version="8.1.0" />
-		<PackageReference Include="Hub.Web.Api" Version="3.0.6" />
+		<PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="3.1.8" />
+		<PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="3.1.8" />
 	</ItemGroup>
 
 	<ItemGroup>
 		<ProjectReference Include="..\Sbanken.Data\Sbanken.Data.csproj" />
 		<ProjectReference Include="..\Sbanken.Integration\Sbanken.Integration.csproj" />
-		<ProjectReference Include="..\Sbanken.Providers\Sbanken.Providers.csproj" />
 	</ItemGroup>
 
 </Project>

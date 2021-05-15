@@ -10,7 +10,6 @@ do
         project_folder=${csproj_file##*/}
         project_folder=${project_folder%.csproj*}
         
-        echo "$project_folder"
         cd "$project_folder" || return
 
         bash ../scripts/create_docker_file.sh "$nuget_access_token"

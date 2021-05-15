@@ -1,0 +1,15 @@
+<Project Sdk="Microsoft.NET.Sdk.Worker">
+	<PropertyGroup>
+		<TargetFramework>netcoreapp3.1</TargetFramework>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<PackageReference Include="Hub.HostedServices.Schedule" Version="3.0.6" />
+		<PackageReference Include="Hub.ServiceBus" Version="3.0.6" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<ProjectReference Include="..\Sbanken.Data\Sbanken.Data.csproj" />
+	</ItemGroup>
+
+</Project>

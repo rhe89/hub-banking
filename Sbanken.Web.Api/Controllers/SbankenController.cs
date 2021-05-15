@@ -23,6 +23,14 @@ namespace Sbanken.Web.Api.Controllers
             return Ok(transactions);
         }
         
+        [HttpGet("ArchivedTransactions")]
+        public async Task<IActionResult> GetArchivedTransactions(string accountName)
+        {
+            var transactions = await _sbankenConnector.GetArchivedTransactionsRaw(accountName);
+
+            return Ok(transactions);
+        }
+        
         [HttpGet("Accounts")]
         public async Task<IActionResult> GetAccounts()
         {

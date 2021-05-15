@@ -1,12 +1,19 @@
 version: '3.7'
 
 services:
-    sbanken-workers:
-        container_name: "sbanken_worker"
+    sbanken-service-bus-queue-host:
+        container_name: "sbanken_service_bus_queue_host"
         build:
             context: ./
-            dockerfile: Sbanken.BackgroundWorker/Dockerfile
-        image: "rhe89/hub-sbanken-worker"
+            dockerfile: Sbanken.HostedServices.ServiceBusQueueHost/Dockerfile
+        image: "rhe89/hub-sbanken-service-bus-queue-host"
+
+    sbanken-scheduled-host:
+        container_name: "sbanken_scheduled_host"
+        build:
+            context: ./
+            dockerfile: Sbanken.HostedServices.ScheduledHost/Dockerfile
+        image: "rhe89/hub-sbanken-scheduled-host"
 
     sbanken-api:
         container_name: "sbanken_api"

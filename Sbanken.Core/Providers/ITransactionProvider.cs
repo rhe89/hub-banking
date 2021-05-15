@@ -9,5 +9,6 @@ namespace Sbanken.Core.Providers
         Task<IList<TransactionDto>> GetTransactions(int ageInDays);
         Task<IList<TransactionDto>> GetTransactionsWithText(string text);
         Task<IList<TransactionDto>> GetTransactionsInAccount(string accountName);
+        Task<IList<TransactionDto>> GetTransactionsInAccount(string accountName, int? month, int? year);
     }
 }

@@ -8,15 +8,17 @@ read_project_file()
 
     while IFS= read -r line
     do
+
+
     if [[ $line == *"ProjectReference"* ]]; then
 
         ref=${line##*\\}
         ref=${ref##*=}
         ref=${ref%.csproj*}
-        
-        echo "$(read_project_file $(find ../$ref/$ref.csproj))"
 
         echo "$ref"
+
+        echo "$(read_project_file $(find ../$ref/$ref.csproj))"
     fi
     done < "$csproj_file"
 }
@@ -41,20 +43,12 @@ echo WORKDIR /app >> Dockerfile
 
 echo "" >> Dockerfile
 
- echo COPY ./"$project_name"/"$project_name".csproj ./"$project_name"/"$project_name".csproj >> Dockerfile
+echo COPY ./"$project_name"/"$project_name".csproj ./"$project_name"/"$project_name".csproj >> Dockerfile
 
 for project_reference in "${project_references_unique[@]}"
 do 
-    echo COPY ./"$project_reference"/"$project_reference".csproj ./"$project_reference"/"$project_reference".csproj >> Dockerfile
+    echo COPY ./"$project_reference"/"$project_reference".csproj ./"$project_reference"/"$project_reference".scsproj >> Dockerfile
 done
-
-echo "" >> Dockerfile
-
-echo RUN dotnet nuget add source https://rhe89.pkgs.visualstudio.com/_packaging/rhe89/nuget/v3/index.json -n azuredevopsartifacts -u rhe89 -p "$nuget_access_token" --store-password-in-clear-text >> Dockerfile
-
-echo "" >> Dockerfile
-
-echo RUN dotnet restore ./"$project_name"/"$project_name".csproj -p:HideWarningsAndErrors=true -p:EmitAssetsLogMessages=false >> Dockerfile
 
 echo "" >> Dockerfile
 
@@ -64,6 +58,14 @@ for project_reference in "${project_references_unique[@]}"
 do 
     echo COPY /"$project_reference"/ ./"$project_reference"/ >> Dockerfile
 done
+
+echo "" >> Dockerfile
+
+echo RUN dotnet nuget add source https://rhe89.pkgs.visualstudio.com/_packaging/rhe89/nuget/v3/index.json -n azuredevopsartifacts -u rhe89 -p "$nuget_access_token" --store-password-in-clear-text >> Dockerfile
+
+echo "" >> Dockerfile
+
+echo RUN dotnet restore ./"$project_name"/"$project_name".csproj -p:HideWarningsAndErrors=true -p:EmitAssetsLogMessages=false >> Dockerfile
 
 echo "" >> Dockerfile
 

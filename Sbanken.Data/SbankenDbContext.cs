@@ -1,10 +1,10 @@
-using Hub.Storage.Repository.DatabaseContext;
+using Hub.Storage.Repository;
 using Microsoft.EntityFrameworkCore;
 using Sbanken.Core.Entities;
 
 namespace Sbanken.Data
 {
-    public class SbankenDbContext : HostedServiceDbContext
+    public class SbankenDbContext : HubDbContext
     {
         public SbankenDbContext(DbContextOptions<SbankenDbContext> options) : base(options) { }
 

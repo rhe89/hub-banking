@@ -1,14 +1,14 @@
-using Hub.HostedServices.TimerHost;
+using Hub.HostedServices.Schedule;
 using Microsoft.Extensions.Hosting;
 using Sbanken.Data;
 
-namespace Sbanken.BackgroundWorker
+namespace Sbanken.HostedServices.ScheduledHost
 {
     public static class Program
     {
         public static void Main(string[] args)
         {
-            new BackgroundWorker<DependencyRegistrationFactory, SbankenDbContext>(args, "SQL_DB_SBANKEN")
+            new Bootstrapper<DependencyRegistrationFactory, SbankenDbContext>(args, "SQL_DB_SBANKEN")
                 .CreateHostBuilder()
                 .Build()
                 .Run();

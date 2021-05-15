@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations.Schema;
-using Hub.Storage.Core.Entities;
+using Hub.Storage.Repository.Entities;
 
 namespace Sbanken.Core.Entities
 {

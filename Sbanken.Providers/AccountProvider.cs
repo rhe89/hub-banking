@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Hub.Storage.Core.Repository;
+using Hub.Storage.Repository.Core;
 using Microsoft.EntityFrameworkCore;
 using Sbanken.Core.Dto.Data;
 using Sbanken.Core.Entities;
@@ -30,14 +30,14 @@ namespace Sbanken.Providers
         {
             var accounts = await GetAccountsOfType("Standard account");
 
-            return _dbRepository.Map<IEnumerable<Account>, IEnumerable<AccountDto>>(accounts);
+            return accounts;
         }
 
         public async Task<IEnumerable<AccountDto>> GetCreditAccounts()
         {
             var accounts = await GetAccountsOfType("Creditcard account");
-            
-            return _dbRepository.Map<IEnumerable<Account>, IEnumerable<AccountDto>>(accounts);
+
+            return accounts;
         }
 
         public async Task<IEnumerable<AccountDto>> GetSavingsAccounts()
@@ -50,30 +50,28 @@ namespace Sbanken.Providers
             {
                 var lastMonthsBalance = GetLastMonthsBalance(account);
                 var lastYearsBalance = GetLastYearsBalance(account);
+                
+                account.LastMonthBalance = lastMonthsBalance?.Balance ?? 0;
+                account.LastYearBalance = lastYearsBalance?.Balance ?? 0;
 
-                var accountDto = _dbRepository.Map<Account, AccountDto>(account);
-
-                accountDto.LastMonthBalance = lastMonthsBalance?.Balance ?? 0;
-                accountDto.LastYearBalance = lastYearsBalance?.Balance ?? 0;
-
-                accountDtos.Add(accountDto);
+                accountDtos.Add(account);
             }
 
             return accountDtos;
         }
         
-        private async Task<IEnumerable<Account>> GetAccountsOfType(string accountType)
+        private async Task<IList<AccountDto>> GetAccountsOfType(string accountType)
         {
             var accounts = await _dbRepository
-                .Where<Account>(x => x.AccountType == accountType)
-                .Include(x => x.Transactions)
-                .Include(x => x.AccountBalances)
-                .ToListAsync();
+                .WhereAsync<Account, AccountDto>(x => x.AccountType == accountType,
+                    source => source
+                        .Include(x => x.Transactions)
+                        .Include(x => x.AccountBalances));
 
             return accounts;
         }
 
-        private static AccountBalance GetLastMonthsBalance(Account account)
+        private static AccountBalanceDto GetLastMonthsBalance(AccountDto account)
         {
             var lastMonth = DateTime.Now.AddMonths(-1);
             var lastDayInMonth = DateTime.DaysInMonth(lastMonth.Year, lastMonth.Month);
@@ -94,7 +92,7 @@ namespace Sbanken.Providers
             return lastMonthBalance;
         }
         
-        private static AccountBalance GetLastYearsBalance(Account account)
+        private static AccountBalanceDto GetLastYearsBalance(AccountDto account)
         {
             var lastYear = DateTime.Now.AddYears(-1);
             const int lastMonthInYear = 12;

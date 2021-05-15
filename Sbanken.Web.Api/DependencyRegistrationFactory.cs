@@ -1,11 +1,9 @@
 using AutoMapper;
-using Hub.HostedServices.Tasks;
-using Hub.Storage.Repository.AutoMapper;
 using Hub.Web.Api;
 using Hub.Web.Http;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Sbanken.BackgroundTasks;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using Sbanken.Core.Integration;
 using Sbanken.Core.Providers;
 using Sbanken.Data;
@@ -15,7 +13,7 @@ using Sbanken.Providers;
 
 namespace Sbanken.Web.Api
 {
-    public class DependencyRegistrationFactory : DependencyRegistrationFactoryWithHostedServiceBase<SbankenDbContext>
+    public class DependencyRegistrationFactory : DependencyRegistrationFactory<SbankenDbContext>
     {
         public DependencyRegistrationFactory() : base("SQL_DB_SBANKEN", "Sbanken.Data")
         {
@@ -23,16 +21,13 @@ namespace Sbanken.Web.Api
 
         protected override void AddDomainDependencies(IServiceCollection serviceCollection, IConfiguration configuration)
         {
-            serviceCollection.AddTransient<IAccountProvider, AccountProvider>();
-            serviceCollection.AddTransient<ITransactionProvider, TransactionProvider>();
-            serviceCollection.AddTransient<ITransactionSummaryProvider, TransactionSummaryProvider>();
+            serviceCollection.TryAddTransient<IAccountProvider, AccountProvider>();
+            serviceCollection.TryAddTransient<ITransactionProvider, TransactionProvider>();
+            serviceCollection.TryAddTransient<ITransactionSummaryProvider, TransactionSummaryProvider>();
             serviceCollection.AddHubHttpClient<ISbankenConnector, SbankenConnector>();
-            serviceCollection.AddScoped<UpdateAccountsTask>();
-            serviceCollection.AddScoped<UpdateTransactionsTask>();
-            serviceCollection.AddScoped<WorkerLogMaintenanceBackgroundTask>();
+
             serviceCollection.AddAutoMapper(c =>
             {
-                c.AddHostedServiceProfiles();
                 c.AddSbankenProfiles();
             });
         }

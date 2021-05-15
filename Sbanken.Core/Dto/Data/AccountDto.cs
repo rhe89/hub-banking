@@ -1,5 +1,5 @@
 using System.Collections.Generic;
-using Hub.Storage.Core.Dto;
+using Hub.Storage.Repository.Dto;
 
 namespace Sbanken.Core.Dto.Data
 {
@@ -9,6 +9,7 @@ namespace Sbanken.Core.Dto.Data
         public decimal Balance { get; set; }
         public string AccountType { get; set; }
         public IList<TransactionDto> Transactions { get; set; }
+        public IList<AccountBalanceDto> AccountBalances { get; set; }
         public decimal LastMonthBalance { get; set; }
         public decimal LastYearBalance { get; set; }
     }

@@ -46,7 +46,7 @@ namespace Sbanken.Providers
             {
                 TotalAmount = total,
                 CurrentMonthTransactions = currentMonthTransactions,
-                CurrentYearTransactions = currentYearTransactions,
+                CurrentYearTransactions = currentYearTransactions
             };
         }
 
