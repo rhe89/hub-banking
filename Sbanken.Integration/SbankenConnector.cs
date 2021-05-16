@@ -56,7 +56,7 @@ namespace Sbanken.Integration
 
             return await GetTransactions(query);
         }
-
+        
         private async Task<IList<SbankenTransaction>> GetTransactions(string requestParameters)
         {
             await AuthenticateClient();
@@ -93,8 +93,13 @@ namespace Sbanken.Integration
 
             return transactions;
         }
+        
+        public Task<IList<object>> GetTransactionsRaw()
+        {
+            return GetTransactionsRaw(null);
+        }
 
-        public async Task<IList<object>> GetTransactionsRaw(string accountName = null)
+        public async Task<IList<object>> GetTransactionsRaw(string accountName)
         {
             await AuthenticateClient();
 
@@ -127,8 +132,13 @@ namespace Sbanken.Integration
 
             return transactions;
         }
-        
-        public async Task<IList<object>> GetArchivedTransactionsRaw(string accountName = null)
+
+        public Task<IList<object>> GetArchivedTransactionsRaw()
+        {
+            return GetArchivedTransactionsRaw(null);
+        }
+
+        public async Task<IList<object>> GetArchivedTransactionsRaw(string accountName)
         {
             await AuthenticateClient();
 
