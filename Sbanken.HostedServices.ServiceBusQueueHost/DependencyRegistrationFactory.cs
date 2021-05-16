@@ -23,6 +23,7 @@ namespace Sbanken.HostedServices.ServiceBusQueueHost
             serviceCollection.AddTransient<IMessageSender, MessageSender>();
             serviceCollection.AddTransient<IUpdateSbankenAccountsCommandHandler, UpdateSbankenAccountsCommandHandler>();
             serviceCollection.AddTransient<IUpdateSbankenTransactionsCommandHandler, UpdateSbankenTransactionsCommandHandler>();
+            serviceCollection.AddTransient<IUpdateSbankenAccountBalanceHistoryCommandHandler, UpdateSbankenAccountBalanceHistoryCommandHandler>();
             
             serviceCollection.AddAutoMapper(c =>
             {
@@ -34,9 +35,11 @@ namespace Sbanken.HostedServices.ServiceBusQueueHost
         {
             serviceCollection.AddTransient<UpdateSbankenTransactionsCommand>();
             serviceCollection.AddTransient<UpdateSbankenAccountsCommand>();
+            serviceCollection.AddTransient<UpdateSbankenAccountBalanceHistoryCommand>();
             
             serviceCollection.AddHostedService<UpdateSbankenAccountsQueueListener>();
             serviceCollection.AddHostedService<UpdateSbankenTransactionsQueueListener>();
+            serviceCollection.AddHostedService<UpdateSbankenAccountsBalanceHistoryQueueListener>();
         }
     }
 }

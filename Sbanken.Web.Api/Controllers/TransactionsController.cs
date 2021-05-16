@@ -1,6 +1,5 @@
 ﻿using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
-using Sbanken.Core.Constants;
 using Sbanken.Core.Providers;
 
 namespace Sbanken.Web.Api.Controllers
@@ -10,42 +9,16 @@ namespace Sbanken.Web.Api.Controllers
     public class TransactionsController : ControllerBase
     {
         private readonly ITransactionProvider _transactionProvider;
-        private readonly ITransactionSummaryProvider _transactionSummaryProvider;
 
-        public TransactionsController(ITransactionProvider transactionProvider, ITransactionSummaryProvider transactionSummaryProvider)
+        public TransactionsController(ITransactionProvider transactionProvider)
         {
             _transactionProvider = transactionProvider;
-            _transactionSummaryProvider = transactionSummaryProvider;
         }
         
         [HttpGet]
-        public async Task<IActionResult> Transactions(int ageInDays)
+        public async Task<IActionResult> GetTransactions([FromQuery]int? ageInDays, string description, string accountName)
         {
-            var transactions = await _transactionProvider.GetTransactions(ageInDays);
-
-            return Ok(transactions);
-        }
-        
-        [HttpGet("mikrospar")]
-        public async Task<IActionResult> Mikrospar()
-        {
-            var savings = await _transactionSummaryProvider.GetMikrosparTransactions();
-
-            return Ok(savings);
-        }
-        
-        [HttpGet("investments")]
-        public async Task<IActionResult> Investments()
-        {
-            var savings = await _transactionSummaryProvider.GetInvestmentTransactions();
-
-            return Ok(savings);
-        }
-
-        [HttpGet("BillingAccountTransactions")]
-        public async Task<IActionResult> GetBillingAccountTransactions(int? month, int? year)
-        {
-            var transactions = await _transactionProvider.GetTransactionsInAccount(AccountConstants.BillingAccountName, month, year);
+            var transactions = await _transactionProvider.GetTransactions(ageInDays, description, accountName);
 
             return Ok(transactions);
         }

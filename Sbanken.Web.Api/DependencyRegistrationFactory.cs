@@ -23,7 +23,7 @@ namespace Sbanken.Web.Api
         {
             serviceCollection.TryAddTransient<IAccountProvider, AccountProvider>();
             serviceCollection.TryAddTransient<ITransactionProvider, TransactionProvider>();
-            serviceCollection.TryAddTransient<ITransactionSummaryProvider, TransactionSummaryProvider>();
+            serviceCollection.TryAddTransient<IAccountBalanceProvider, AccountBalanceProvider>();
             serviceCollection.AddHubHttpClient<ISbankenConnector, SbankenConnector>();
 
             serviceCollection.AddAutoMapper(c =>

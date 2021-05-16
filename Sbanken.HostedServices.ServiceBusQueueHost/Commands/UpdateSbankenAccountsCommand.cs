@@ -22,7 +22,7 @@ namespace Sbanken.HostedServices.ServiceBusQueueHost.Commands
         
         public override async Task Execute(CancellationToken cancellationToken)
         {
-            await _updateSbankenAccountsCommandHandler.FetchAndUpdateCurrentAccountBalances();
+            await _updateSbankenAccountsCommandHandler.UpdateAccounts();
         }
 
         public async Task NotifyConsumers()

@@ -2,8 +2,8 @@ using System.Threading.Tasks;
 
 namespace Sbanken.HostedServices.ServiceBusQueueHost.CommandHandlers
 {
-    public interface IUpdateSbankenAccountsCommandHandler
+    public interface IUpdateSbankenAccountBalanceHistoryCommandHandler
     {
-        Task UpdateAccounts();
+        Task UpdateAccountBalance();
     }
 }

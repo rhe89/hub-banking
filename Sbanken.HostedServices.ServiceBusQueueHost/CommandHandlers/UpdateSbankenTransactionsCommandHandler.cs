@@ -72,7 +72,7 @@ namespace Sbanken.HostedServices.ServiceBusQueueHost.CommandHandlers
                     ? transactionFromSbanken.TransactionDetails.TransactionId
                     : transactionFromSbanken.CardDetails?.TransactionId;
                 
-                if (transactionsInDb.Any(x => x.Name == transactionFromSbanken.Text && x.TransactionDate == transactionFromSbanken.AccountingDate))
+                if (transactionsInDb.Any(x => x.Description == transactionFromSbanken.Text && x.TransactionDate == transactionFromSbanken.AccountingDate))
                 {
                     continue;
                 }
@@ -82,11 +82,11 @@ namespace Sbanken.HostedServices.ServiceBusQueueHost.CommandHandlers
                 var transaction = new TransactionDto
                 {
                     Amount = transactionFromSbanken.Amount,
-                    Name = transactionFromSbanken.Text,
+                    Description = transactionFromSbanken.Text,
                     TransactionType = transactionFromSbanken.TransactionTypeCode,
                     TransactionDate = transactionFromSbanken.AccountingDate,
                     AccountId = accountId.Value,
-                    TransactionIdentifier = transactionId
+                    TransactionId = transactionId
                 };
 
                 _dbRepository.QueueAdd<Transaction, TransactionDto>(transaction);

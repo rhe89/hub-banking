@@ -1,6 +1,5 @@
 ﻿using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Logging;
 using Sbanken.Core.Providers;
 
 namespace Sbanken.Web.Api.Controllers
@@ -10,49 +9,15 @@ namespace Sbanken.Web.Api.Controllers
     public class AccountsController : ControllerBase
     {
         private readonly IAccountProvider _accountProvider;
-        private readonly ILogger<AccountsController> _logger;
 
-        public AccountsController(IAccountProvider accountProvider, ILogger<AccountsController> logger)
+        public AccountsController(IAccountProvider accountProvider)
         {
             _accountProvider = accountProvider;
-            _logger = logger;
         }
         
-        public async Task<IActionResult> Accounts()
+        public async Task<IActionResult> GetAccounts(string accountName, string accountType)
         {
-            _logger.LogInformation("Request received");
-
-            var accounts = await _accountProvider.GetAccounts();
-
-            return Ok(accounts);
-        }
-
-        [HttpGet("standard")]
-        public async Task<IActionResult> StandardAccounts()
-        {
-            _logger.LogInformation("Request received");
-
-            var accounts = await _accountProvider.GetStandardAccounts();
-
-            return Ok(accounts);
-        }
-        
-        [HttpGet("credit")]
-        public async Task<IActionResult> CreditAccounts()
-        {
-            _logger.LogInformation("Request received");
-
-            var accounts = await _accountProvider.GetCreditAccounts();
-
-            return Ok(accounts);
-        }
-        
-        [HttpGet("savings")]
-        public async Task<IActionResult> SavingsAccounts()
-        {
-            _logger.LogInformation("Request received");
-
-            var accounts = await _accountProvider.GetSavingsAccounts();
+            var accounts = await _accountProvider.GetAccounts(accountName, accountType);
 
             return Ok(accounts);
         }

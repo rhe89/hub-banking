@@ -27,7 +27,7 @@ namespace Sbanken.HostedServices.ServiceBusQueueHost.CommandHandlers
             _dbRepository = dbRepository;
         }
         
-        public async Task FetchAndUpdateCurrentAccountBalances()
+        public async Task UpdateAccounts()
         {
             var accountDtos = await FetchCurrentAccountBalances();
 
@@ -89,15 +89,6 @@ namespace Sbanken.HostedServices.ServiceBusQueueHost.CommandHandlers
             }
             
             await _dbRepository.ExecuteQueueAsync();
-
-            foreach (var sbankenAccount in accountsFromSbanken)
-            {
-                var accountInDb = existingAccounts.FirstOrDefault(x => x.Name == sbankenAccount.Name);
-
-                UpdateAccountBalanceHistory(accountInDb);
-            }
-            
-            await _dbRepository.ExecuteQueueAsync();
             
             _logger.LogInformation("Finished updating accounts");
         }
@@ -125,36 +116,6 @@ namespace Sbanken.HostedServices.ServiceBusQueueHost.CommandHandlers
             accountInDb.AccountType = sbankenAccount.AccountType;
             
             _dbRepository.QueueUpdate<Account, AccountDto>(accountInDb);
-        }
-        
-        private void UpdateAccountBalanceHistory(AccountDto accountDto)
-        {
-            var now = DateTime.Now;
-
-            _logger.LogInformation($"Updating account balance history for account {accountDto.Name}");
-
-            var accountBalanceForCurrentDay = accountDto.AccountBalances.FirstOrDefault(x =>
-                x.AccountId == accountDto.Id &&
-                x.CreatedDate.Year == now.Year &&
-                x.CreatedDate.Month == now.Month &&
-                x.CreatedDate.Day == now.Day);
-            
-            if (accountBalanceForCurrentDay == null)
-            {
-                accountBalanceForCurrentDay = new AccountBalanceDto
-                {
-                    AccountId = accountDto.Id,
-                    Balance = accountDto.Balance
-                };
-
-                _dbRepository.QueueAdd<AccountBalance, AccountBalanceDto>(accountBalanceForCurrentDay);
-            }
-            else
-            {
-                accountBalanceForCurrentDay.Balance = accountDto.Balance;
-                
-                _dbRepository.QueueUpdate<AccountBalance, AccountBalanceDto>(accountBalanceForCurrentDay);
-            }
         }
     }
 }

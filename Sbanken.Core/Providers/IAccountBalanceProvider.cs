@@ -4,8 +4,8 @@ using Sbanken.Core.Dto.Data;
 
 namespace Sbanken.Core.Providers
 {
-    public interface IAccountProvider
+    public interface IAccountBalanceProvider
     {
-        Task<IList<AccountDto>> GetAccounts(string accountName, string accountType);
+        Task<IList<AccountBalanceDto>> GetAccountBalances(string accountName, string accountType);
     }
 }
