@@ -16,7 +16,7 @@ namespace Sbanken.Web.Api.Controllers
         }
         
         [HttpGet("Transactions")]
-        public async Task<IActionResult> GetTransactions(string accountName)
+        public async Task<IActionResult> GetTransactions([FromQuery]string accountName)
         {
             var transactions = await _sbankenConnector.GetTransactionsRaw(accountName);
 
@@ -24,7 +24,7 @@ namespace Sbanken.Web.Api.Controllers
         }
         
         [HttpGet("ArchivedTransactions")]
-        public async Task<IActionResult> GetArchivedTransactions(string accountName)
+        public async Task<IActionResult> GetArchivedTransactions([FromQuery]string accountName)
         {
             var transactions = await _sbankenConnector.GetArchivedTransactionsRaw(accountName);
 

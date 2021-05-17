@@ -15,7 +15,7 @@ namespace Sbanken.Web.Api.Controllers
             _accountProvider = accountProvider;
         }
         
-        public async Task<IActionResult> GetAccounts(string accountName, string accountType)
+        public async Task<IActionResult> GetAccounts([FromQuery]string accountName, [FromQuery]string accountType)
         {
             var accounts = await _accountProvider.GetAccounts(accountName, accountType);
 

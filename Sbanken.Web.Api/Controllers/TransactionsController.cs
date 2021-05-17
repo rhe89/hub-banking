@@ -16,7 +16,9 @@ namespace Sbanken.Web.Api.Controllers
         }
         
         [HttpGet]
-        public async Task<IActionResult> GetTransactions([FromQuery]int? ageInDays, string description, string accountName)
+        public async Task<IActionResult> GetTransactions([FromQuery]int? ageInDays, 
+            [FromQuery]string description, 
+            [FromQuery]string accountName)
         {
             var transactions = await _transactionProvider.GetTransactions(ageInDays, description, accountName);
 

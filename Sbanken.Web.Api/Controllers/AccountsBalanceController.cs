@@ -1,4 +1,5 @@
-﻿using System.Threading.Tasks;
+﻿using System;
+using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Sbanken.Core.Providers;
 
@@ -15,9 +16,13 @@ namespace Sbanken.Web.Api.Controllers
             _accountBalanceProvider = accountBalanceProvider;
         }
         
-        public async Task<IActionResult> GetAccountBalances(string accountName, string accountType)
+        [HttpGet]
+        public async Task<IActionResult> GetAccountBalances([FromQuery]string accountName, 
+            [FromQuery]string accountType, 
+            [FromQuery]DateTime? fromDate, 
+            [FromQuery]DateTime? toDate)
         {
-            var accounts = await _accountBalanceProvider.GetAccountBalances(accountName, accountType);
+            var accounts = await _accountBalanceProvider.GetAccountBalances(accountName, accountType, fromDate, toDate);
 
             return Ok(accounts);
         }
