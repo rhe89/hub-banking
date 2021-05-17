@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using Hub.Storage.Repository.Dto;
 
 namespace Sbanken.Core.Dto.Data

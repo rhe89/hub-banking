@@ -30,6 +30,6 @@ namespace Sbanken.HostedServices.ServiceBusQueueHost.Commands
             await _messageSender.AddToQueue(QueueNames.SbankenAccountBalanceHistoryUpdated);
         }
 
-        public override string QueueName => QueueNames.SbankenAccountsUpdated;
+        public override string QueueName => QueueNames.UpdateSbankenAccountBalances;
     }
 }

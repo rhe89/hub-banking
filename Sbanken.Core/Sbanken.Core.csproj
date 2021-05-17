@@ -4,8 +4,8 @@
 	</PropertyGroup>
 
 	<ItemGroup>
-		<PackageReference Include="Hub.Storage.Repository.Dto" Version="3.1.0" />
-		<PackageReference Include="Hub.Storage.Repository.Entities" Version="3.1.0" />
+		<PackageReference Include="Hub.Storage.Repository.Dto" Version="3.1.1" />
+		<PackageReference Include="Hub.Storage.Repository.Entities" Version="3.1.1" />
 	</ItemGroup>
 
 </Project>

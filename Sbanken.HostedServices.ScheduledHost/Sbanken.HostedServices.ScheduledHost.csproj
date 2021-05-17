@@ -4,8 +4,8 @@
 	</PropertyGroup>
 
 	<ItemGroup>
-		<PackageReference Include="Hub.HostedServices.Schedule" Version="3.1.0" />
-		<PackageReference Include="Hub.ServiceBus" Version="3.1.0" />
+		<PackageReference Include="Hub.HostedServices.Schedule" Version="3.1.1" />
+		<PackageReference Include="Hub.ServiceBus" Version="3.1.1" />
 	</ItemGroup>
 
 	<ItemGroup>
