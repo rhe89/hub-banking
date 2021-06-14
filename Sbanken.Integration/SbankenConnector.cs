@@ -71,7 +71,7 @@ namespace Sbanken.Integration
             {
                 _logger.LogInformation($"Getting transactions in account {account.Name}");
                 
-                var endpoint = $"{bankBasePath}/api/v1/transactions/{account.AccountId}";
+                var endpoint = $"{bankBasePath}/api/v1/transactions/archive/{account.AccountId}";
 
                 var response = await Get<SbankenTransactionResponse>(endpoint, requestParameters);
 

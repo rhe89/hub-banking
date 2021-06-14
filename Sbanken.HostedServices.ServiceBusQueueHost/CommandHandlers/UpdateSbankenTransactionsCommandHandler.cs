@@ -56,29 +56,21 @@ namespace Sbanken.HostedServices.ServiceBusQueueHost.CommandHandlers
 
             foreach (var transactionFromSbanken in transactionsFromSbanken)
             {
-                if (transactionFromSbanken.IsReservation)
-                {
-                    continue;
-                }
-
                 var accountId = accounts.First(x => x.Name == transactionFromSbanken.AccountName)?.Id;
 
                 if (accountId == null)
                 {
                     continue;
                 }
-
-                var transactionId = transactionFromSbanken.TransactionDetails != null
-                    ? transactionFromSbanken.TransactionDetails.TransactionId
-                    : transactionFromSbanken.CardDetails?.TransactionId;
                 
-                if (transactionsInDb.Any(x => x.Description == transactionFromSbanken.Text && x.TransactionDate == transactionFromSbanken.AccountingDate))
+                if (transactionsInDb.Any(x => 
+                    x.TransactionId == transactionFromSbanken.TransactionId ||
+                    x.Description == transactionFromSbanken.Text && 
+                    x.TransactionDate == transactionFromSbanken.AccountingDate))
                 {
                     continue;
                 }
-
                 
-
                 var transaction = new TransactionDto
                 {
                     Amount = transactionFromSbanken.Amount,
@@ -86,7 +78,7 @@ namespace Sbanken.HostedServices.ServiceBusQueueHost.CommandHandlers
                     TransactionType = transactionFromSbanken.TransactionTypeCode,
                     TransactionDate = transactionFromSbanken.AccountingDate,
                     AccountId = accountId.Value,
-                    TransactionId = transactionId
+                    TransactionId = transactionFromSbanken.TransactionId
                 };
 
                 _dbRepository.QueueAdd<Transaction, TransactionDto>(transaction);
