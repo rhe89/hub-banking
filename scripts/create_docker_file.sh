@@ -35,7 +35,7 @@ project_references+=("$(read_project_file "$csproj_file")")
 project_references_unique=($(echo "${project_references[@]}" | tr ' ' '\n' | sort -u | tr '\n' ' '))
 
 # Create docker file
-echo FROM mcr.microsoft.com/dotnet/core/sdk:3.1 AS build-env > Dockerfile
+echo FROM mcr.microsoft.com/dotnet/sdk:5.0 AS build-env > Dockerfile
 
 echo "" >> Dockerfile
 
