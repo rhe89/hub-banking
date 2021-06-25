@@ -1,0 +1,95 @@
+@page "/transactions/{transactionId}"
+
+@using Sbanken.Core.Providers
+@using Sbanken.Core.Dto.Data
+@using Sbanken.Core.Services
+
+@inject ITransactionProvider TransactionProvider
+@inject ITransactionService TransactionService
+@inject NavigationManager UriHelper
+
+<h1>
+    Transaction details
+</h1>
+
+<NavLink Match="NavLinkMatch.All" href="transactions">Go back</NavLink>
+
+<section class="mt-3">
+    @if (_transaction == null)
+    {
+        <p>
+            <em>Loading...</em>
+        </p>
+    }
+    else
+    {
+        if (!_edit)
+        {
+            <div class="row">
+                <div class="col-12">
+                    <label @onclick="() => _edit = true" class="clickable">
+                        Description: @_transaction.Description
+                    </label>
+                </div>
+            </div>
+        }
+        else
+        {
+            <EditForm Model="@_transaction" OnValidSubmit="@Submit">
+                <div class="row">
+                    <div class="col-2">
+                        <label>Description: </label>
+                    </div>
+                    <div class="col-6">
+                        <InputText id="description" @bind-Value="_transaction.Description" class="w-100"/>
+                    </div>
+                </div>
+                <div class="row mb-2 mt-2">
+                    <div class="col-1 offset-2">
+                        <button class="btn btn-primary" type="submit">Save</button>
+                    </div>
+                    <div class="col-2">
+                        <button class="btn btn-secondary" type="button" @onclick="() => _edit = false">Cancel</button>
+                    </div>
+                </div>
+            </EditForm>
+        }
+    
+        <div class="row">
+            <div class="col-4">
+                <label>
+                    Transaction date: @_transaction.TransactionDate.ToShortDateString()
+                </label>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-4">
+                <label>
+                    Amount: @_transaction.Amount
+                </label>
+            </div>
+        </div>
+    }
+</section>
+
+
+@code {
+
+    [Parameter]
+    public string TransactionId { get; set; }
+
+    private TransactionDto _transaction;
+    private bool _edit; 
+    
+    protected override async Task OnInitializedAsync()
+    {
+        _transaction = await TransactionProvider.GetTransaction(long.Parse(TransactionId));
+    }
+
+    private async Task Submit()
+    {
+        await TransactionService.UpdateTransactionDescription(_transaction.Id, _transaction.Description);
+        
+        UriHelper.NavigateTo($"transactions");
+    }
+}

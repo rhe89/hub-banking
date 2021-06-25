@@ -36,5 +36,15 @@ namespace Sbanken.Providers
                 .OrderByDescending(x => x.TransactionDate)
                 .ToList();        
         }
+
+        public async Task<TransactionDto> GetTransaction(long transactionId)
+        {
+            Expression<Func<Transaction, bool>> predicate = transaction =>
+                transaction.Id == transactionId;
+            
+            return await _dbRepository
+                .FirstOrDefaultAsync<Transaction, TransactionDto>(predicate,
+                    source => source.Include(x => x.Account));
+        }
     }
 }

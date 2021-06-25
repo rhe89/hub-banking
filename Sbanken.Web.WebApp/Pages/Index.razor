@@ -1,0 +1,13 @@
+﻿@page "/"
+
+@inject NavigationManager UriHelper
+
+@code 
+{
+    protected override Task OnInitializedAsync()
+    {
+        UriHelper.NavigateTo($"transactions");
+        
+        return Task.CompletedTask;
+    }
+}

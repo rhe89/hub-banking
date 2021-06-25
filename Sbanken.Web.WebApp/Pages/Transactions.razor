@@ -1,0 +1,52 @@
+﻿@page "/transactions"
+
+@using Sbanken.Core.Providers
+@using Sbanken.Core.Dto.Data
+@inject ITransactionProvider TransactionProvider
+@inject NavigationManager UriHelper
+
+<h1>Transactions</h1>
+
+@if (_transactions == null)
+{
+    <p>
+        <em>Loading...</em>
+    </p>
+}
+else
+{
+    <table class="table">
+        <thead>
+        <tr>
+            <th>Date</th>
+            <th>Description</th>
+            <th>Amount</th>
+        </tr>
+        </thead>
+        <tbody>
+        @foreach (var transaction in _transactions)
+        {
+            <tr @onclick="() => GoToTransaction(transaction.Id)" class="clickable">
+                <td>@transaction.TransactionDate.ToShortDateString()</td>
+                <td>@transaction.Description</td>
+                <td>@transaction.Amount</td>
+            </tr>
+        }
+        </tbody>
+    </table>
+}
+
+@code {
+    private IList<TransactionDto> _transactions;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _transactions = await TransactionProvider.GetTransactions(DateTime.Now.Day, null, "Regningsbetaling");
+    }
+
+    private void GoToTransaction(long transactionId)
+    {
+        UriHelper.NavigateTo($"transactions/{transactionId}");
+    }
+
+}

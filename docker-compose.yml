@@ -21,3 +21,10 @@ services:
             context: ./
             dockerfile: Sbanken.Web.Api/Dockerfile
         image: "rhe89/hub-sbanken-api"
+
+    sbanken-app:
+        container_name: "sbanken_app"
+        build: 
+            context: ./
+            dockerfile: Sbanken.Web.WebApp/Dockerfile
+        image: "rhe89/hub-sbanken-app"
