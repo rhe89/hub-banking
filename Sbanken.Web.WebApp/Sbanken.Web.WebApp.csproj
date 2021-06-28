@@ -13,4 +13,9 @@
 		<ProjectReference Include="..\Sbanken.Services\Sbanken.Services.csproj" />
 	</ItemGroup>
 
+  <ItemGroup>
+		<Folder Include="ViewModels" />
+		<Folder Include="wwwroot" />
+	</ItemGroup>
+
 </Project>

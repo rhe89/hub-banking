@@ -73,7 +73,7 @@ echo RUN dotnet publish ./"$project_name"/"$project_name".csproj -c Release -o o
 
 echo "" >> Dockerfile
 
-echo FROM mcr.microsoft.com/dotnet/core/aspnet:3.1 >> Dockerfile
+echo FROM mcr.microsoft.com/dotnet/sdk:5.0 >> Dockerfile
 echo WORKDIR /app >> Dockerfile
 echo COPY --from=build-env /app/out . >> Dockerfile
 echo ENTRYPOINT [\"dotnet\", \""$project_name".dll\"] >> Dockerfile
