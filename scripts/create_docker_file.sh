@@ -23,11 +23,35 @@ read_project_file()
     done < "$csproj_file"
 }
 
+get_sdk_version()
+{
+
+    csproj_file=$1
+
+    while IFS= read -r line
+    do
+
+
+    if [[ $line == *"TargetFramework"* ]]; then
+
+        sdk=${line##*\\}
+        sdk=${sdk##*<TargetFramework>net}
+        sdk=${sdk##*coreapp}
+        sdk=${sdk%</TargetFramework>*}
+
+        echo "$sdk"
+    fi
+    done < "$csproj_file"
+}
+
+
 #Find project file in folder
 csproj_file=$(find ./*.csproj)
 
 project_name=${csproj_file##./}
 project_name=${project_name%.csproj*}
+
+sdk=("$(get_sdk_version "$csproj_file")")
 
 # Read all project references in "project reference tree" recursively 
 project_references+=("$(read_project_file "$csproj_file")")
@@ -35,7 +59,7 @@ project_references+=("$(read_project_file "$csproj_file")")
 project_references_unique=($(echo "${project_references[@]}" | tr ' ' '\n' | sort -u | tr '\n' ' '))
 
 # Create docker file
-echo FROM mcr.microsoft.com/dotnet/sdk:5.0 AS build-env > Dockerfile
+echo FROM mcr.microsoft.com/dotnet/sdk:"$sdk" AS build-env > Dockerfile
 
 echo "" >> Dockerfile
 
@@ -73,7 +97,7 @@ echo RUN dotnet publish ./"$project_name"/"$project_name".csproj -c Release -o o
 
 echo "" >> Dockerfile
 
-echo FROM mcr.microsoft.com/dotnet/sdk:5.0 >> Dockerfile
+echo FROM mcr.microsoft.com/dotnet/sdk:"$sdk" >> Dockerfile
 echo WORKDIR /app >> Dockerfile
 echo COPY --from=build-env /app/out . >> Dockerfile
 echo ENTRYPOINT [\"dotnet\", \""$project_name".dll\"] >> Dockerfile
