@@ -29,6 +29,7 @@ namespace Sbanken.HostedServices.ServiceBusQueueHost.Commands
         {
             await _messageSender.AddToQueue(QueueNames.SbankenAccountsUpdated);
             await _messageSender.AddToQueue(QueueNames.UpdateSbankenTransactions);
+            await _messageSender.AddToQueue(QueueNames.UpdateSbankenAccountBalances);
         }
 
         public override string QueueName => QueueNames.UpdateSbankenAccounts;
