@@ -353,3 +353,4 @@ MigrationBackup/
 
 Dockerfile
 .idea
+**/launchSettings.json
