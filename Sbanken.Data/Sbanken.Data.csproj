@@ -4,13 +4,14 @@
 	</PropertyGroup>
 
 	<ItemGroup>
-		<ProjectReference Include="..\..\hub-shared\Hub.Shared.DataContracts\Hub.Shared.DataContracts.Sbanken\Hub.Shared.DataContracts.Sbanken.csproj" />
-		<ProjectReference Include="..\..\hub-shared\Hub.Shared.DataContracts\Hub.Shared.DataContracts.Banking\Hub.Shared.DataContracts.Banking.csproj" />
-		<ProjectReference Include="..\..\hub-shared\Hub.Shared.Storage\Hub.Shared.Storage.Repository\Hub.Shared.Storage.Repository.csproj" />
-		<ProjectReference Include="..\Sbanken.Shared\Sbanken.Shared.csproj" />
+		<PackageReference Include="Hub.Shared.DataContracts.Sbanken" Version="6.0.0" />
+		<PackageReference Include="Hub.Shared.DataContracts.Banking" Version="6.0.0" />
+		<PackageReference Include="Hub.Shared.Storage.Repository" Version="6.0.0" />
+		<PackageReference Include="JetBrains.Annotations" Version="2021.3.0" />
 	</ItemGroup>
 
 	<ItemGroup>
-	  <PackageReference Include="JetBrains.Annotations" Version="2021.3.0" />
+		<ProjectReference Include="..\Sbanken.Shared\Sbanken.Shared.csproj" />
 	</ItemGroup>
+
 </Project>

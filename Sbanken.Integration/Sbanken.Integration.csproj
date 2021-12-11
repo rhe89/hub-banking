@@ -7,11 +7,11 @@
 		<PackageReference Include="IdentityModel" Version="5.2.0" />
 		<PackageReference Include="JetBrains.Annotations" Version="2021.3.0" />
 		<PackageReference Include="Microsoft.Extensions.Configuration.Binder" Version="6.0.0" />
+		<PackageReference Include="Hub.Shared.Web.Http" Version="6.0.0" />
 	</ItemGroup>
 
 	<ItemGroup>
-	  <ProjectReference Include="..\..\hub-shared\Hub.Shared.Web\Hub.Shared.Web.Http\Hub.Shared.Web.Http.csproj" />
-	  <ProjectReference Include="..\Sbanken.Shared\Sbanken.Shared.csproj" />
+		<ProjectReference Include="..\Sbanken.Shared\Sbanken.Shared.csproj" />
 	</ItemGroup>
 
 </Project>
