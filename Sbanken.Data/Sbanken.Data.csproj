@@ -4,9 +4,9 @@
 	</PropertyGroup>
 
 	<ItemGroup>
-		<PackageReference Include="Hub.Shared.DataContracts.Sbanken" Version="3.2" />
-		<PackageReference Include="Hub.Shared.DataContracts.Banking" Version="3.2" />
-		<PackageReference Include="Hub.Shared.Storage.Repository" Version="3.2" />
+		<PackageReference Include="Hub.Shared.DataContracts.Sbanken" Version="3.3" />
+		<PackageReference Include="Hub.Shared.DataContracts.Banking" Version="3.3" />
+		<PackageReference Include="Hub.Shared.Storage.Repository" Version="3.3" />
 		<PackageReference Include="JetBrains.Annotations" Version="2021.3.0" />
 	</ItemGroup>
 

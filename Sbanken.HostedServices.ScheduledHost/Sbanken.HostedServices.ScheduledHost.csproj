@@ -4,8 +4,8 @@
 	</PropertyGroup>
 
 	<ItemGroup>
-		<PackageReference Include="Hub.Shared.HostedServices.Schedule" Version="3.2" />
-		<PackageReference Include="Hub.Shared.Storage.ServiceBus" Version="3.2" />
+		<PackageReference Include="Hub.Shared.HostedServices.Schedule" Version="3.3" />
+		<PackageReference Include="Hub.Shared.Storage.ServiceBus" Version="3.3" />
 		<PackageReference Include="JetBrains.Annotations" Version="2021.3.0" />
 	</ItemGroup>
 

@@ -6,7 +6,7 @@
 	<ItemGroup>
 		<PackageReference Include="IdentityModel" Version="4.2.0" />
 		<PackageReference Include="JetBrains.Annotations" Version="2021.3.0" />
-		<PackageReference Include="Hub.Shared.Web.Http" Version="3.2" />
+		<PackageReference Include="Hub.Shared.Web.Http" Version="3.3" />
 	</ItemGroup>
 
 	<ItemGroup>
