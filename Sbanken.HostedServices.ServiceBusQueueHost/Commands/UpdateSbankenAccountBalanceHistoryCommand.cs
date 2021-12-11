@@ -6,30 +6,29 @@ using Hub.Shared.Storage.ServiceBus;
 using Sbanken.HostedServices.ServiceBusQueueHost.CommandHandlers;
 using Sbanken.Shared.Constants;
 
-namespace Sbanken.HostedServices.ServiceBusQueueHost.Commands
+namespace Sbanken.HostedServices.ServiceBusQueueHost.Commands;
+
+public class UpdateSbankenAccountBalanceHistoryCommand : ServiceBusQueueCommand, ICommandWithConsumers
 {
-    public class UpdateSbankenAccountBalanceHistoryCommand : ServiceBusQueueCommand, ICommandWithConsumers
+    private readonly IUpdateSbankenAccountBalanceHistoryCommandHandler _updateSbankenAccountBalanceHistoryCommandHandler;
+    private readonly IMessageSender _messageSender;
+
+    public UpdateSbankenAccountBalanceHistoryCommand(IUpdateSbankenAccountBalanceHistoryCommandHandler updateSbankenAccountBalanceHistoryCommandHandler,
+        IMessageSender messageSender)
     {
-        private readonly IUpdateSbankenAccountBalanceHistoryCommandHandler _updateSbankenAccountBalanceHistoryCommandHandler;
-        private readonly IMessageSender _messageSender;
-
-        public UpdateSbankenAccountBalanceHistoryCommand(IUpdateSbankenAccountBalanceHistoryCommandHandler updateSbankenAccountBalanceHistoryCommandHandler,
-            IMessageSender messageSender)
-        {
-            _updateSbankenAccountBalanceHistoryCommandHandler = updateSbankenAccountBalanceHistoryCommandHandler;
-            _messageSender = messageSender;
-        }
-        
-        public override async Task Execute(CancellationToken cancellationToken)
-        {
-            await _updateSbankenAccountBalanceHistoryCommandHandler.UpdateAccountBalance();
-        }
-
-        public async Task NotifyConsumers()
-        {
-            await _messageSender.AddToQueue(QueueNames.SbankenAccountBalanceHistoryUpdated);
-        }
-
-        public override string Trigger => QueueNames.UpdateSbankenAccountBalances;
+        _updateSbankenAccountBalanceHistoryCommandHandler = updateSbankenAccountBalanceHistoryCommandHandler;
+        _messageSender = messageSender;
     }
+        
+    public override async Task Execute(CancellationToken cancellationToken)
+    {
+        await _updateSbankenAccountBalanceHistoryCommandHandler.UpdateAccountBalance();
+    }
+
+    public async Task NotifyConsumers()
+    {
+        await _messageSender.AddToQueue(QueueNames.SbankenAccountBalanceHistoryUpdated);
+    }
+
+    public override string Trigger => QueueNames.UpdateSbankenAccountBalances;
 }

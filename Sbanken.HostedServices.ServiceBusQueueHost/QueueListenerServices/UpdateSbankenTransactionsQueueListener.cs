@@ -5,20 +5,19 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Sbanken.HostedServices.ServiceBusQueueHost.Commands;
 
-namespace Sbanken.HostedServices.ServiceBusQueueHost.QueueListenerServices
+namespace Sbanken.HostedServices.ServiceBusQueueHost.QueueListenerServices;
+
+public class UpdateSbankenTransactionsQueueListener : ServiceBusHostedService
 {
-    public class UpdateSbankenTransactionsQueueListener : ServiceBusHostedService
+    public UpdateSbankenTransactionsQueueListener(ILogger<UpdateSbankenTransactionsQueueListener> logger, 
+        IConfiguration configuration,
+        UpdateSbankenTransactionsCommand command, 
+        IQueueProcessor queueProcessor,
+        TelemetryClient telemetryClient) : base(logger, 
+        configuration,
+        command, 
+        queueProcessor,
+        telemetryClient)
     {
-        public UpdateSbankenTransactionsQueueListener(ILogger<UpdateSbankenTransactionsQueueListener> logger, 
-            IConfiguration configuration,
-            UpdateSbankenTransactionsCommand command, 
-            IQueueProcessor queueProcessor,
-            TelemetryClient telemetryClient) : base(logger, 
-                                                 configuration,
-                                                 command, 
-                                                 queueProcessor,
-                                                 telemetryClient)
-        {
-        }
     }
 }

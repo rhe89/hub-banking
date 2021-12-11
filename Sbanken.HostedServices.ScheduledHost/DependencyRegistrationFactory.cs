@@ -6,15 +6,14 @@ using Microsoft.Extensions.DependencyInjection.Extensions;
 using Sbanken.Data;
 using Sbanken.HostedServices.ScheduledHost.Commands;
 
-namespace Sbanken.HostedServices.ScheduledHost
+namespace Sbanken.HostedServices.ScheduledHost;
+
+public class DependencyRegistrationFactory : DependencyRegistrationFactory<SbankenDbContext>
 {
-    public class DependencyRegistrationFactory : DependencyRegistrationFactory<SbankenDbContext>
+    protected override void AddDomainDependencies(IServiceCollection serviceCollection, IConfiguration configuration)
     {
-        protected override void AddDomainDependencies(IServiceCollection serviceCollection, IConfiguration configuration)
-        {
-            serviceCollection.TryAddSingleton<IMessageSender, MessageSender>();
-            serviceCollection.AddSingleton<IScheduledCommand, QueueUpdateSbankenAccountsCommand>();
-            serviceCollection.AddSingleton<IScheduledCommand, QueueUpdateSbankenTransactionsCommand>();
-        }
+        serviceCollection.TryAddSingleton<IMessageSender, MessageSender>();
+        serviceCollection.AddSingleton<IScheduledCommand, QueueUpdateSbankenAccountsCommand>();
+        serviceCollection.AddSingleton<IScheduledCommand, QueueUpdateSbankenTransactionsCommand>();
     }
 }

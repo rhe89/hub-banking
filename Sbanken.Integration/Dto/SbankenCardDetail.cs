@@ -1,11 +1,10 @@
 using System.Runtime.Serialization;
 
-namespace Sbanken.Integration.Dto
+namespace Sbanken.Integration.Dto;
+
+[DataContract]
+public class CardDetail
 {
-    [DataContract]
-    public class CardDetail
-    {
-        [DataMember]
-        public string TransactionId { get; set; }
-    }
+    [DataMember]
+    public string TransactionId { get; set; }
 }

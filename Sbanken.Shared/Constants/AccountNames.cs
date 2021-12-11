@@ -1,7 +1,6 @@
-namespace Sbanken.Shared.Constants
+namespace Sbanken.Shared.Constants;
+
+public static class AccountNames
 {
-    public static class AccountNames
-    {
-        public static readonly string BillingAccount = "Regningsbetaling";
-    }
+    public static readonly string BillingAccount = "Regningsbetaling";
 }

@@ -2,14 +2,13 @@ using AutoMapper;
 using Hub.Shared.DataContracts.Banking;
 using Sbanken.Data.Entities;
 
-namespace Sbanken.Data.AutoMapper
+namespace Sbanken.Data.AutoMapper;
+
+public class AccountBalanceMapperProfile : Profile
 {
-    public class AccountBalanceMapperProfile : Profile
+    public AccountBalanceMapperProfile()
     {
-        public AccountBalanceMapperProfile()
-        {
-            CreateMap<AccountBalance, AccountBalanceDto>()
-                .ReverseMap();
-        }
+        CreateMap<AccountBalance, AccountBalanceDto>()
+            .ReverseMap();
     }
 }

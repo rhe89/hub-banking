@@ -1,13 +1,12 @@
 using JetBrains.Annotations;
 using Microsoft.Extensions.Configuration;
 
-namespace Sbanken.Web.WebApp
+namespace Sbanken.Web.WebApp;
+
+[UsedImplicitly]
+public class Startup : Hub.Shared.Web.BlazorServer.Startup<DependencyRegistrationFactory>
 {
-    [UsedImplicitly]
-    public class Startup : Hub.Shared.Web.BlazorServer.Startup<DependencyRegistrationFactory>
+    public Startup(IConfiguration configuration) : base(configuration)
     {
-        public Startup(IConfiguration configuration) : base(configuration)
-        {
-        }
     }
 }
