@@ -1,13 +1,11 @@
 using AutoMapper;
-using Hub.Storage.Repository;
+using Hub.Shared.Storage.Repository;
 using Microsoft.ApplicationInsights.AspNetCore.Extensions;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Sbanken.Core.Providers;
-using Sbanken.Core.Services;
 using Sbanken.Data;
 using Sbanken.Data.AutoMapper;
 using Sbanken.Providers;
@@ -19,10 +17,10 @@ namespace Sbanken.Web.WebApp
     {
         public Startup(IConfiguration configuration)
         {
-            Configuration = configuration;
+            _configuration = configuration;
         }
 
-        public IConfiguration Configuration { get; }
+        private readonly IConfiguration _configuration;
 
         // This method gets called by the runtime. Use this method to add services to the container.
         // For more information on how to configure your application, visit https://go.microsoft.com/fwlink/?LinkID=398940
@@ -32,10 +30,10 @@ namespace Sbanken.Web.WebApp
             serviceCollection.AddServerSideBlazor();
             serviceCollection.AddApplicationInsightsTelemetry(new ApplicationInsightsServiceOptions
             {
-                ConnectionString = Configuration.GetValue<string>("AI_CONNECTION_STRING")
+                ConnectionString = _configuration.GetValue<string>("AI_CONNECTION_STRING")
             });
             
-            serviceCollection.AddDatabase<SbankenDbContext>(Configuration, "SQL_DB_SBANKEN", "Sbanken.Data");
+            serviceCollection.AddDatabase<SbankenDbContext>(_configuration, "SQL_DB_SBANKEN", "Sbanken.Data");
             serviceCollection.AddTransient<ITransactionService, TransactionService>();
             serviceCollection.AddTransient<ITransactionProvider, TransactionProvider>();
             

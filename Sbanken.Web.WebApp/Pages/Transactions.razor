@@ -1,9 +1,10 @@
 ﻿@page "/transactions"
-
-@using Sbanken.Core.Providers
-@using Sbanken.Core.Dto.Data
-@inject ITransactionProvider TransactionProvider
-@inject NavigationManager UriHelper
+@page "/"
+@using Sbanken.Providers
+@using Sbanken.Shared.Constants
+@using Hub.Shared.DataContracts.Sbanken
+@inject ITransactionProvider _transactionProvider
+@inject NavigationManager _uriHelper
 
 <h1>Transactions</h1>
 
@@ -41,12 +42,12 @@ else
 
     protected override async Task OnInitializedAsync()
     {
-        _transactions = await TransactionProvider.GetTransactions(DateTime.Now.Day, null, "Regningsbetaling");
+        _transactions = await _transactionProvider.GetTransactions(DateTime.Now.Day, null, AccountNames.BillingAccount);
     }
 
     private void GoToTransaction(long transactionId)
     {
-        UriHelper.NavigateTo($"transactions/{transactionId}");
+        _uriHelper.NavigateTo($"transactions/{transactionId}");
     }
 
 }

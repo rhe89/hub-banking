@@ -1,36 +1,47 @@
-﻿using IdentityModel.Client;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
 using System.Threading.Tasks;
-using Hub.Settings.Core;
-using Hub.Web.Http;
+using Hub.Shared.Web.Http;
+using JetBrains.Annotations;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
-using Sbanken.Core.Constants;
-using Sbanken.Core.Dto.Integration;
-using Sbanken.Core.Integration;
+using Sbanken.Integration.Dto;
+using Sbanken.Shared.Constants;
 
 namespace Sbanken.Integration
 {
+    public interface ISbankenConnector
+    {
+        Task<List<SbankenAccount>> GetAccounts();
+        Task<IList<SbankenTransaction>> GetTransactions(DateTime startDate, DateTime? endDate);
+        Task<IList<object>> GetTransactionsRaw();
+        Task<IList<object>> GetTransactionsRaw(string accountName);
+        Task<IList<object>> GetArchivedTransactionsRaw();
+        Task<IList<object>> GetArchivedTransactionsRaw(string accountName);
+        Task<object> GetAccountsRaw();
+    }
+    
+    [UsedImplicitly]
     public class SbankenConnector : HttpClientService, ISbankenConnector
     {
-        private readonly ISettingProvider _settingProvider;
+        private readonly IConfiguration _configuration;
         private readonly ILogger<SbankenConnector> _logger;
 
-        public SbankenConnector(ISettingProvider settingProvider, 
+        public SbankenConnector(IConfiguration configuration, 
             ILogger<SbankenConnector> logger,
             HttpClient httpClient) 
             : base(httpClient, "Sbanken")
         {
-            _settingProvider = settingProvider;
+            _configuration = configuration;
             _logger = logger;
 
-            var customerId = _settingProvider.GetSetting<string>(SettingKeys.SbankenApiCustomerId);
+            var customerId = _configuration.GetValue<string>(SettingKeys.SbankenApiCustomerId);
 
             HttpClient.DefaultRequestHeaders.Add("customerId", customerId);
             
-            var apiBaseAddress = _settingProvider.GetSetting<string>(SettingKeys.SbankenApiBaseAddress);
+            var apiBaseAddress = _configuration.GetValue<string>(SettingKeys.SbankenApiBaseAddress);
 
             HttpClient.BaseAddress = new Uri(apiBaseAddress);
         }
@@ -39,13 +50,13 @@ namespace Sbanken.Integration
         {
             await AuthenticateClient();
 
-            var bankBasePath = _settingProvider.GetSetting<string>(SettingKeys.SbankenApiBasePath);
+            var bankBasePath = _configuration.GetValue<string>(SettingKeys.SbankenApiBasePath);
 
             var endpoint = $"{bankBasePath}/api/v1/Accounts";
             
-            var response = await Get<SbankenAccountResponse>(endpoint);
+            var accountsResponse = await Get<SbankenAccountResponse>(endpoint);
 
-            return !response.Success ? new List<SbankenAccount>() : response.Data.Items;
+            return accountsResponse.Items;
         }
 
         public async Task<IList<SbankenTransaction>> GetTransactions(DateTime startDate, DateTime? endDate)
@@ -63,32 +74,38 @@ namespace Sbanken.Integration
 
             var accounts = await GetAccounts();
             
-            var bankBasePath = _settingProvider.GetSetting<string>(SettingKeys.SbankenApiBasePath);
+            var bankBasePath = _configuration.GetValue<string>(SettingKeys.SbankenApiBasePath);
 
             var transactions = new List<SbankenTransaction>();
 
             foreach (var account in accounts)
             {
-                _logger.LogInformation($"Getting transactions in account {account.Name}");
+                _logger.LogInformation("Getting transactions in account {AccountName}", account.Name);
                 
                 var endpoint = $"{bankBasePath}/api/v1/transactions/archive/{account.AccountId}";
 
-                var response = await Get<SbankenTransactionResponse>(endpoint, requestParameters);
-
-                if (!response.Success)
+                SbankenTransactionResponse transactionResponse;
+                
+                try
                 {
-                    _logger.LogInformation($"Error occured: {response.ErrorMessage}");
+                    transactionResponse = await Get<SbankenTransactionResponse>(endpoint, requestParameters);
+                }
+                catch (Exception e)
+                {
+                    _logger.LogError(e, "Error getting transactions for account {AccountName}", account.Name);
                     continue;
                 }
-                
-                _logger.LogInformation($"Got {response.Data.Items.Count} transactions");
 
-                foreach (var item in response.Data.Items)
+                var transactionsInAccount = transactionResponse.Items;
+                
+                _logger.LogInformation("Got {Count} transactions", transactionsInAccount.Count);
+
+                foreach (var item in transactionsInAccount)
                 {
                     item.AccountName = account.Name;
                 }
 
-                transactions.AddRange(response.Data.Items);
+                transactions.AddRange(transactionsInAccount);
             }
 
             return transactions;
@@ -110,7 +127,7 @@ namespace Sbanken.Integration
                 accounts = accounts.Where(x => x.Name == accountName).ToList();
             }
             
-            var bankBasePath = _settingProvider.GetSetting<string>(SettingKeys.SbankenApiBasePath);
+            var bankBasePath = _configuration.GetValue<string>(SettingKeys.SbankenApiBasePath);
 
             var transactions = new List<object>();
 
@@ -120,14 +137,19 @@ namespace Sbanken.Integration
             {
                 var endpoint = $"{bankBasePath}/api/v1/transactions/{account.AccountId}";
 
-                var response = await Get<object>(endpoint, query);
-
-                if (!response.Success)
+                object transactionsInAccount;
+                
+                try
                 {
+                    transactionsInAccount = await Get<object>(endpoint, query);
+                }
+                catch (Exception e)
+                {
+                    _logger.LogError(e, "Error getting transactions for account {AccountName}", account.Name);
                     continue;
                 }
-
-                transactions.Add(response.Data);
+                
+                transactions.Add(transactionsInAccount);
             }
 
             return transactions;
@@ -149,7 +171,7 @@ namespace Sbanken.Integration
                 accounts = accounts.Where(x => x.Name == accountName).ToList();
             }
             
-            var bankBasePath = _settingProvider.GetSetting<string>(SettingKeys.SbankenApiBasePath);
+            var bankBasePath = _configuration.GetValue<string>(SettingKeys.SbankenApiBasePath);
 
             var transactions = new List<object>();
 
@@ -159,14 +181,19 @@ namespace Sbanken.Integration
             {
                 var endpoint = $"{bankBasePath}/api/v1/transactions/archive/{account.AccountId}";
 
-                var response = await Get<object>(endpoint, query);
-
-                if (!response.Success)
+                object transactionsInAccount;
+                
+                try
                 {
+                    transactionsInAccount = await Get<object>(endpoint, query);
+                }
+                catch (Exception e)
+                {
+                    _logger.LogError(e, "Error getting transactions for account {AccountName}", account.Name);
                     continue;
                 }
 
-                transactions.Add(response.Data);
+                transactions.Add(transactionsInAccount);
             }
 
             return transactions;
@@ -176,7 +203,7 @@ namespace Sbanken.Integration
         {
             await AuthenticateClient();
 
-            var bankBasePath = _settingProvider.GetSetting<string>(SettingKeys.SbankenApiBasePath);
+            var bankBasePath = _configuration.GetValue<string>(SettingKeys.SbankenApiBasePath);
 
             var endpoint = $"{bankBasePath}/api/v1/Accounts";
             
@@ -187,23 +214,14 @@ namespace Sbanken.Integration
         
         private async Task AuthenticateClient()
         {
-            var clientId = _settingProvider.GetSetting<string>(SettingKeys.SbankenApiClientId);
-            var secret = _settingProvider.GetSetting<string>(SettingKeys.SbankenApiSecret);
-            var discoveryEndpoint = _settingProvider.GetSetting<string>(SettingKeys.SbankenApiDiscoveryEndpoint);
+            if (IsAuthenticated)
+                return;
             
-            var tokenResponse = await HttpClient.RequestClientCredentialsTokenAsync(new ClientCredentialsTokenRequest
-            {
-                Address = discoveryEndpoint,
-                ClientId = clientId,
-                ClientSecret = secret
-            });
+            var clientId = _configuration.GetValue<string>(SettingKeys.SbankenApiClientId);
+            var secret = _configuration.GetValue<string>(SettingKeys.SbankenApiSecret);
+            var discoveryEndpoint = _configuration.GetValue<string>(SettingKeys.SbankenApiDiscoveryEndpoint);
             
-            if (tokenResponse.IsError)
-            {
-                throw new HttpRequestException(tokenResponse.ErrorDescription);
-            }
-
-            HttpClient.SetBearerToken(tokenResponse.AccessToken);
+            await RequestClientCredentialsTokenAsync(discoveryEndpoint, clientId, secret);
         }
     }
 }

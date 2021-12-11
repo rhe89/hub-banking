@@ -1,4 +1,4 @@
-using Hub.Web.Api;
+using Hub.Shared.Web.Api;
 using Microsoft.Extensions.Hosting;
 using Sbanken.Data;
 

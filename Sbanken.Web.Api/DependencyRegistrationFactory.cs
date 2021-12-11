@@ -1,11 +1,9 @@
 using AutoMapper;
-using Hub.Web.Api;
-using Hub.Web.Http;
+using Hub.Shared.Web.Api;
+using Hub.Shared.Web.Http;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
-using Sbanken.Core.Integration;
-using Sbanken.Core.Providers;
 using Sbanken.Data;
 using Sbanken.Data.AutoMapper;
 using Sbanken.Integration;

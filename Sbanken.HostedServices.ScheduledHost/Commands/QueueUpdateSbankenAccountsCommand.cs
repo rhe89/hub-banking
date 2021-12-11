@@ -1,10 +1,9 @@
-using System;
 using System.Threading;
 using System.Threading.Tasks;
-using Hub.HostedServices.Commands.Configuration.Core;
-using Hub.HostedServices.Schedule.Commands;
-using Hub.ServiceBus.Core;
-using Sbanken.Core.Constants;
+using Hub.Shared.HostedServices.Commands;
+using Hub.Shared.HostedServices.Schedule;
+using Hub.Shared.Storage.ServiceBus;
+using Sbanken.Shared.Constants;
 
 namespace Sbanken.HostedServices.ScheduledHost.Commands
 {

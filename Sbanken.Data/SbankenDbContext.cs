@@ -1,6 +1,6 @@
-using Hub.Storage.Repository;
+using Hub.Shared.Storage.Repository;
 using Microsoft.EntityFrameworkCore;
-using Sbanken.Core.Entities;
+using Sbanken.Data.Entities;
 
 namespace Sbanken.Data
 {

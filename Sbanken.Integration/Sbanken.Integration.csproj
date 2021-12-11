@@ -5,12 +5,12 @@
 
 	<ItemGroup>
 		<PackageReference Include="IdentityModel" Version="4.2.0" />
-		<PackageReference Include="Hub.Settings.Core" Version="3.1.1" />
-		<PackageReference Include="Hub.Web.Http" Version="3.1.1" />
+		<PackageReference Include="JetBrains.Annotations" Version="2021.3.0" />
+		<PackageReference Include="Hub.Shared.Web.Http" Version="3.2" />
 	</ItemGroup>
 
 	<ItemGroup>
-		<ProjectReference Include="..\Sbanken.Core\Sbanken.Core.csproj" />
+		<ProjectReference Include="..\Sbanken.Shared\Sbanken.Shared.csproj" />
 	</ItemGroup>
 
 </Project>

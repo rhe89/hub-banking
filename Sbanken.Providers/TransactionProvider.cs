@@ -3,14 +3,19 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Threading.Tasks;
-using Hub.Storage.Repository.Core;
+using Hub.Shared.DataContracts.Sbanken;
+using Hub.Shared.Storage.Repository.Core;
 using Microsoft.EntityFrameworkCore;
-using Sbanken.Core.Dto.Data;
-using Sbanken.Core.Entities;
-using Sbanken.Core.Providers;
+using Sbanken.Data.Entities;
 
 namespace Sbanken.Providers
 {
+    public interface ITransactionProvider
+    {
+        Task<IList<TransactionDto>> GetTransactions(int? ageInDays, string description, string accountName);
+        Task<TransactionDto> GetTransaction(long transactionId);
+    }
+    
     public class TransactionProvider : ITransactionProvider
     {
         private readonly IHubDbRepository _dbRepository;

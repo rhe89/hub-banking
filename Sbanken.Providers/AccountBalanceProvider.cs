@@ -2,14 +2,21 @@
 using System.Collections.Generic;
 using System.Linq.Expressions;
 using System.Threading.Tasks;
-using Hub.Storage.Repository.Core;
+using Hub.Shared.DataContracts.Banking;
+using Hub.Shared.Storage.Repository.Core;
 using Microsoft.EntityFrameworkCore;
-using Sbanken.Core.Dto.Data;
-using Sbanken.Core.Entities;
-using Sbanken.Core.Providers;
+using Sbanken.Data.Entities;
 
 namespace Sbanken.Providers
 {
+    public interface IAccountBalanceProvider
+    {
+        Task<IList<AccountBalanceDto>> GetAccountBalances(string accountName, 
+            string accountType,
+            DateTime? fromDate,
+            DateTime? toDate);
+    }
+    
     public class AccountBalanceProvider : IAccountBalanceProvider
     {
         private readonly IHubDbRepository _dbRepository;

@@ -1,6 +1,6 @@
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
-using Sbanken.Core.Integration;
+using Sbanken.Integration;
 
 namespace Sbanken.Web.Api.Controllers
 {
@@ -18,17 +18,17 @@ namespace Sbanken.Web.Api.Controllers
         [HttpGet("Transactions")]
         public async Task<IActionResult> GetTransactions([FromQuery]string accountName)
         {
-            var transactions = await _sbankenConnector.GetTransactionsRaw(accountName);
-
-            return Ok(transactions);
+            return string.IsNullOrEmpty(accountName) ? 
+                Ok(await _sbankenConnector.GetTransactionsRaw()) : 
+                Ok(await _sbankenConnector.GetTransactionsRaw(accountName));
         }
         
         [HttpGet("ArchivedTransactions")]
         public async Task<IActionResult> GetArchivedTransactions([FromQuery]string accountName)
         {
-            var transactions = await _sbankenConnector.GetArchivedTransactionsRaw(accountName);
-
-            return Ok(transactions);
+            return string.IsNullOrEmpty(accountName) ? 
+                Ok(await _sbankenConnector.GetArchivedTransactionsRaw()) : 
+                Ok(await _sbankenConnector.GetArchivedTransactionsRaw(accountName));
         }
         
         [HttpGet("Accounts")]

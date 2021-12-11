@@ -1,13 +1,16 @@
-﻿using System;
-using System.Threading.Tasks;
-using Hub.Storage.Repository.Core;
-using Sbanken.Core.Dto.Data;
-using Sbanken.Core.Entities;
-using Sbanken.Core.Providers;
-using Sbanken.Core.Services;
+﻿using System.Threading.Tasks;
+using Hub.Shared.DataContracts.Sbanken;
+using Hub.Shared.Storage.Repository.Core;
+using Sbanken.Data.Entities;
+using Sbanken.Providers;
 
 namespace Sbanken.Services
 {
+    public interface ITransactionService
+    {
+        Task<bool> UpdateTransactionDescription(long transactionId, string description);
+    }
+    
     public class TransactionService : ITransactionService
     {
         private readonly IHubDbRepository _hubDbRepository;

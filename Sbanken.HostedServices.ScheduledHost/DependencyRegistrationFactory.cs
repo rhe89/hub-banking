@@ -1,7 +1,5 @@
-using Hub.HostedServices.Schedule;
-using Hub.HostedServices.Schedule.Commands;
-using Hub.ServiceBus;
-using Hub.ServiceBus.Core;
+using Hub.Shared.HostedServices.Schedule;
+using Hub.Shared.Storage.ServiceBus;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;

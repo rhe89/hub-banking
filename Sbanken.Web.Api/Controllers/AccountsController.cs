@@ -1,8 +1,8 @@
 ﻿using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore.Internal;
-using Sbanken.Core.Providers;
+using Sbanken.Providers;
+using Sbanken.Shared.Constants;
 
 namespace Sbanken.Web.Api.Controllers
 {
@@ -27,23 +27,23 @@ namespace Sbanken.Web.Api.Controllers
         {
             var accounts = await _accountProvider.GetAccounts(accountName, accountType);
 
-            var billingAccount = accounts.FirstOrDefault(x => x.Name == "Regningsbetaling");
+            var billingAccount = accounts.FirstOrDefault(x => x.Name == AccountNames.BillingAccount);
 
             if (billingAccount == null)
                 return Ok(accounts);
             
-            var billingAccountTransactions = await _transactionProvider.GetTransactions(30, null, "Regningsbetaling");
+            var billingAccountTransactions = await _transactionProvider.GetTransactions(30, null, AccountNames.BillingAccount);
 
             var lastBillingAccountTransaction = billingAccountTransactions.FirstOrDefault();
 
             if (lastBillingAccountTransaction == null)
                 return Ok(accounts);
 
-            var billingAccountBalances = await _accountBalanceProvider.GetAccountBalances("Regningsbetaling", null,
+            var billingAccountBalances = await _accountBalanceProvider.GetAccountBalances(AccountNames.BillingAccount, null,
                 lastBillingAccountTransaction.CreatedDate, null);
             
             if (billingAccountBalances.Count == 0)
-                billingAccountBalances = await _accountBalanceProvider.GetAccountBalances("Regningsbetaling", null,
+                billingAccountBalances = await _accountBalanceProvider.GetAccountBalances(AccountNames.BillingAccount, null,
                     lastBillingAccountTransaction.TransactionDate, null);
 
             if (billingAccountBalances.Count == 0)

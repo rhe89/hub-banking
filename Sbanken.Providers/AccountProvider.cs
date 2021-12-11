@@ -2,13 +2,17 @@
 using System.Collections.Generic;
 using System.Linq.Expressions;
 using System.Threading.Tasks;
-using Hub.Storage.Repository.Core;
-using Sbanken.Core.Dto.Data;
-using Sbanken.Core.Entities;
-using Sbanken.Core.Providers;
+using Hub.Shared.DataContracts.Sbanken;
+using Hub.Shared.Storage.Repository.Core;
+using Sbanken.Data.Entities;
 
 namespace Sbanken.Providers
 {
+    public interface IAccountProvider
+    {
+        Task<IList<AccountDto>> GetAccounts(string accountName, string accountType);
+    }
+    
     public class AccountProvider : IAccountProvider
     {
         private readonly IHubDbRepository _dbRepository;

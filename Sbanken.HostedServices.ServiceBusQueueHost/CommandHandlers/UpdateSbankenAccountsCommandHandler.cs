@@ -3,15 +3,20 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Hub.Storage.Repository.Core;
+using Hub.Shared.DataContracts.Sbanken;
+using Hub.Shared.Storage.Repository.Core;
 using Microsoft.Extensions.Logging;
-using Sbanken.Core.Dto.Data;
-using Sbanken.Core.Dto.Integration;
-using Sbanken.Core.Entities;
-using Sbanken.Core.Integration;
+using Sbanken.Data.Entities;
+using Sbanken.Integration;
+using Sbanken.Integration.Dto;
 
 namespace Sbanken.HostedServices.ServiceBusQueueHost.CommandHandlers
 {
+    public interface IUpdateSbankenAccountsCommandHandler
+    {
+        Task UpdateAccounts();
+    }
+    
     public class UpdateSbankenAccountsCommandHandler : IUpdateSbankenAccountsCommandHandler
     {
         private readonly ISbankenConnector _sbankenConnector;
@@ -41,9 +46,9 @@ namespace Sbanken.HostedServices.ServiceBusQueueHost.CommandHandlers
             Exception ex = null;
             var accounts = new List<SbankenAccount>();
 
-            _logger.LogInformation("Fetching accounts from Sbanken.");
+            _logger.LogInformation("Fetching accounts from Sbanken");
 
-            while (!success && retryCount < 100)
+            while (!success && retryCount < 1)
             {
                 try
                 {
@@ -64,13 +69,13 @@ namespace Sbanken.HostedServices.ServiceBusQueueHost.CommandHandlers
                 throw ex;
             }
 
-            _logger.LogInformation($"Finished fetching accounts from Sbanken. Found {accounts.Count} accounts.");
+            _logger.LogInformation("Fetched {Count} accounts", accounts.Count);
 
             return accounts;
         }
 
 
-        private async Task UpdateCurrentAccountBalances(IList<SbankenAccount> accountsFromSbanken)
+        private async Task UpdateCurrentAccountBalances(IEnumerable<SbankenAccount> accountsFromSbanken)
         {
             var existingAccounts = _dbRepository.All<Account, AccountDto>().ToList();
 
@@ -89,14 +94,12 @@ namespace Sbanken.HostedServices.ServiceBusQueueHost.CommandHandlers
             }
             
             await _dbRepository.ExecuteQueueAsync();
-            
-            _logger.LogInformation("Finished updating accounts");
         }
 
         
         private void CreateAccount(SbankenAccount sbankenAccount)
         {
-            _logger.LogInformation($"Adding new account {sbankenAccount.Name}");
+            _logger.LogInformation("Adding new account {AccountName}", sbankenAccount.Name);
             
             var account = new AccountDto
             {
@@ -110,7 +113,7 @@ namespace Sbanken.HostedServices.ServiceBusQueueHost.CommandHandlers
 
         private void UpdateAccount(AccountDto accountInDb, SbankenAccount sbankenAccount)
         {
-            _logger.LogInformation($"Updating account {sbankenAccount.Name}");
+            _logger.LogInformation("Updating account {AccountName}", sbankenAccount.Name);
 
             accountInDb.Balance = sbankenAccount.Available;
             accountInDb.AccountType = sbankenAccount.AccountType;

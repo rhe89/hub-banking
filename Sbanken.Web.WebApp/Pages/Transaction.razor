@@ -1,12 +1,12 @@
 @page "/transactions/{transactionId}"
+@using Sbanken.Providers
+@using Sbanken.Services
+@using Microsoft.AspNetCore.Components
+@using Hub.Shared.DataContracts.Sbanken
 
-@using Sbanken.Core.Providers
-@using Sbanken.Core.Dto.Data
-@using Sbanken.Core.Services
-
-@inject ITransactionProvider TransactionProvider
-@inject ITransactionService TransactionService
-@inject NavigationManager UriHelper
+@inject ITransactionProvider _transactionProvider
+@inject ITransactionService _transactionService
+@inject NavigationManager _uriHelper
 
 <h1>
     Transaction details
@@ -83,13 +83,13 @@
     
     protected override async Task OnInitializedAsync()
     {
-        _transaction = await TransactionProvider.GetTransaction(long.Parse(TransactionId));
+        _transaction = await _transactionProvider.GetTransaction(long.Parse(TransactionId));
     }
 
     private async Task Submit()
     {
-        await TransactionService.UpdateTransactionDescription(_transaction.Id, _transaction.Description);
+        await _transactionService.UpdateTransactionDescription(_transaction.Id, _transaction.Description);
         
-        UriHelper.NavigateTo($"transactions");
+        _uriHelper.NavigateTo("transactions");
     }
 }

@@ -1,7 +1,8 @@
 ﻿using System;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
-using Sbanken.Core.Providers;
+using Sbanken.Providers;
+
 
 namespace Sbanken.Web.Api.Controllers
 {
@@ -23,7 +24,7 @@ namespace Sbanken.Web.Api.Controllers
             [FromQuery]DateTime? toDate)
         {
             var accounts = await _accountBalanceProvider.GetAccountBalances(accountName, accountType, fromDate, toDate);
-
+            
             return Ok(accounts);
         }
     }

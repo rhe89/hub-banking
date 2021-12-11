@@ -4,14 +4,14 @@
 	</PropertyGroup>
 
 	<ItemGroup>
-		<PackageReference Include="Hub.Storage.Repository" Version="3.1.1" />
+		<PackageReference Include="Hub.Shared.DataContracts.Sbanken" Version="3.2" />
+		<PackageReference Include="Hub.Shared.DataContracts.Banking" Version="3.2" />
+		<PackageReference Include="Hub.Shared.Storage.Repository" Version="3.2" />
+		<PackageReference Include="JetBrains.Annotations" Version="2021.3.0" />
 	</ItemGroup>
 
 	<ItemGroup>
-		<ProjectReference Include="..\Sbanken.Core\Sbanken.Core.csproj" />
+		<ProjectReference Include="..\Sbanken.Shared\Sbanken.Shared.csproj" />
 	</ItemGroup>
 
-	<ItemGroup>
-		<Folder Include="Migrations\" />
-	</ItemGroup>
 </Project>

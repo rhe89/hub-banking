@@ -1,6 +1,6 @@
-using Hub.HostedServices.Commands.Logging.Core;
-using Hub.HostedServices.ServiceBusQueue;
-using Hub.ServiceBus.Core;
+using Hub.Shared.HostedServices.ServiceBusQueue;
+using Hub.Shared.Storage.ServiceBus;
+using Microsoft.ApplicationInsights;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Sbanken.HostedServices.ServiceBusQueueHost.Commands;
@@ -10,14 +10,14 @@ namespace Sbanken.HostedServices.ServiceBusQueueHost.QueueListenerServices
     public class UpdateSbankenTransactionsQueueListener : ServiceBusHostedService
     {
         public UpdateSbankenTransactionsQueueListener(ILogger<UpdateSbankenTransactionsQueueListener> logger, 
-            ICommandLogFactory commandLogFactory, 
             IConfiguration configuration,
             UpdateSbankenTransactionsCommand command, 
-            IQueueProcessor queueProcessor) : base(logger, 
-                                                    commandLogFactory, 
-                                                    configuration,
-                                                    command, 
-                                                    queueProcessor)
+            IQueueProcessor queueProcessor,
+            TelemetryClient telemetryClient) : base(logger, 
+                                                 configuration,
+                                                 command, 
+                                                 queueProcessor,
+                                                 telemetryClient)
         {
         }
     }

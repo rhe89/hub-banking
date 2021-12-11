@@ -1,6 +1,6 @@
 ﻿using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
-using Sbanken.Core.Providers;
+using Sbanken.Providers;
 
 namespace Sbanken.Web.Api.Controllers
 {

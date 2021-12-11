@@ -1,13 +1,19 @@
 using System;
 using System.Linq;
 using System.Threading.Tasks;
-using Hub.Storage.Repository.Core;
+using Hub.Shared.DataContracts.Banking;
+using Hub.Shared.Storage.Repository.Core;
 using Microsoft.Extensions.Logging;
-using Sbanken.Core.Dto.Data;
-using Sbanken.Core.Entities;
+using Sbanken.Data.Entities;
+using AccountDto = Hub.Shared.DataContracts.Sbanken.AccountDto;
 
 namespace Sbanken.HostedServices.ServiceBusQueueHost.CommandHandlers
 {
+    public interface IUpdateSbankenAccountBalanceHistoryCommandHandler
+    {
+        Task UpdateAccountBalance();
+    }
+    
     public class UpdateSbankenAccountBalanceHistoryCommandHandler : IUpdateSbankenAccountBalanceHistoryCommandHandler
     {
         private readonly IHubDbRepository _dbRepository;
@@ -28,7 +34,7 @@ namespace Sbanken.HostedServices.ServiceBusQueueHost.CommandHandlers
             {
                 var now = DateTime.Now;
 
-                _logger.LogInformation($"Updating account balance history for account {account.Name}");
+                _logger.LogInformation("Updating account balance history for account {AccountName}", account.Name);
                 
                 var accountBalanceForCurrentDay = GetAccountBalanceForCurrentDay(account, now);
             
@@ -43,9 +49,6 @@ namespace Sbanken.HostedServices.ServiceBusQueueHost.CommandHandlers
             }
             
             await _dbRepository.ExecuteQueueAsync();
-            
-            _logger.LogInformation("Finished updating account balance history");
-
         }
 
         private AccountBalanceDto GetAccountBalanceForCurrentDay(AccountDto account, DateTime now)

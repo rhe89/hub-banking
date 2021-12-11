@@ -1,6 +1,6 @@
 using AutoMapper;
-using Sbanken.Core.Entities;
-using Sbanken.Core.Dto.Data;
+using Hub.Shared.DataContracts.Sbanken;
+using Sbanken.Data.Entities;
 
 namespace Sbanken.Data.AutoMapper
 {

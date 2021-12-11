@@ -1,11 +1,9 @@
 using AutoMapper;
-using Hub.HostedServices.ServiceBusQueue;
-using Hub.ServiceBus;
-using Hub.ServiceBus.Core;
-using Hub.Web.Http;
+using Hub.Shared.HostedServices.ServiceBusQueue;
+using Hub.Shared.Storage.ServiceBus;
+using Hub.Shared.Web.Http;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Sbanken.Core.Integration;
 using Sbanken.Data;
 using Sbanken.Data.AutoMapper;
 using Sbanken.HostedServices.ServiceBusQueueHost.CommandHandlers;

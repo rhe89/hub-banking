@@ -1,10 +1,10 @@
 using System.Threading;
 using System.Threading.Tasks;
-using Hub.HostedServices.Commands.Core;
-using Hub.HostedServices.ServiceBusQueue.Commands;
-using Hub.ServiceBus.Core;
-using Sbanken.Core.Constants;
+using Hub.Shared.HostedServices.Commands;
+using Hub.Shared.HostedServices.ServiceBusQueue;
+using Hub.Shared.Storage.ServiceBus;
 using Sbanken.HostedServices.ServiceBusQueueHost.CommandHandlers;
+using Sbanken.Shared.Constants;
 
 namespace Sbanken.HostedServices.ServiceBusQueueHost.Commands
 {
@@ -32,6 +32,6 @@ namespace Sbanken.HostedServices.ServiceBusQueueHost.Commands
             await _messageSender.AddToQueue(QueueNames.UpdateSbankenAccountBalances);
         }
 
-        public override string QueueName => QueueNames.UpdateSbankenAccounts;
+        public override string Trigger => QueueNames.UpdateSbankenAccounts;
     }
 }

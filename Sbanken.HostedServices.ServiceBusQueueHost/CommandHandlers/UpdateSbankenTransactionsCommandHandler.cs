@@ -1,19 +1,21 @@
 using System;
 using System.Linq;
 using System.Threading.Tasks;
-using Hub.Settings.Core;
-using Hub.Storage.Repository.Core;
+using Hub.Shared.DataContracts.Sbanken;
+using Hub.Shared.Storage.Repository.Core;
 using Microsoft.Extensions.Logging;
-using Sbanken.Core.Constants;
-using Sbanken.Core.Dto.Data;
-using Sbanken.Core.Entities;
-using Sbanken.Core.Integration;
+using Sbanken.Data.Entities;
+using Sbanken.Integration;
 
 namespace Sbanken.HostedServices.ServiceBusQueueHost.CommandHandlers
 {
+    public interface IUpdateSbankenTransactionsCommandHandler
+    {
+        Task UpdateTransactions();
+    }
+    
     public class UpdateSbankenTransactionsCommandHandler : IUpdateSbankenTransactionsCommandHandler
     {
-        private readonly ISettingProvider _settingProvider;
         private readonly IHubDbRepository _dbRepository;
         private readonly ISbankenConnector _sbankenConnector;
         private readonly ILogger<UpdateSbankenTransactionsCommandHandler> _logger;
@@ -21,10 +23,8 @@ namespace Sbanken.HostedServices.ServiceBusQueueHost.CommandHandlers
         public UpdateSbankenTransactionsCommandHandler(
             ISbankenConnector sbankenConnector, 
             ILogger<UpdateSbankenTransactionsCommandHandler> logger, 
-            ISettingProvider settingProvider,
             IHubDbRepository dbRepository)
         {
-            _settingProvider = settingProvider;
             _dbRepository = dbRepository;
             _logger = logger;
             _sbankenConnector = sbankenConnector;
@@ -44,22 +44,23 @@ namespace Sbanken.HostedServices.ServiceBusQueueHost.CommandHandlers
                 return;
             }
 
-            SetStartAndEndDate(out var startDate, out var endDate);
+            var startDate = DateTime.Now.AddDays(-30);
 
-            var transactionsFromSbanken = await _sbankenConnector.GetTransactions(startDate, endDate);
+            var transactionsFromSbanken = await _sbankenConnector.GetTransactions(startDate, null);
 
             transactionsFromSbanken = transactionsFromSbanken.Where(x => x.AccountingDate.Date >= startDate).ToList();
 
-            _logger.LogInformation($"Found {transactionsFromSbanken.Count} transactions");
-
+            _logger.LogInformation("Found {Count} transactions", transactionsFromSbanken.Count);
+            
             var transactionsAdded = 0;
 
             foreach (var transactionFromSbanken in transactionsFromSbanken)
             {
-                var accountId = accounts.First(x => x.Name == transactionFromSbanken.AccountName)?.Id;
+                var accountId = accounts.FirstOrDefault(x => x.Name == transactionFromSbanken.AccountName)?.Id;
 
                 if (accountId == null)
                 {
+                    
                     continue;
                 }
                 
@@ -88,39 +89,7 @@ namespace Sbanken.HostedServices.ServiceBusQueueHost.CommandHandlers
             
             await _dbRepository.ExecuteQueueAsync();
             
-            _logger.LogInformation($"Added {transactionsAdded} transactions to DB");
-        }
-
-        private void SetStartAndEndDate(out DateTime startDate, out DateTime? endDate)
-        {
-            startDate = _settingProvider.GetSetting<DateTime>(SettingKeys.TransactionsStartDate);
-            endDate = _settingProvider.GetSetting<DateTime?>(SettingKeys.TransactionsEndDate);
-    
-            if (!endDate.HasValue)
-            {
-                startDate = DateTime.Now.AddDays(-30);
-                _logger.LogInformation($"No end date. Setting start date to {startDate.ToShortDateString()} ");
-            }
-            else if ((endDate.Value - startDate).Days > 365)
-            {
-                startDate = DateTime.Now.AddDays(-30);
-                _logger.LogInformation(
-                    $"Start and end date spanned more than 365 days. Setting start date to {startDate.ToShortDateString()} ");
-            }
-
-            var logMessage = $"Getting transactions made after {startDate.ToShortDateString()}";
-            
-            if (endDate.HasValue)
-            {
-                logMessage = $"Getting transactions made between {startDate.ToShortDateString()}-{endDate.Value.ToShortDateString()}";
-            }
-                
-            _logger.LogInformation(logMessage);
-
-            if (startDate.Date < DateTime.Now.Date)
-            {
-                startDate = startDate.AddDays(1);
-            }
+            _logger.LogInformation("Added {Count} transactions to DB", transactionsAdded);
         }
     }
 }

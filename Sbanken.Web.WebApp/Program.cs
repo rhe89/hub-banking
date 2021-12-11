@@ -20,7 +20,7 @@ namespace Sbanken.Web.WebApp
             CreateHostBuilder(args, configuration).Build().Run();
         }
 
-        public static IHostBuilder CreateHostBuilder(string[] args, IConfigurationRoot configuration) =>
+        private static IHostBuilder CreateHostBuilder(string[] args, IConfiguration configuration) =>
             Host.CreateDefaultBuilder(args)
                 .ConfigureWebHostDefaults(webBuilder => { webBuilder.UseStartup<Startup>(); })
                 .ConfigureHostConfiguration(configurationBuilder => configurationBuilder.AddConfiguration(configuration));
