@@ -214,11 +214,6 @@ public class SbankenConnector : HttpClientService, ISbankenConnector
         
     private async Task AuthenticateClient()
     {
-        if (IsAuthenticated)
-        {
-            return;
-        }
-            
         var clientId = _configuration.GetValue<string>(SettingKeys.SbankenApiClientId);
         var secret = _configuration.GetValue<string>(SettingKeys.SbankenApiSecret);
         var discoveryEndpoint = _configuration.GetValue<string>(SettingKeys.SbankenApiDiscoveryEndpoint);

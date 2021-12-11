@@ -4,12 +4,12 @@
 	</PropertyGroup>
 
 	<ItemGroup>
-		<PackageReference Include="JetBrains.Annotations" Version="2021.3.0" />
+		<ProjectReference Include="..\Sbanken.Providers\Sbanken.Providers.csproj" />
+		<ProjectReference Include="..\Sbanken.Shared\Sbanken.Shared.csproj" />
 	</ItemGroup>
 
 	<ItemGroup>
-		<ProjectReference Include="..\Sbanken.Providers\Sbanken.Providers.csproj" />
-		<ProjectReference Include="..\Sbanken.Shared\Sbanken.Shared.csproj" />
+	  <PackageReference Include="JetBrains.Annotations" Version="2021.3.0" />
 	</ItemGroup>
 
 </Project>

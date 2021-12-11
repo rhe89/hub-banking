@@ -5,10 +5,10 @@
 
 	<ItemGroup>
 		<PackageReference Include="JetBrains.Annotations" Version="2021.3.0" />
-		<PackageReference Include="Hub.Shared.Web.Api" Version="6.0.0" />
 	</ItemGroup>
 
 	<ItemGroup>
+		<ProjectReference Include="..\..\hub-shared\Hub.Shared.Web\Hub.Shared.Web.Api\Hub.Shared.Web.Api.csproj" />
 		<ProjectReference Include="..\Sbanken.Data\Sbanken.Data.csproj" />
 		<ProjectReference Include="..\Sbanken.Integration\Sbanken.Integration.csproj" />
 		<ProjectReference Include="..\Sbanken.Providers\Sbanken.Providers.csproj" />

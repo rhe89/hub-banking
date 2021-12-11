@@ -4,10 +4,7 @@
 	</PropertyGroup>
 
 	<ItemGroup>
-		<PackageReference Include="Hub.Shared.HostedServices.ServiceBusQueue" Version="6.0.0" />
-	</ItemGroup>
-
-	<ItemGroup>
+		<ProjectReference Include="..\..\hub-shared\Hub.Shared.HostedServices\Hub.Shared.HostedServices.ServiceBusQueue\Hub.Shared.HostedServices.ServiceBusQueue.csproj" />
 		<ProjectReference Include="..\Sbanken.Data\Sbanken.Data.csproj" />
 		<ProjectReference Include="..\Sbanken.Integration\Sbanken.Integration.csproj" />
 	</ItemGroup>

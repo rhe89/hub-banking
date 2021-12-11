@@ -4,13 +4,13 @@
 	</PropertyGroup>
 
 	<ItemGroup>
-		<PackageReference Include="Hub.Shared.HostedServices.Schedule" Version="6.0.0" />
-		<PackageReference Include="Hub.Shared.Storage.ServiceBus" Version="6.0.0" />
-		<PackageReference Include="JetBrains.Annotations" Version="2021.3.0" />
+		<ProjectReference Include="..\..\hub-shared\Hub.Shared.HostedServices\Hub.Shared.HostedServices.Schedule\Hub.Shared.HostedServices.Schedule.csproj" />
+		<ProjectReference Include="..\..\hub-shared\Hub.Shared.Storage\Hub.Shared.Storage.ServiceBus\Hub.Shared.Storage.ServiceBus.csproj" />
+		<ProjectReference Include="..\Sbanken.Data\Sbanken.Data.csproj" />
 	</ItemGroup>
 
 	<ItemGroup>
-		<ProjectReference Include="..\Sbanken.Data\Sbanken.Data.csproj" />
+	  <PackageReference Include="JetBrains.Annotations" Version="2021.3.0" />
 	</ItemGroup>
 
 </Project>
