@@ -1,17 +1,22 @@
+using Hub.Shared.Storage.Repository;
 using Hub.Shared.Web.BlazorServer;
-using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.DependencyInjection;
+using Sbanken.Data;
+using Sbanken.Data.AutoMapper;
+using Sbanken.Providers;
+using Sbanken.Services;
 
-namespace Sbanken.Web.WebApp;
+var builder = BlazorServerBuilder.CreateWebApplicationBuilder(args);
 
-public class Program
+builder.Services.AddDatabase<SbankenDbContext>(builder.Configuration, "SQL_DB_SBANKEN", "Sbanken.Data");
+builder.Services.AddTransient<ITransactionService, TransactionService>();
+builder.Services.AddTransient<ITransactionProvider, TransactionProvider>();
+            
+builder.Services.AddAutoMapper(c =>
 {
-    public static void Main(string[] args)
-    {
-        CreateHostBuilder(args)
-            .Build()
-            .Run();
-    }
+    c.AddSbankenProfiles();
+});
 
-    private static IHostBuilder CreateHostBuilder(string[] args) =>
-        HostBuilder<Startup, DependencyRegistrationFactory>.Create(args);
-}
+var app = builder.BuildApp();
+
+app.Run();
