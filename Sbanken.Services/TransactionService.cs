@@ -1,4 +1,5 @@
-﻿using System.Threading.Tasks;
+﻿using System;
+using System.Threading.Tasks;
 using Hub.Shared.DataContracts.Sbanken;
 using Hub.Shared.Storage.Repository.Core;
 using Sbanken.Data.Entities;
@@ -8,7 +9,7 @@ namespace Sbanken.Services;
 
 public interface ITransactionService
 {
-    Task<bool> UpdateTransactionDescription(long transactionId, string description);
+    Task<bool> UpdateTransaction(long transactionId, string description, DateTime date, decimal amount);
 }
     
 public class TransactionService : ITransactionService
@@ -22,11 +23,13 @@ public class TransactionService : ITransactionService
         _transactionProvider = transactionProvider;
     }
         
-    public async Task<bool> UpdateTransactionDescription(long transactionId, string description)
+    public async Task<bool> UpdateTransaction(long transactionId, string description, DateTime date, decimal amount)
     {
         var transaction = await _transactionProvider.GetTransaction(transactionId);
 
         transaction.Description = description;
+        transaction.TransactionDate = date;
+        transaction.Amount = amount;
 
         await _hubDbRepository.UpdateAsync<Transaction, TransactionDto>(transaction);
 
