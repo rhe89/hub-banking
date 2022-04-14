@@ -1,0 +1,182 @@
+﻿@page "/transactions"
+@page "/"
+@using Banking.Providers
+@using Banking.Shared.Constants
+@using Hub.Shared.DataContracts.Banking
+@inject ITransactionProvider _transactionProvider
+@inject NavigationManager _uriHelper
+
+<main class="container mt-3">
+
+    <header class="row">
+        <div class="col">
+            <h1>Transactions</h1>
+        </div>
+    </header>
+    
+    <section class="card mt-5">
+        <div class="card-body">
+            @if (TransactionSearch != null)
+            {
+                <EditForm Model="TransactionSearch" class="row" OnValidSubmit="Search">
+                    <p class="col-2">
+                        <InputSelect 
+                            class="form-select py-2" 
+                            disabled="@_searching"
+                            @bind-Value="TransactionSearch.SelectedMonth">
+                            @foreach (var (monthNumber, monthName) in TransactionSearch.Months)
+                            {
+                                <option value="@monthNumber">@monthName</option>
+                            }
+                        </InputSelect>
+                    </p>
+                    <p class="col-2">
+                        <InputSelect
+                            class="form-select py-2"
+                            disabled="@_searching"
+                            @bind-Value="TransactionSearch.SelectedYear">
+                            @foreach (var year in TransactionSearch.Years)
+                            {
+                                <option value="@year">@year</option>
+                            }
+                        </InputSelect>
+                    </p>
+                    <p class="col-1 btn-group">
+                        <button 
+                            class="btn btn-primary me-2" 
+                            type="button" 
+                            @onclick="SetTodaysMonthAndYear">
+                            Today
+                        </button>
+                        <button 
+                            class="btn btn-primary" 
+                            type="submit" 
+                            disabled="@_searching">
+                            Search
+                        </button>
+                    </p>
+                </EditForm>
+            }
+        </div>
+    </section>
+    
+    <section class="card mt-5 min-width">
+        <div class="card-body">
+
+            @if (_searching)
+            {
+                <p>
+                    <em>Searching...</em>
+                </p>
+            }
+            else if (!_transactions.Any())
+            {
+                <p>
+                    <em>No transactions for selected month and year</em>
+                </p>
+            }
+            else
+            {
+                <table class="table table-borderless">
+                    <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Description</th>
+                        <th>Amount</th>
+                        <th>Actions</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    @foreach (var transaction in _transactions)
+                    {
+                        <tr>
+                            <td class="py-3">@transaction.TransactionDate.ToShortDateString()</td>
+                            <td class="py-3">@transaction.Description</td>
+                            <td class="py-3">@transaction.Amount</td>
+                            <td>
+                                <button
+                                    class="btn btn-primary"
+                                    disabled="@_searching"
+                                    @onclick="() => GoToTransaction(transaction.Id)">
+                                    Edit
+                                </button>
+                            </td>
+                        </tr>
+                    }
+                    </tbody>
+                </table>
+            }
+        </div>
+    </section>
+</main>
+
+@code {
+    private IList<TransactionDto> _transactions;
+    private TransactionSearchModel TransactionSearch { get; set; }
+
+    private bool _searching = true;
+    
+    protected override async Task OnInitializedAsync()
+    {
+        TransactionSearch = new TransactionSearchModel
+        {
+            Years = await _transactionProvider.GetTransactionYears(AccountNames.BillingAccount),
+            SelectedMonth = DateTime.Now.Month,
+            SelectedYear = DateTime.Now.Year,
+            SelectedAccount = AccountNames.BillingAccount
+        };
+
+        await Search();
+    }
+
+    private void GoToTransaction(long transactionId)
+    {
+        _uriHelper.NavigateTo($"transactions/{transactionId}");
+    }
+    
+    private void SetTodaysMonthAndYear()
+    {
+        TransactionSearch.SelectedMonth = DateTime.Now.Month;
+        TransactionSearch.SelectedYear = DateTime.Now.Year;
+    }
+
+    private async Task Search()
+    {
+        _searching = true;
+        
+        _transactions = await _transactionProvider.GetTransactions(TransactionSearch.SelectedMonth, TransactionSearch.SelectedYear, TransactionSearch.SelectedAccount);
+        
+        _searching = false;
+
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private class TransactionSearchModel
+    {
+        public TransactionSearchModel()
+        {
+            Months = new Dictionary<int, string>
+            {
+                { 1, "Januar" },
+                { 2, "Februar" },
+                { 3, "Mars" },
+                { 4, "April" },
+                { 5, "Mai" },
+                { 6, "Juni" },
+                { 7, "Juli" },
+                { 8, "August" },
+                { 9, "September" },
+                { 10, "Oktober" },
+                { 11, "November" },
+                { 12, "Desember" },
+            };
+        }
+        
+        public Dictionary<int, string> Months { get; }
+        public IList<int> Years { get; set; }
+        
+        public int SelectedMonth { get; set; }
+        public int SelectedYear { get; set; }
+        public string SelectedAccount { get; set; }
+    }
+}

@@ -1,0 +1,16 @@
+<Project Sdk="Microsoft.NET.Sdk">
+	<PropertyGroup>
+		<TargetFramework>net6.0</TargetFramework>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<PackageReference Include="Hub.Shared.DataContracts.Banking" Version="6.0.1" />
+		<PackageReference Include="Hub.Shared.Storage.Repository" Version="6.0.1" />
+		<PackageReference Include="JetBrains.Annotations" Version="2021.3.0" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<ProjectReference Include="..\Banking.Shared\Banking.Shared.csproj" />
+	</ItemGroup>
+
+</Project>

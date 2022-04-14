@@ -1,0 +1,102 @@
+@page "/transactions/{transactionId}"
+@using Banking.Providers
+@using Banking.Services
+@using Microsoft.AspNetCore.Components
+@using Hub.Shared.DataContracts.Banking
+
+@inject ITransactionProvider _transactionProvider
+@inject ITransactionService _transactionService
+@inject NavigationManager _uriHelper
+
+<main class="container mt-3">
+    <header class="row">
+        <div class="col-6">
+            <h1>Transaction details</h1>
+        </div>
+        <div class="col-1 offset-md-5">
+            <NavLink class="btn btn-primary" Match="NavLinkMatch.All" href="transactions">Back</NavLink>
+        </div>
+    </header>
+
+    <section class="card mt-5">
+        <div class="card-body">
+
+            @if (_transaction == null)
+            {
+                <p>
+                    <em>Loading...</em>
+                </p>
+            }
+            else
+            {
+                <EditForm Model="@_transaction" OnValidSubmit="@Save">
+                    <div class="row">
+                        <div class="col-2 py-1">
+                            <label>Description: </label>
+                        </div>
+                        <div class="col-6">
+                            <InputText
+                                class="form-control"
+                                id="description"
+                                @bind-Value="_transaction.Description"/>
+                        </div>
+                    </div>
+
+                    <div class="row mt-3">
+                        <div class="col-2 py-1">
+                            <label>
+                                Transaction date:
+                            </label>
+                        </div>
+                        <div class="col-6">
+                            <InputDate
+                                class="form-control"
+                                id="transaction-date"
+                                @bind-Value="_transaction.TransactionDate"/>
+                        </div>
+                    </div>
+                
+                    <div class="row mt-3">
+                        <div class="col-2">
+                            <label>
+                                Amount:
+                            </label>
+                        </div>
+                        <div class="col-6">
+                            <InputNumber
+                                class="form-control"
+                                id="amount"
+                                @bind-Value="_transaction.Amount"/>
+                        </div>
+                    </div>
+                
+                    <div class="row mt-3">
+                        <div class="col-1">
+                            <button class="btn btn-primary" type="submit">Save</button>
+                        </div>
+                    </div>
+                </EditForm>
+            }
+        </div>
+    </section>
+</main>
+
+@code {
+
+    [Parameter]
+    public string TransactionId { get; set; }
+
+    private TransactionDto _transaction;
+    
+    protected override async Task OnInitializedAsync()
+    {
+        _transaction = await _transactionProvider.GetTransaction(long.Parse(TransactionId));
+    }
+
+    private async Task Save()
+    {
+        await _transactionService.UpdateTransaction(_transaction.Id, _transaction.Description, _transaction.TransactionDate, _transaction.Amount);
+        
+        _uriHelper.NavigateTo("transactions");
+    }
+}

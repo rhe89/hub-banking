@@ -1,0 +1,15 @@
+<Project Sdk="Microsoft.NET.Sdk.Worker">
+	<PropertyGroup>
+		<TargetFramework>net6.0</TargetFramework>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<PackageReference Include="Hub.Shared.HostedServices.ServiceBusQueue" Version="6.0.1" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<ProjectReference Include="..\Banking.Data\Banking.Data.csproj" />
+		<ProjectReference Include="..\Banking.Integration\Banking.Integration.csproj" />
+	</ItemGroup>
+
+</Project>
