@@ -1,0 +1,144 @@
+@using Banking.Providers
+@using Banking.Services
+@using JetBrains.Annotations
+@using Hub.Shared.DataContracts.Banking.SearchParameters
+@using Hub.Shared.DataContracts.Banking.Dto
+
+@inject IAccountProvider _accountProvider
+@inject IAccountService _accountService
+
+@inherits Widget
+
+<section class="@Class">
+    @if (!WidgetMode)
+    {
+        <header class="row">
+            <div class="col-6">
+                @if (ChildContent != null)
+                {
+                    @ChildContent
+                }
+            </div>
+            <div class="col-2 offset-md-4">
+                <NavLink
+                    class="btn btn-primary float-end"
+                    disabled="@_saving"
+                    href="accounts/add">
+                    Add account
+                </NavLink>
+            </div>
+        </header>
+    }
+
+    <section class="card mt-5 min-width">
+        <div class="card-body">
+
+            @if (_searching)
+            {
+                <p>
+                    <em>Searching...</em>
+                </p>
+            }
+            else if (!_accounts.Any())
+            {
+                <p>
+                    <em>No accounts found</em>
+                </p>
+            }
+            else
+            {
+                <table class="table table-borderless table-hover">
+                    @if (!WidgetMode)
+                    {
+                        <thead>
+                            <tr>
+                                <th>Name</th>
+                                @if (!WidgetMode)
+                                {
+                                    <th>Bank</th>
+                                    <th>Account type</th>
+                                }
+                                <th>Balance</th>
+                            </tr>
+                        </thead>
+                    }
+                    <tbody>
+                    @foreach (var account in _accounts)
+                    {
+                        <tr @onclick="@(() => GoTo($"accounts/{account.Id}"))">
+                            <td class="py-3 align-middle">@(WidgetMode ? $"{account.Name} ({account.Bank})" : $"{account.Name}")</td>
+                            @if (!WidgetMode)
+                            {
+                                <td class="py-3 align-middle">@account.Bank</td>
+                                <td class="py-3 align-middle">@account.AccountType</td>
+                            }
+                            <td class="py-3">
+                                <EditForm Model="account">
+                                    <InputNumber class="form-control"
+                                                 disabled="@_saving"
+                                                 TValue="decimal"
+                                                 ValueChanged="async value => await UpdateAccountBalance(value, account)"
+                                                 Value="account.Balance"
+                                                 ValueExpression="() => account.Balance"/>
+                                </EditForm>
+
+                            </td>
+                        </tr>
+                    }
+                    </tbody>
+                </table>
+            }
+            @if (WidgetMode)
+            {
+                <div class="row">
+                    <div class="col-12">
+                        <NavLink
+                            class="btn btn-primary"
+                            disabled="@_saving"
+                            href="accounts/add">
+                            Add account
+                        </NavLink>
+                    </div>
+                </div>
+            }
+        </div>
+    </section>
+</section>
+
+
+@code {
+    [Parameter]
+    public int? Take { get; set; }
+
+    [Parameter]
+    [CanBeNull]
+    public RenderFragment ChildContent { get; set; }
+    
+    private AccountSearchParameters AccountSearchParameters { get; set; } = new();
+    private IList<AccountDto> _accounts;
+    private bool _searching = true;
+    private bool _saving = false;
+    
+    protected override async Task OnInitializedAsync()
+    {
+        AccountSearchParameters.Take = Take;
+        
+        _accounts = await _accountProvider.GetAccounts(AccountSearchParameters);
+        _accounts = _accounts.ToList();
+
+        _searching = false;
+    }
+    
+    private async Task UpdateAccountBalance(decimal value, AccountDto account)
+    {        
+        account.Balance = value;
+
+        _saving = true;
+
+        await Task.Delay(100);
+        
+        await _accountService.UpdateAccount(account);
+        
+        _saving = false;
+    }
+}

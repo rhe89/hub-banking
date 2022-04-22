@@ -1,0 +1,22 @@
+@page "/"
+
+@inherits Base
+
+<main class="container mt-3">
+    <div class="row">
+        <div class="col-6" >
+            <AccountsTable 
+                Take="5" 
+                WidgetMode="@true" 
+                class="widget"
+                />
+        </div>
+        <div class="col-6" >
+            <TransactionsTable 
+                Take="5" 
+                WidgetMode="@true"
+                class="widget"
+                />
+        </div>
+    </div>
+</main>

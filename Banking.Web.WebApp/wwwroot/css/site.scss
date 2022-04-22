@@ -9,6 +9,7 @@ $text: white;
 
 @import "../../../../node_modules/bootstrap/scss/bootstrap";
 
+
 html, body {
   font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
 }
@@ -60,6 +61,12 @@ input,
   background: $card-bg;
 }
 
+.widget {
+  z-index: -1;
+  box-shadow: 3px 3px #045d563b;
+  border-radius: 3px;
+}
+
 .col-1,
 .col-2,
 .col-4,
@@ -69,6 +76,15 @@ input,
 
 .min-width {
   min-width: 410px;
+}
+
+.table-hover > tbody > tr:hover,
+.table-hover > tbody > tr:hover > *{
+  color: $text;
+}
+
+.table-hover:hover {
+  cursor: pointer;
 }
 
 @include media-breakpoint-up(md) {

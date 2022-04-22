@@ -1,0 +1,302 @@
+@using Banking.Providers
+@using Banking.Services
+@using Hub.Shared.DataContracts.Banking.Constants
+@using Hub.Shared.DataContracts.Banking.Dto
+@using Hub.Shared.DataContracts.Banking.SearchParameters
+@using JetBrains.Annotations
+
+@inject ITransactionProvider _transactionProvider
+@inject IAccountProvider _accountProvider
+@inject IPreferenceService _preferenceService;
+@inject IPreferenceProvider _preferenceProvider;
+
+@inherits Widget
+
+<section class="@Class">
+    
+    @if (!WidgetMode)
+    {
+        <header class="row">
+            <div class="col-6">
+                @if (ChildContent != null)
+                {
+                    @ChildContent
+                }
+            </div>
+            <div class="col-2 offset-md-4">
+                <NavLink
+                    class="btn btn-primary float-end"
+                    href="@($"transactions/add/{AccountId}")">
+                    Add transaction
+                </NavLink>
+            </div>
+        </header>
+    }
+
+    <section class="card mt-5">
+        <div class="card-body">
+            <EditForm Model="TransactionSearchParameters" class="row" OnValidSubmit="Search">
+                <p class="@(WidgetMode ? "col-4" : "col-3")">
+                    @if (TransactionSearchParameters.AccountIds != null)
+                    {
+                        <InputSelect
+                            class="form-select py-2"
+                            disabled="@(_searching || AccountId != null)"
+                            TValue="long"
+                            Value="SelectedAccountId"
+                            ValueChanged="OnAccountChanged"
+                            ValueExpression="() => SelectedAccountId">
+                            @foreach (var account in _availableAccounts)
+                            {
+                                <option value="@account.Id">@($"{account.Name} ({account.Bank})")</option>
+                            }
+                        </InputSelect>
+                    }
+                </p>
+                <p class="@(WidgetMode ? "col-3" : "col-2")">
+                    @if (TransactionSearchParameters.Months != null)
+                    {
+                        <InputSelect
+                            class="form-select py-2"
+                            disabled="@_searching"
+                            TValue="int"
+                            Value="SelectedMonth"
+                            ValueChanged="OnMonthChanged"
+                            ValueExpression="() => SelectedMonth">
+                            @foreach (var month in _availableMonths)
+                            {
+                                <option value="@month">@GetMonthText(month)</option>
+                            }
+                        </InputSelect>
+                    }
+                </p>
+                <p class="@(WidgetMode ? "col-3" : "col-2")">
+                    @if (TransactionSearchParameters.Years != null)
+                    {
+                        <InputSelect
+                            class="form-select py-2"
+                            disabled="@_searching"
+                            TValue="int"
+                            Value="SelectedYear"
+                            ValueChanged="OnYearChanged"
+                            ValueExpression="() => SelectedYear">
+                            @foreach (var year in _availableYears)
+                            {
+                                <option value="@year">@year</option>
+                            }
+                        </InputSelect>
+                    }
+                </p>
+                <p class="col-1">
+                    <button
+                        class="btn btn-primary"
+                        type="submit"
+                        disabled="@_searching">
+                        Search
+                    </button>
+                </p>
+            </EditForm>
+        </div>
+    </section>
+
+    <section class="card mt-5 min-width">
+        <div class="card-body">
+
+            @if (_searching)
+            {
+                <p>
+                    <em>Searching...</em>
+                </p>
+            }
+            else if (!Transactions.Any())
+            {
+                <p>
+                    <em>No transactions found</em>
+                </p>
+            }
+            else
+            {
+                <table class="table table-borderless table-hover">
+                    @if (!WidgetMode)
+                    {
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>Description</th>
+                                <th>Amount</th>
+                            </tr>
+                        </thead>
+                    }
+                    <tbody>
+                    @foreach (var transaction in Transactions)
+                    {
+                        <tr @onclick="@(() => GoTo($"transactions/{transaction.Id}"))">
+                            <td class="py-3">@transaction.TransactionDate.ToShortDateString()</td>
+                            <td class="py-3">@transaction.Description</td>
+                            <td class="py-3">@transaction.Amount</td>
+                        </tr>
+                    }
+                    </tbody>
+                </table>
+            }
+            @if (WidgetMode)
+            {
+                <div class="row">
+                    <div class="col-12">
+                        <NavLink
+                            class="btn btn-primary"
+                            href="@($"transactions/add/{AccountId}")">
+                            Add transaction
+                        </NavLink>
+                    </div>
+                </div>
+            }
+
+        </div>
+    </section>
+</section>
+
+@code {
+    [Parameter]
+    public string AccountId { get; set; }
+    
+    [Parameter]
+    public int? Take { get; set; }
+    
+    [Parameter]
+    [CanBeNull]
+    public RenderFragment ChildContent { get; set; }
+
+    private const string PreviousSelectedAccountPreference = "TransactionSearchPreselectedAccount";
+
+    private IList<int> _availableMonths = new List<int>();
+    private IList<int> _availableYears;
+    private IList<AccountDto> _availableAccounts;
+    private bool _searching = true;
+    
+    private long SelectedAccountId { get; set; }
+    private int SelectedMonth { get; set; }
+    private int SelectedYear { get; set; }
+    private TransactionSearchParameters TransactionSearchParameters { get; } = new();
+    private IList<TransactionDto> Transactions { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        await SetParameters();
+
+        await Search();
+    }
+
+    private async Task SetParameters()
+    {
+        TransactionSearchParameters.Take = Take;
+        
+        _availableAccounts = await _accountProvider.GetAccounts();
+
+        if (AccountId != null)
+        {
+            await OnAccountChanged(long.Parse(AccountId));
+            return;
+        }
+        
+        var previousSelectedAccounts = await _preferenceProvider.GetPreferences(PreviousSelectedAccountPreference);
+
+        long accountId;
+        
+        if (previousSelectedAccounts.Any())
+        {
+            accountId = long.Parse(previousSelectedAccounts.First().Value);
+        }
+        else
+        {
+            var accounts = _availableAccounts.Where(x => x.AccountType == AccountTypes.Billing).ToList();
+
+            if (!accounts.Any())
+                return;
+            
+            accountId = accounts.First().Id;
+        }
+
+        await OnAccountChanged(accountId);
+    }
+
+    
+    private async Task OnAccountChanged(long selectedAccountId)
+    {
+        SelectedAccountId = selectedAccountId;
+        TransactionSearchParameters.AccountIds = new[] { SelectedAccountId };
+        
+        await UpdateYearSelectList();
+    }
+    
+    private async Task UpdateYearSelectList()
+    {
+        var availableYears = await _transactionProvider.GetTransactionYears(SelectedAccountId);
+        
+        _availableYears = availableYears;
+
+        if (!_availableYears.Any())
+        {
+            return;
+        }
+        
+        var selectedYear = availableYears.Last();
+
+        await OnYearChanged(selectedYear);
+    }
+
+    private async Task OnYearChanged(int selectedYear)
+    {
+        SelectedYear = selectedYear;
+        TransactionSearchParameters.Years = new[] { SelectedYear };
+
+        await UpdateMonthSelectList();
+    }
+    
+    private async Task UpdateMonthSelectList()
+    {
+        var availableMonths = await _transactionProvider.GetTransactionMonths(SelectedAccountId, SelectedYear);
+        
+        _availableMonths = availableMonths;
+
+        var selectedMonth = availableMonths.Last();
+
+        OnMonthChanged(selectedMonth);
+    }
+
+    private void OnMonthChanged(int selectedMonth)
+    {
+        SelectedMonth = selectedMonth;
+        TransactionSearchParameters.Months = new[] { SelectedMonth };
+    }
+
+    private async Task Search()
+    {
+        _searching = true;
+        
+        await _preferenceService.AddOrReplacePreference(PreviousSelectedAccountPreference, SelectedAccountId.ToString());
+        
+        Transactions = await _transactionProvider.GetTransactions(TransactionSearchParameters);
+        
+        _searching = false;
+
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private static string GetMonthText(int month) => month switch
+    {
+        1 => "January",
+        2 => "February",
+        3 => "March",
+        4 => "April",
+        5 => "May",
+        6 => "June",
+        7 => "July",
+        8 => "August",
+        9 => "September",
+        10 => "October",
+        11 => "November",
+        12 => "December",
+        _ => throw new ArgumentException("Invalid month", nameof(month))
+    };
+}

@@ -1,37 +1,42 @@
-﻿using System;
-using System.Threading.Tasks;
-using Hub.Shared.DataContracts.Banking;
+﻿using System.Threading.Tasks;
 using Hub.Shared.Storage.Repository.Core;
 using Banking.Data.Entities;
-using Banking.Providers;
+using Hub.Shared.DataContracts.Banking.Dto;
 
 namespace Banking.Services;
 
 public interface ITransactionService
 {
-    Task<bool> UpdateTransaction(long transactionId, string description, DateTime date, decimal amount);
+    Task<bool> AddTransaction(TransactionDto transaction);
+    Task<bool> UpdateTransaction(TransactionDto transaction);
 }
     
 public class TransactionService : ITransactionService
 {
     private readonly IHubDbRepository _hubDbRepository;
-    private readonly ITransactionProvider _transactionProvider;
 
-    public TransactionService(IHubDbRepository hubDbRepository, ITransactionProvider transactionProvider)
+    public TransactionService(IHubDbRepository hubDbRepository)
     {
         _hubDbRepository = hubDbRepository;
-        _transactionProvider = transactionProvider;
+    }
+
+    public async Task<bool> AddTransaction(TransactionDto transaction)
+    {
+        await _hubDbRepository.AddAsync<Transaction, TransactionDto>(transaction);
+
+        return true;
     }
         
-    public async Task<bool> UpdateTransaction(long transactionId, string description, DateTime date, decimal amount)
+    public async Task<bool> UpdateTransaction(TransactionDto transaction)
     {
-        var transaction = await _transactionProvider.GetTransaction(transactionId);
+        var transactionInDb = await _hubDbRepository.SingleAsync<Transaction, TransactionDto>(t => t.Id == transaction.Id);
+        
+        transactionInDb.AccountId = transaction.AccountId;
+        transactionInDb.Description = transaction.Description;
+        transactionInDb.TransactionDate = transaction.TransactionDate;
+        transactionInDb.Amount = transaction.Amount;
 
-        transaction.Description = description;
-        transaction.TransactionDate = date;
-        transaction.Amount = amount;
-
-        await _hubDbRepository.UpdateAsync<Transaction, TransactionDto>(transaction);
+        await _hubDbRepository.UpdateAsync<Transaction, TransactionDto>(transactionInDb);
 
         return true;
     }

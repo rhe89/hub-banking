@@ -1,0 +1,114 @@
+@page "/accounts/add"
+
+@using Banking.Providers
+@using Banking.Services
+@using Hub.Shared.DataContracts.Banking.Constants
+@using Hub.Shared.DataContracts.Banking.Dto
+
+@inject IAccountProvider _accountProvider
+@inject IAccountService _accountService
+
+@inherits Base
+
+<main class="container mt-3">
+    <header class="row">
+        <div class="col-6">
+            <h1>Add account</h1>
+        </div>
+        <div class="col-1 offset-md-5">
+            <button class="btn btn-primary" @onclick="GoBack">Back</button>
+        </div>
+    </header>
+
+    <section class="card mt-5">
+        <div class="card-body">
+            <EditForm Model="@Account">
+
+                <div class="row mt-3">
+                    <div class="col-2 py-1">
+                        <label>
+                            Name:
+                        </label>
+                    </div>
+                    <div class="col-6">
+                        <InputText
+                            class="form-control"
+                            id="name"
+                            @bind-Value="Account.Name"/>
+                    </div>
+                </div>
+                
+                <div class="row mt-3">
+                    <div class="col-2 py-1">
+                        <label>Account type: </label>
+                    </div>
+                    <div class="col-6">
+                        <InputSelect
+                            class="form-control"
+                            id="account-type"
+                            @bind-Value="Account.AccountType">
+                            @foreach (var accountType in AccountTypes.ToArray)
+                            {
+                                <option value="@accountType">@accountType</option>
+                            }
+                        </InputSelect>
+                    </div>
+                </div>
+
+                <div class="row mt-3">
+                    <div class="col-2">
+                        <label>
+                            Bank:
+                        </label>
+                    </div>
+                    <div class="col-6">
+                        <InputText
+                            class="form-control"
+                            id="bank"
+                            @bind-Value="Account.Bank"/>
+                    </div>
+                </div>
+                
+                <div class="row mt-3">
+                    <div class="col-2">
+                        <label>
+                            Balance:
+                        </label>
+                    </div>
+                    <div class="col-6">
+                        <InputNumber
+                            class="form-control"
+                            id="balance"
+                            @bind-Value="Account.Balance"/>
+                    </div>
+                </div>
+
+                <div class="row mt-3">
+                    <div class="col-4 btn-group">
+                        <button class="btn btn-primary me-2" @onclick="SaveAndAddNewAccount" type="button">Save and add new account</button>
+                        <button class="btn btn-primary" @onclick="SaveAndGoBack" type="button">Save and go back</button>
+                    </div>
+                </div>
+            </EditForm>
+        </div>
+    </section>
+</main>
+
+@code {
+    private AccountDto Account { get; } = new();
+    
+    private async Task SaveAndAddNewAccount()
+    {
+        await _accountService.AddAccount(Account);
+        
+        NavigationManager.NavigateTo("accounts/add");
+    }
+
+    private async Task SaveAndGoBack()
+    {
+        await _accountService.AddAccount(Account);
+        
+        await GoBack();
+    }
+
+}

@@ -11181,6 +11181,12 @@ input:focus,
   background: #33333d;
 }
 
+.widget {
+  z-index: -1;
+  box-shadow: 3px 3px #045d563b;
+  border-radius: 3px;
+}
+
 .col-1,
 .col-2,
 .col-4,
@@ -11190,6 +11196,15 @@ input:focus,
 
 .min-width {
   min-width: 410px;
+}
+
+.table-hover > tbody > tr:hover,
+.table-hover > tbody > tr:hover > * {
+  color: white;
+}
+
+.table-hover:hover {
+  cursor: pointer;
 }
 
 @media (min-width: 768px) {

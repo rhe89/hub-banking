@@ -1,0 +1,257 @@
+@page "/transactions/add"
+@page "/transactions/add/{accountId}"
+
+@using Banking.Providers
+@using Banking.Services
+@using Microsoft.AspNetCore.Components
+@using Hub.Shared.DataContracts.Banking.Dto
+@using Hub.Shared.DataContracts.Banking.SearchParameters
+
+@inject ITransactionProvider _transactionProvider
+@inject IAccountProvider _accountProvider;
+@inject ITransactionService _transactionService
+@inject IPreferenceService _preferenceService;
+@inject IPreferenceProvider _preferenceProvider;
+
+@inherits Base
+
+<main class="container mt-3">
+    <header class="row">
+        <div class="col-6">
+            <h1>Add transaction</h1>
+        </div>
+        <div class="col-1 offset-md-5">
+            <button class="btn btn-primary" @onclick="GoBack">Back</button>
+        </div>
+    </header>
+
+    <section class="card mt-5">
+        <div class="card-body">
+            <EditForm Model="@Transaction">
+                <div class="row">
+                    <div class="col-2 py-1">
+                        <label>Account: </label>
+                    </div>
+                    <div class="col-6">
+                        @if (Accounts != null)
+                        {
+                            <InputSelect
+                                class="form-control"
+                                id="account"
+                                disabled="@(_working || AccountId != null)"
+                                @bind-Value="Transaction.AccountId">
+                                @foreach (var account in Accounts)
+                                {
+                                    <option value="@account.Id">@($"{account.Name} ({account.Bank})")</option>
+                                }
+                            </InputSelect>
+                        }
+                    </div>
+                </div>
+
+                <div class="row mt-3">
+                    <div class="col-2 py-1">
+                        <label>
+                            Transaction date:
+                        </label>
+                    </div>
+                    <div class="col-6">
+                        <InputDate
+                            class="form-control"
+                            id="transaction-date"
+                            disabled="@_working"
+                            @bind-Value="Transaction.TransactionDate"/>
+                    </div>
+                </div>
+                
+                <div class="row mt-3">
+                    <div class="col-2 py-1">
+                        <label>Description: </label>
+                    </div>
+                    <div class="col-6">
+                        <InputText
+                            class="form-control"
+                            id="description"
+                            disabled="@_working"
+                            TValue="string"
+                            Value="@Transaction.Description"
+                            ValueChanged="OnDescriptionChanged"
+                            ValueExpression="() => Transaction.Description"/>
+                    </div>
+                </div>
+
+                <div class="row mt-3">
+                    <div class="col-2">
+                        <label>
+                            Amount:
+                        </label>
+                    </div>
+                    <div class="col-6">
+                        <InputNumber
+                            class="form-control"
+                            id="amount"
+                            disabled="@_working"
+                            @bind-Value="Transaction.Amount"/>
+                    </div>
+                </div>
+
+                <div class="row mt-3">
+                    <div class="col-5 btn-group">
+                        <button
+                            class="btn btn-primary me-2"
+                            disabled="@_working"
+                            @onclick="SaveAndAddNewTransaction"
+                            type="button">
+                            Save and add new transaction
+                        </button>
+                        <button
+                            class="btn btn-primary"
+                            disabled="@_working"
+                            @onclick="SaveAndGoBack"
+                            type="button">
+                            Save and go back
+                        </button>
+                    </div>
+                </div>
+            </EditForm>
+        </div>
+    </section>
+    <section class="card mt-5 min-width">
+        <div class="card-body">
+            <header class="row">
+                <div class="col">
+                    <h2>Similar transactions to '@Transaction.Description'</h2>
+                </div>
+            </header>
+            @if (!SimilarTransactions.Any())
+            {
+                <p>
+                    <em>No similar transactions</em>
+                </p>
+            }
+            else
+            {
+                <table class="table table-borderless">
+                    <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Description</th>
+                        <th>Amount</th>
+                        <th>Actions</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    @foreach (var transaction in SimilarTransactions)
+                    {
+                        <tr>
+                            <td class="py-3">@transaction.TransactionDate.ToShortDateString()</td>
+                            <td class="py-3">@transaction.Description</td>
+                            <td class="py-3">@transaction.Amount</td>
+                            <td>
+                                <button
+                                    class="btn btn-primary"
+                                    disabled="@_working"
+                                    @onclick="() => UseTransactionDetails(transaction)">
+                                    Use these transaction details
+                                </button>
+                            </td>
+                        </tr>
+                    }
+                    </tbody>
+                </table>
+            }
+        </div>
+    </section>
+</main>
+
+@code {
+    [Parameter]
+    public string AccountId { get; set; }
+    
+    private const string AddTransactionPreselectedAccountPreference = "AddTransactionPreselectedAccount";
+
+    private TransactionDto Transaction { get; set; } = new();
+    private IList<AccountDto> Accounts { get; set; } = new List<AccountDto>();
+    private IList<TransactionDto> PreviousTransactions { get; set; } = new List<TransactionDto>();
+    private IList<TransactionDto> SimilarTransactions { get; set; } = new List<TransactionDto>();
+
+    private bool _working;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _working = true;
+        
+        Accounts = await _accountProvider.GetAccounts();
+        PreviousTransactions = await _transactionProvider.GetTransactions(new TransactionSearchParameters { FromDate = DateTime.Now.AddDays(-365)});
+
+        if (AccountId != null)
+        {
+            Transaction.AccountId = long.Parse(AccountId);
+        }
+        else
+        {
+            var previousSelectedAccounts = await _preferenceProvider.GetPreferences(AddTransactionPreselectedAccountPreference);
+
+            if (previousSelectedAccounts.Any())
+            {
+                Transaction.AccountId = long.Parse(previousSelectedAccounts.First().Value);
+            }
+        }
+
+        Transaction.TransactionDate = DateTime.Now;
+        Transaction.TransactionType = 0;
+        
+        _working = false;
+    }
+
+    private void UseTransactionDetails(TransactionDto transaction)
+    {
+        Transaction.Amount = transaction.Amount;
+        Transaction.AccountId = transaction.AccountId;
+        Transaction.Description = transaction.Description;
+        Transaction.TransactionType = transaction.TransactionType;
+
+        OnDescriptionChanged(Transaction.Description);
+    }
+    
+    private void OnDescriptionChanged(string description)
+    {
+        _working = true;
+
+        Transaction.Description = description;
+        SimilarTransactions = PreviousTransactions.Where(previousTransaction => previousTransaction.Description.Trim().ToLowerInvariant().Contains(Transaction.Description.Trim().ToLowerInvariant())).ToList();
+        
+        _working = false;
+    }
+
+    private async Task SaveAndAddNewTransaction()
+    {
+        await Save();
+
+        Transaction = new TransactionDto
+        {
+            TransactionDate = DateTime.Now,
+            TransactionType = 0
+        };
+    }
+
+    private async Task SaveAndGoBack()
+    {
+        await Save();
+
+        NavigationManager.NavigateTo("transactions");
+    }
+    
+    private async Task Save()
+    {
+        _working = true;
+
+        await _preferenceService.AddOrReplacePreference(AddTransactionPreselectedAccountPreference, Transaction.AccountId.ToString());
+
+        Transaction.TransactionId = $"{Transaction.AccountId}-{Transaction.TransactionDate}-{Transaction.Description}-{Transaction.Amount}";
+        
+        await _transactionService.AddTransaction(Transaction);
+        
+        _working = false;
+    }
+}
