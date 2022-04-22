@@ -19,6 +19,10 @@ public class Account : EntityBase
     [UsedImplicitly]
     [Column]
     public string AccountType { get; set; }
+    
+    [UsedImplicitly]
+    [Column]
+    public string Bank { get; set; }
         
     [UsedImplicitly]
     public virtual ICollection<Transaction> Transactions { get; set; }
