@@ -3,12 +3,12 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Hub.Shared.DataContracts.Banking;
 using Hub.Shared.Storage.Repository.Core;
 using Microsoft.Extensions.Logging;
 using Banking.Data.Entities;
 using Banking.Integration;
 using Banking.Integration.Dto;
+using Hub.Shared.DataContracts.Banking.Dto;
 
 namespace Banking.HostedServices.ServiceBusQueueHost.CommandHandlers;
 

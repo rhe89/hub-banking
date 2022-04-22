@@ -1,11 +1,11 @@
 using System;
 using System.Linq;
 using System.Threading.Tasks;
-using Hub.Shared.DataContracts.Banking;
 using Hub.Shared.Storage.Repository.Core;
 using Microsoft.Extensions.Logging;
 using Banking.Data.Entities;
-using AccountDto = Hub.Shared.DataContracts.Banking.AccountDto;
+using Hub.Shared.DataContracts.Banking.Dto;
+using AccountDto = Hub.Shared.DataContracts.Banking.Dto.AccountDto;
 
 namespace Banking.HostedServices.ServiceBusQueueHost.CommandHandlers;
 
