@@ -1,6 +1,7 @@
 ﻿using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Banking.Providers;
+using Hub.Shared.DataContracts.Banking.SearchParameters;
 
 namespace Banking.Web.Api.Controllers;
 
@@ -14,13 +15,11 @@ public class TransactionsController : ControllerBase
     {
         _transactionProvider = transactionProvider;
     }
-        
-    [HttpGet]
-    public async Task<IActionResult> GetTransactions([FromQuery]int? ageInDays, 
-        [FromQuery]string description, 
-        [FromQuery]string accountName)
+    
+    [HttpPost]
+    public async Task<IActionResult> GetTransactions([FromQuery]TransactionSearchParameters transactionSearchParameters)
     {
-        var transactions = await _transactionProvider.GetTransactions(ageInDays, description, accountName);
+        var transactions = await _transactionProvider.GetTransactions(transactionSearchParameters);
 
         return Ok(transactions);
     }

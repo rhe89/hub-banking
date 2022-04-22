@@ -3,19 +3,19 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Threading.Tasks;
-using Hub.Shared.DataContracts.Banking;
 using Hub.Shared.Storage.Repository.Core;
 using Microsoft.EntityFrameworkCore;
 using Banking.Data.Entities;
+using Hub.Shared.DataContracts.Banking.Dto;
+using Hub.Shared.DataContracts.Banking.SearchParameters;
 
 namespace Banking.Providers;
 
 public interface ITransactionProvider
 {
-    Task<IList<TransactionDto>> GetTransactions(int? ageInDays, string description, string accountName);
-    Task<IList<TransactionDto>> GetTransactions(int month, int year, string accountName);
-    Task<IList<int>> GetTransactionYears(string accountName);
-    Task<TransactionDto> GetTransaction(long transactionId);
+    Task<IList<int>> GetTransactionYears(long accountId);
+    Task<IList<int>> GetTransactionMonths(long accountId, int year);
+    Task<IList<TransactionDto>> GetTransactions(TransactionSearchParameters transactionSearchParameters);
 }
     
 public class TransactionProvider : ITransactionProvider
@@ -26,27 +26,51 @@ public class TransactionProvider : ITransactionProvider
     {
         _dbRepository = dbRepository;
     }
-    
-    public async Task<IList<TransactionDto>> GetTransactions(int? ageInDays, string description, string accountName)
+
+    public async Task<IList<TransactionDto>> GetTransactions(TransactionSearchParameters transactionSearchParameters)
     {
         Expression<Func<Transaction, bool>> predicate = transaction =>
-            (ageInDays == null || transaction.TransactionDate > DateTime.Now.AddDays(-ageInDays.Value)) && 
-            (string.IsNullOrEmpty(description) || transaction.Text.ToLower().Contains(description.ToLower())) &&
-            (string.IsNullOrEmpty(accountName) || transaction.Account.Name.ToLower().Contains(accountName.ToLower()));
+            (transactionSearchParameters.TransactionId == null ||
+             transactionSearchParameters.TransactionId == transaction.Id) &&
+            (transactionSearchParameters.AccountIds == null ||
+             transactionSearchParameters.AccountIds.Any(accountId => accountId == transaction.AccountId)) &&
+            (transactionSearchParameters.AccountNames == null ||
+             transactionSearchParameters.AccountNames.Any(accountName => accountName == transaction.Account.Name)) &&
+            (transactionSearchParameters.AccountTypes == null ||
+             transactionSearchParameters.AccountTypes.Any(accountType =>
+                 accountType == transaction.Account.AccountType)) &&
+            (transactionSearchParameters.FromDate == null ||
+             transaction.TransactionDate >= transactionSearchParameters.FromDate) &&
+            (transactionSearchParameters.ToDate == null ||
+             transaction.TransactionDate <= transactionSearchParameters.ToDate) &&
+            (transactionSearchParameters.Months == null ||
+             transactionSearchParameters.Months.Any(month => month == transaction.TransactionDate.Month)) &&
+            (transactionSearchParameters.Years == null ||
+             transactionSearchParameters.Years.Any(year => year == transaction.TransactionDate.Year)) &&
+            (string.IsNullOrEmpty(transactionSearchParameters.Description) || transaction.Text
+                .Contains(transactionSearchParameters.Description));
 
         var transactions = await _dbRepository
             .WhereAsync<Transaction, TransactionDto>(predicate,
                 source => source.Include(x => x.Account));
 
+        if (transactionSearchParameters.Take != null)
+        {
+            transactions = transactions
+                .OrderByDescending(x => x.UpdatedDate)
+                .Take(transactionSearchParameters.Take.Value)
+                .ToList();
+        }
+    
         return transactions
             .OrderByDescending(x => x.TransactionDate)
             .ToList();        
     }
     
-    public async Task<IList<int>> GetTransactionYears(string accountName)
+    public async Task<IList<int>> GetTransactionYears(long accountId)
     {
         var transactions = await _dbRepository
-            .WhereAsync<Transaction, TransactionDto>(transaction => transaction.Account.Name.ToLower().Contains(accountName.ToLower()));
+            .WhereAsync<Transaction, TransactionDto>(transaction => transaction.AccountId == accountId);
 
         return transactions
             .Select(x => x.TransactionDate.Year)
@@ -54,30 +78,16 @@ public class TransactionProvider : ITransactionProvider
             .OrderBy(year => year)
             .ToList();        
     }
-
-    public async Task<IList<TransactionDto>> GetTransactions(int month, int year, string accountName)
+    
+    public async Task<IList<int>> GetTransactionMonths (long accountId, int year)
     {
-        Expression<Func<Transaction, bool>> predicate = transaction =>
-            (transaction.TransactionDate.Month == month) && 
-            (transaction.TransactionDate.Year == year) &&
-            (transaction.Account.Name.ToLower().Contains(accountName.ToLower()));
-
         var transactions = await _dbRepository
-            .WhereAsync<Transaction, TransactionDto>(predicate,
-                source => source.Include(x => x.Account));
+            .WhereAsync<Transaction, TransactionDto>(transaction => transaction.AccountId == accountId && transaction.TransactionDate.Year == year);
 
         return transactions
-            .OrderByDescending(x => x.TransactionDate)
+            .Select(x => x.TransactionDate.Month)
+            .Distinct()
+            .OrderBy(month => month)
             .ToList();        
-    }
-
-    public async Task<TransactionDto> GetTransaction(long transactionId)
-    {
-        Expression<Func<Transaction, bool>> predicate = transaction =>
-            transaction.Id == transactionId;
-            
-        return await _dbRepository
-            .FirstOrDefaultAsync<Transaction, TransactionDto>(predicate,
-                source => source.Include(x => x.Account));
     }
 }

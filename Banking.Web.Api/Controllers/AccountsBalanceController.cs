@@ -1,8 +1,7 @@
-﻿using System;
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Banking.Providers;
-
+using Hub.Shared.DataContracts.Banking.SearchParameters;
 
 namespace Banking.Web.Api.Controllers;
 
@@ -17,13 +16,10 @@ public class AccountBalanceController : ControllerBase
         _accountBalanceProvider = accountBalanceProvider;
     }
         
-    [HttpGet]
-    public async Task<IActionResult> GetAccountBalances([FromQuery]string accountName, 
-        [FromQuery]string accountType, 
-        [FromQuery]DateTime? fromDate, 
-        [FromQuery]DateTime? toDate)
+    [HttpPost]
+    public async Task<IActionResult> GetAccountBalances([FromQuery]AccountBalanceSearchParameters accountBalanceSearchParameters)
     {
-        var accounts = await _accountBalanceProvider.GetAccountBalances(accountName, accountType, fromDate, toDate);
+        var accounts = await _accountBalanceProvider.GetAccountBalances(accountBalanceSearchParameters);
             
         return Ok(accounts);
     }

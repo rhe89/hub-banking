@@ -1,21 +1,19 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Globalization;
+using System.Linq;
 using System.Linq.Expressions;
 using System.Threading.Tasks;
-using Hub.Shared.DataContracts.Banking;
 using Hub.Shared.Storage.Repository.Core;
 using Microsoft.EntityFrameworkCore;
 using Banking.Data.Entities;
+using Hub.Shared.DataContracts.Banking.Dto;
+using Hub.Shared.DataContracts.Banking.SearchParameters;
 
 namespace Banking.Providers;
 
 public interface IAccountBalanceProvider
 {
-    Task<IList<AccountBalanceDto>> GetAccountBalances(string accountName, 
-        string accountType,
-        DateTime? fromDate,
-        DateTime? toDate);
+    Task<IList<AccountBalanceDto>> GetAccountBalances(AccountBalanceSearchParameters accountBalanceSearchParameters);
 }
     
 public class AccountBalanceProvider : IAccountBalanceProvider
@@ -27,17 +25,22 @@ public class AccountBalanceProvider : IAccountBalanceProvider
         _dbRepository = dbRepository;
     }
         
-    public async Task<IList<AccountBalanceDto>> GetAccountBalances(string accountName, 
-        string accountType,
-        DateTime? fromDate,
-        DateTime? toDate)
+    public async Task<IList<AccountBalanceDto>> GetAccountBalances(AccountBalanceSearchParameters accountBalanceSearchParameters)
     {
-        Expression<Func<AccountBalance, bool>> predicate = accountBalance => 
-            (string.IsNullOrEmpty(accountName) || accountBalance.Account.Name.ToLower().Contains(accountName.ToLower())) && 
-            (string.IsNullOrEmpty(accountType) || accountBalance.Account.AccountType.ToLower().Contains(accountType.ToLower())) && 
-            (fromDate == null || accountBalance.CreatedDate >= fromDate.Value) && 
-            (toDate == null || accountBalance.CreatedDate <= toDate.Value);
-
+        Expression<Func<AccountBalance, bool>> predicate = accountBalance =>
+            (accountBalanceSearchParameters.AccountNames == null ||
+             accountBalanceSearchParameters.AccountNames.Any(accountName =>
+                 accountBalance.Account.Name.Contains(accountName))) &&
+            (accountBalanceSearchParameters.AccountIds == null ||
+             accountBalanceSearchParameters.AccountIds.Any(accountId => accountBalance.AccountId == accountId)) &&
+            (accountBalanceSearchParameters.Banks == null ||
+             accountBalanceSearchParameters.Banks.Any(bank =>
+                 accountBalance.Account.Bank.Contains(bank))) &&
+            (accountBalanceSearchParameters.FromDate == null ||
+             accountBalance.CreatedDate >= accountBalanceSearchParameters.FromDate.Value) &&
+            (accountBalanceSearchParameters.ToDate == null ||
+             accountBalance.CreatedDate <= accountBalanceSearchParameters.ToDate.Value);
+        
         var accountBalances = await _dbRepository
             .WhereAsync<AccountBalance, AccountBalanceDto>(predicate, queryable => queryable.Include(x => x.Account));
 
