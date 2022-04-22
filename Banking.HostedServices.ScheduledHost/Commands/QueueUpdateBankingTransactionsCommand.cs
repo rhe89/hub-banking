@@ -3,7 +3,6 @@ using System.Threading.Tasks;
 using Hub.Shared.HostedServices.Commands;
 using Hub.Shared.HostedServices.Schedule;
 using Hub.Shared.Storage.ServiceBus;
-using Banking.Shared.Constants;
 
 namespace Banking.HostedServices.ScheduledHost.Commands;
 

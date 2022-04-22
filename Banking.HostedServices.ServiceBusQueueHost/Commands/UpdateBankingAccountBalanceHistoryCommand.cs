@@ -4,7 +4,6 @@ using Banking.HostedServices.ServiceBusQueueHost.CommandHandlers;
 using Hub.Shared.HostedServices.Commands;
 using Hub.Shared.HostedServices.ServiceBusQueue;
 using Hub.Shared.Storage.ServiceBus;
-using Banking.Shared.Constants;
 
 namespace Banking.HostedServices.ServiceBusQueueHost.Commands;
 

@@ -1,7 +1,6 @@
 using System.Threading.Tasks;
 using Banking.Data.Entities;
 using Banking.Providers;
-using Hub.Shared.DataContracts.Banking;
 using Hub.Shared.DataContracts.Banking.Dto;
 using Hub.Shared.Storage.Repository.Core;
 
