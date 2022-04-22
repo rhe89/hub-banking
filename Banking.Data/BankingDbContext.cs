@@ -20,6 +20,9 @@ public class BankingDbContext : HubDbContext
 
         builder.Entity<Transaction>()
             .ToTable(schema: "dbo", name: "Transaction");
+        
+        builder.Entity<Preference>()
+            .ToTable(schema: "dbo", name: "Preference");
 
     }
 }

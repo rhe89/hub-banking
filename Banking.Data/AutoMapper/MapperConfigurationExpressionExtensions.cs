@@ -9,5 +9,6 @@ public static class MapperConfigurationExpressionExtensions
         mapperConfigurationExpression.AddProfile<AccountMapperProfile>();
         mapperConfigurationExpression.AddProfile<TransactionMapperProfile>();
         mapperConfigurationExpression.AddProfile<AccountBalanceMapperProfile>();
+        mapperConfigurationExpression.AddProfile<PreferenceMapperProfile>();
     }
 }
