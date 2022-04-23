@@ -11189,7 +11189,9 @@ input:focus,
 
 .col-1,
 .col-2,
+.col-3,
 .col-4,
+.col-5,
 .col-6 {
   width: 100%;
 }
@@ -11216,8 +11218,16 @@ input:focus,
     width: 16.66666667%;
   }
 
+  .col-3 {
+    width: 25%;
+  }
+
   .col-4 {
     width: 33.33333333%;
+  }
+
+  .col-5 {
+    width: 41.66666667%;
   }
 
   .col-6 {

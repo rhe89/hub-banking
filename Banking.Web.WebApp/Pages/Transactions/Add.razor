@@ -120,16 +120,10 @@
         <div class="card-body">
             <header class="row">
                 <div class="col">
-                    <h2>Similar transactions to '@Transaction.Description'</h2>
+                    <h2 class="h3">@SimilarTransactionsHeader</h2>
                 </div>
             </header>
-            @if (!SimilarTransactions.Any())
-            {
-                <p>
-                    <em>No similar transactions</em>
-                </p>
-            }
-            else
+            @if (SimilarTransactions.Any())
             {
                 <table class="table table-borderless">
                     <thead>
@@ -168,8 +162,9 @@
     [Parameter]
     public string AccountId { get; set; }
     
+    private const int PreviousTransactionsAgeInMonths = 3;
     private const string AddTransactionPreselectedAccountPreference = "AddTransactionPreselectedAccount";
-
+    private string SimilarTransactionsHeader { get; set; }
     private TransactionDto Transaction { get; set; } = new();
     private IList<AccountDto> Accounts { get; set; } = new List<AccountDto>();
     private IList<TransactionDto> PreviousTransactions { get; set; } = new List<TransactionDto>();
@@ -182,7 +177,7 @@
         _working = true;
         
         Accounts = await _accountProvider.GetAccounts(new AccountSearchParameters());
-        PreviousTransactions = await _transactionProvider.GetTransactions(new TransactionSearchParameters { FromDate = DateTime.Now.AddDays(-365)});
+        PreviousTransactions = await _transactionProvider.GetTransactions(new TransactionSearchParameters { FromDate = DateTime.Now.AddMonths(-PreviousTransactionsAgeInMonths)});
 
         if (AccountId != null)
         {
@@ -200,6 +195,7 @@
 
         Transaction.TransactionDate = DateTime.Now;
         Transaction.TransactionType = 0;
+        OnDescriptionChanged(Transaction.Description);
         
         _working = false;
     }
@@ -219,7 +215,23 @@
         _working = true;
 
         Transaction.Description = description;
-        SimilarTransactions = PreviousTransactions.Where(previousTransaction => previousTransaction.Description.Trim().ToLowerInvariant().Contains(Transaction.Description.Trim().ToLowerInvariant())).ToList();
+
+        if (string.IsNullOrEmpty(Transaction.Description))
+        {
+            SimilarTransactionsHeader = $"Previous transactions last {PreviousTransactionsAgeInMonths} months";
+            SimilarTransactions = PreviousTransactions;
+        }
+        else
+        {
+            SimilarTransactionsHeader = $"Similar transactions to '{Transaction.Description}' last {PreviousTransactionsAgeInMonths} months";
+            SimilarTransactions = PreviousTransactions.Where(previousTransaction => previousTransaction.Description.Trim().ToLowerInvariant().Contains(Transaction.Description.Trim().ToLowerInvariant())).ToList();
+        }
+
+        if (!SimilarTransactions.Any())
+        {
+            SimilarTransactionsHeader = $"No similar transactions to '{Transaction.Description}'. Showing previous transactions last {PreviousTransactionsAgeInMonths} months";
+            SimilarTransactions = PreviousTransactions;
+        }
         
         _working = false;
     }

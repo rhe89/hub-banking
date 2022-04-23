@@ -36,7 +36,7 @@
     <section class="card mt-5">
         <div class="card-body">
             <EditForm Model="TransactionSearchParameters" class="row" OnValidSubmit="Search">
-                <p class="@(WidgetMode ? "col-4" : "col-3")">
+                <p class="@(WidgetMode ? "col-5" : "col-4")">
                     @if (TransactionSearchParameters.AccountIds != null)
                     {
                         <InputSelect
@@ -86,14 +86,6 @@
                             }
                         </InputSelect>
                     }
-                </p>
-                <p class="col-1">
-                    <button
-                        class="btn btn-primary"
-                        type="submit"
-                        disabled="@_searching">
-                        Search
-                    </button>
                 </p>
             </EditForm>
         </div>
@@ -261,13 +253,15 @@
 
         var selectedMonth = availableMonths.Last();
 
-        OnMonthChanged(selectedMonth);
+        await OnMonthChanged(selectedMonth);
     }
 
-    private void OnMonthChanged(int selectedMonth)
+    private async Task OnMonthChanged(int selectedMonth)
     {
         SelectedMonth = selectedMonth;
         TransactionSearchParameters.Months = new[] { SelectedMonth };
+
+        await Search();
     }
 
     private async Task Search()
