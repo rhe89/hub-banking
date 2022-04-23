@@ -99,7 +99,7 @@
         </div>
     </section>
 
-    <section class="card mt-5 min-width">
+    <section class="card min-width @(WidgetMode ? "" : "mt-5")">
         <div class="card-body">
 
             @if (_searching)
@@ -130,7 +130,7 @@
                     <tbody>
                     @foreach (var transaction in Transactions)
                     {
-                        <tr @onclick="@(() => GoTo($"transactions/{transaction.Id}"))">
+                        <tr onclick="@(() => GoTo($"transactions/{transaction.Id}"))">
                             <td class="py-3">@transaction.TransactionDate.ToShortDateString()</td>
                             <td class="py-3">@transaction.Description</td>
                             <td class="py-3">@transaction.Amount</td>

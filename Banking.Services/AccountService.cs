@@ -1,7 +1,9 @@
+using System.Linq;
 using System.Threading.Tasks;
 using Banking.Data.Entities;
 using Hub.Shared.DataContracts.Banking.Dto;
 using Hub.Shared.Storage.Repository.Core;
+using Hub.Shared.Storage.ServiceBus;
 
 namespace Banking.Services;
 
@@ -14,15 +16,30 @@ public interface IAccountService
 public class AccountService : IAccountService
 {
     private readonly IHubDbRepository _dbRepository;
+    private readonly IMessageSender _messageSender;
 
-    public AccountService(IHubDbRepository dbRepository)
+    public AccountService(IHubDbRepository dbRepository, IMessageSender messageSender)
     {
         _dbRepository = dbRepository;
+        _messageSender = messageSender;
     }
     
     public async Task<bool> AddAccount(AccountDto account)
     {
-        await _dbRepository.AddAsync<Account, AccountDto>(account);
+        var accountsWithSameName =
+            await _dbRepository.WhereAsync<Account, AccountDto>(x => x.Name == account.Name && x.Bank == account.Bank);
+
+        if (accountsWithSameName.Any())
+        {
+            return false;
+        }
+        
+        var addedEntity = await _dbRepository.AddAsync<Account, AccountDto>(account);
+        
+        _dbRepository.QueueAdd<AccountBalance, AccountBalanceDto>(new AccountBalanceDto { AccountId = addedEntity.Id, Balance = addedEntity.Balance});
+
+        await _messageSender.AddToQueue(QueueNames.BankingAccountsUpdated);
+        await _messageSender.AddToQueue(QueueNames.BankingAccountBalanceHistoryUpdated);
 
         return true;
     }
@@ -44,6 +61,9 @@ public class AccountService : IAccountService
         _dbRepository.QueueUpdate<Account, AccountDto>(account);
 
         await _dbRepository.ExecuteQueueAsync();
+
+        await _messageSender.AddToQueue(QueueNames.BankingAccountsUpdated);
+        await _messageSender.AddToQueue(QueueNames.BankingAccountBalanceHistoryUpdated);
 
         return true;
     }

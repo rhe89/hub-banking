@@ -5,6 +5,7 @@ using Banking.Data;
 using Banking.Data.AutoMapper;
 using Banking.Providers;
 using Banking.Services;
+using Hub.Shared.Storage.ServiceBus;
 
 var builder = BlazorServerBuilder.CreateWebApplicationBuilder(args);
 
@@ -15,6 +16,7 @@ builder.Services.AddTransient<IPreferenceProvider, PreferenceProvider>();
 builder.Services.AddTransient<IPreferenceService, PreferenceService>();
 builder.Services.AddTransient<IAccountService, AccountService>();
 builder.Services.AddTransient<IAccountProvider, AccountProvider>();
+builder.Services.AddTransient<IMessageSender, MessageSender>();
             
 builder.Services.AddAutoMapper(c =>
 {

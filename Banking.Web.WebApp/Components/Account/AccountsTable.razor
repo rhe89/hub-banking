@@ -65,12 +65,12 @@
                     <tbody>
                     @foreach (var account in _accounts)
                     {
-                        <tr @onclick="@(() => GoTo($"accounts/{account.Id}"))">
-                            <td class="py-3 align-middle">@(WidgetMode ? $"{account.Name} ({account.Bank})" : $"{account.Name}")</td>
+                        <tr>
+                            <td class="py-3 align-middle" onclick="@(() => GoTo($"accounts/{account.Id}"))">@(WidgetMode ? $"{account.Name} ({account.Bank})" : $"{account.Name}")</td>
                             @if (!WidgetMode)
                             {
-                                <td class="py-3 align-middle">@account.Bank</td>
-                                <td class="py-3 align-middle">@account.AccountType</td>
+                                <td class="py-3 align-middle" onclick="@(() => GoTo($"accounts/{account.Id}"))">@account.Bank</td>
+                                <td class="py-3 align-middle" onclick="@(() => GoTo($"accounts/{account.Id}"))">@account.AccountType</td>
                             }
                             <td class="py-3">
                                 <EditForm Model="account">
@@ -81,7 +81,6 @@
                                                  Value="account.Balance"
                                                  ValueExpression="() => account.Balance"/>
                                 </EditForm>
-
                             </td>
                         </tr>
                     }
@@ -134,8 +133,6 @@
         account.Balance = value;
 
         _saving = true;
-
-        await Task.Delay(100);
         
         await _accountService.UpdateAccount(account);
         

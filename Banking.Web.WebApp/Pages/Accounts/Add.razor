@@ -95,13 +95,17 @@
 </main>
 
 @code {
-    private AccountDto Account { get; } = new();
+
+    private AccountDto Account { get; set; } = new()
+    {
+        AccountType = AccountTypes.Standard
+    };
     
     private async Task SaveAndAddNewAccount()
     {
         await _accountService.AddAccount(Account);
-        
-        NavigationManager.NavigateTo("accounts/add");
+
+        Account = new AccountDto();
     }
 
     private async Task SaveAndGoBack()
