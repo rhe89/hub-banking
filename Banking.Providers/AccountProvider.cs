@@ -13,7 +13,6 @@ namespace Banking.Providers;
 public interface IAccountProvider
 {
     Task<IList<AccountDto>> GetAccounts(AccountSearchParameters accountSearchParameters);
-    Task<IList<AccountDto>> GetAccounts();
 }
     
 public class AccountProvider : IAccountProvider
@@ -24,14 +23,7 @@ public class AccountProvider : IAccountProvider
     {
         _dbRepository = dbRepository;
     }
-    
-    public async Task<IList<AccountDto>> GetAccounts()
-    {
-        var accounts = await _dbRepository.AllAsync<Account, AccountDto>();
 
-        return accounts;
-    }
-        
     public async Task<IList<AccountDto>> GetAccounts(AccountSearchParameters accountSearchParameters)
     {
         Expression<Func<Account, bool>> predicate = account => 

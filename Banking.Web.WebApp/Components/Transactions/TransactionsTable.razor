@@ -191,7 +191,7 @@
     {
         TransactionSearchParameters.Take = Take;
         
-        _availableAccounts = await _accountProvider.GetAccounts();
+        _availableAccounts = await _accountProvider.GetAccounts(new AccountSearchParameters());
 
         if (AccountId != null)
         {

@@ -181,7 +181,7 @@
     {
         _working = true;
         
-        Accounts = await _accountProvider.GetAccounts();
+        Accounts = await _accountProvider.GetAccounts(new AccountSearchParameters());
         PreviousTransactions = await _transactionProvider.GetTransactions(new TransactionSearchParameters { FromDate = DateTime.Now.AddDays(-365)});
 
         if (AccountId != null)
