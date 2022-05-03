@@ -10,7 +10,6 @@
 
 	<ItemGroup>
 		<ProjectReference Include="..\Banking.Data\Banking.Data.csproj" />
-		<ProjectReference Include="..\Banking.Integration\Banking.Integration.csproj" />
 		<ProjectReference Include="..\Banking.Providers\Banking.Providers.csproj" />
 	</ItemGroup>
 

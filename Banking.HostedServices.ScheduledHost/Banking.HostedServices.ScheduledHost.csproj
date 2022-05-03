@@ -13,4 +13,7 @@
 		<ProjectReference Include="..\Banking.Data\Banking.Data.csproj" />
 	</ItemGroup>
 
+	<ItemGroup>
+		<Folder Include="Commands" />
+	</ItemGroup>
 </Project>

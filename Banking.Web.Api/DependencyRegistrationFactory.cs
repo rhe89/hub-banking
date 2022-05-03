@@ -1,11 +1,9 @@
 using Hub.Shared.Web.Api;
-using Hub.Shared.Web.Http;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Banking.Data;
 using Banking.Data.AutoMapper;
-using Banking.Integration;
 using Banking.Providers;
 
 namespace Banking.Web.Api;
@@ -21,7 +19,6 @@ public class DependencyRegistrationFactory : DependencyRegistrationFactory<Banki
         serviceCollection.TryAddTransient<IAccountProvider, AccountProvider>();
         serviceCollection.TryAddTransient<ITransactionProvider, TransactionProvider>();
         serviceCollection.TryAddTransient<IAccountBalanceProvider, AccountBalanceProvider>();
-        serviceCollection.AddHubHttpClient<ISbankenConnector, SbankenConnector>();
 
         serviceCollection.AddAutoMapper(c =>
         {

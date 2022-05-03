@@ -9,7 +9,11 @@
 
 	<ItemGroup>
 		<ProjectReference Include="..\Banking.Data\Banking.Data.csproj" />
-		<ProjectReference Include="..\Banking.Integration\Banking.Integration.csproj" />
 	</ItemGroup>
 
+	<ItemGroup>
+		<Folder Include="CommandHandlers" />
+		<Folder Include="Commands" />
+		<Folder Include="QueueListenerServices" />
+	</ItemGroup>
 </Project>
