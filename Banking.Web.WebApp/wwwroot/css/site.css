@@ -1,5 +1,4 @@
 @charset "UTF-8";
-@import "/open-iconic/font/css/open-iconic-bootstrap.min.css";
 /*!
  * Bootstrap v5.1.3 (https://getbootstrap.com/)
  * Copyright 2011-2021 The Bootstrap Authors
@@ -11187,17 +11186,15 @@ input:focus,
   border-radius: 3px;
 }
 
-.col-1,
-.col-2,
-.col-3,
-.col-4,
-.col-5,
-.col-6 {
-  width: 100%;
+td {
+  max-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
-.min-width {
-  min-width: 410px;
+.table-container {
+  overflow-x: auto;
 }
 
 .table-hover > tbody > tr:hover,
@@ -11209,31 +11206,6 @@ input:focus,
   cursor: pointer;
 }
 
-@media (min-width: 768px) {
-  .col-1 {
-    width: 8.33333333%;
-  }
-
-  .col-2 {
-    width: 16.66666667%;
-  }
-
-  .col-3 {
-    width: 25%;
-  }
-
-  .col-4 {
-    width: 33.33333333%;
-  }
-
-  .col-5 {
-    width: 41.66666667%;
-  }
-
-  .col-6 {
-    width: 50%;
-  }
-}
 .content {
   padding-top: 1.1rem;
 }

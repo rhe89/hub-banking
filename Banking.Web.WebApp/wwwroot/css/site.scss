@@ -1,5 +1,3 @@
-@import "/open-iconic/font/css/open-iconic-bootstrap.min.css";
-
 $body-bg: #27272f;
 $card-bg: #33333d;
 $primary: #045D56;
@@ -8,7 +6,6 @@ $secondary: #045D56;
 $text: white;
 
 @import "../../../../node_modules/bootstrap/scss/bootstrap";
-
 
 html, body {
   font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
@@ -67,17 +64,22 @@ input,
   border-radius: 3px;
 }
 
-.col-1,
-.col-2,
-.col-3,
-.col-4,
-.col-5,
-.col-6 {
-  width: 100%;
+td {
+  max-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
+//.w-50-ellipsis {
+//  display: inline-block;
+//  width: 50%;
+//  white-space: nowrap;
+//  overflow: hidden !important;
+//  text-overflow: ellipsis;
+//}
 
-.min-width {
-  min-width: 410px;
+.table-container {
+  overflow-x: auto;
 }
 
 .table-hover > tbody > tr:hover,
@@ -87,32 +89,6 @@ input,
 
 .table-hover:hover {
   cursor: pointer;
-}
-
-@include media-breakpoint-up(md) {
-  .col-1 {
-    width: 8.33333333%;
-  }
-  
-  .col-2 {
-    width: 16.66666667%;
-  }
-
-  .col-3 {
-    width: 25%;
-  }
-
-  .col-4 {
-  width: 33.33333333%;
-  }
-
-  .col-5 {
-    width: 41.66666667%;
-  }
-
-  .col-6 {
-    width: 50%;
-  }
 }
 
 .content {
@@ -161,4 +137,10 @@ input,
   }
   
 }
+//
+//@include media-breakpoint-up(lg) {
+//  .w-50-ellipsis {
+//    width: 100%;
+//  }
+//}
 
