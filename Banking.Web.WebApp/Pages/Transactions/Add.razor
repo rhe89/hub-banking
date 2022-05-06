@@ -214,8 +214,12 @@
     private const int PreviousTransactionsAgeInMonths = 3;
     private const string AddTransactionPreselectedAccountPreference = "AddTransactionPreselectedAccount";
     private string SimilarTransactionsHeader { get; set; }
+
+    private TransactionModel Transaction { get; set; } = new()
+    {
+        TransactionDirection = TransactionDirection.Out
+    };
     
-    private TransactionModel Transaction { get; set; } = new();
     private IList<AccountDto> Accounts { get; set; } = new List<AccountDto>();
     private IList<TransactionDto> PreviousTransactions { get; set; } = new List<TransactionDto>();
     private IList<TransactionDto> SimilarTransactions { get; set; } = new List<TransactionDto>();
@@ -258,6 +262,9 @@
         Transaction.Description = transaction.Description.ToUpper().Replace(" ", "_");
         Transaction.TransactionType = transaction.TransactionType;
         Transaction.TransactionDate = transaction.TransactionDate.AddMonths(1);
+        Transaction.TransactionDirection = transaction.Amount > 0 ?
+            TransactionDirection.In :
+            TransactionDirection.Out;
         
         Transaction.Validate(out _);
         
