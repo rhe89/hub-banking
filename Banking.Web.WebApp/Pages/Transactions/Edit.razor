@@ -1,0 +1,217 @@
+@page "/transactions/{transactionId}"
+
+@using Banking.Providers
+@using Banking.Services
+@using Banking.Web.WebApp.Models
+@using Microsoft.AspNetCore.Components
+@using Hub.Shared.DataContracts.Banking.Dto
+@using Hub.Shared.DataContracts.Banking.SearchParameters
+
+@inject ITransactionProvider _transactionProvider
+@inject ITransactionService _transactionService
+@inject IAccountProvider _accountProvider;
+
+@inherits Base
+
+<main class="container mt-3">
+    <header class="row">
+        <div class="col-sm-12">
+            <h1 class="float-start">Transaction</h1>
+            <button class="btn btn-secondary float-end" @onclick="GoBack">Back</button>
+        </div>
+    </header>
+
+    <section class="card mt-5">
+        <div class="card-body">
+            @if (Transaction == null)
+            {
+                <p>
+                    <em>Loading...</em>
+                </p>
+            }
+            else
+            {
+                <EditForm Model="@Transaction" OnValidSubmit="@Save">
+                    <div class="row">
+                        <div class="col-lg-2 col-sm-12 py-1">
+                            <label>
+                                Direction:
+                            </label>
+                        </div>
+                        <div class="col-lg-4 col-sm-12">
+                            <InputRadioGroup @bind-Value="Transaction.TransactionDirection">
+                                <InputRadio 
+                                    class="d-inline-block"
+                                    id="transaction-direction-in"
+                                    Value="TransactionDirection.In"
+                                    @oninput="Transaction.OnTransactionDirectionChanged"/>
+                                <label for="transaction-direction-in" class="d-inline-block me-3">
+                                    In
+                                </label>
+                                <InputRadio 
+                                    class="d-inline-block"
+                                    id="transaction-direction-out"
+                                    Value="TransactionDirection.Out"
+                                    @oninput="Transaction.OnTransactionDirectionChanged"/>
+                                <label for="transaction-direction-out" class="d-inline-block">
+                                    Out
+                                </label>
+                            </InputRadioGroup>
+                    
+                        </div>
+                    </div>
+                    
+                    <div class="row mt-3">
+                        <div class="col-lg-2 col-sm-12 py-1">
+                            <label for="account">
+                                Account:
+                            </label>
+                        </div>
+                        <div class="col-lg-4 col-sm-12">
+                            @if (Accounts != null)
+                            {
+                                <InputSelect
+                                    class="form-control"
+                                    id="account"
+                                    disabled="@_working"
+                                    @bind-Value="Transaction.AccountId">
+                                    @foreach (var account in Accounts)
+                                    {
+                                        <option value="@account.Id">@($"{account.Name} ({account.Bank})")</option>
+                                    }
+                                </InputSelect>
+                            }
+                        </div>
+                    </div>
+
+                    <div class="row mt-3">
+                        <div class="col-lg-2 col-sm-12 py-1">
+                            <label for="transaction-date">
+                                Transaction date:
+                            </label>
+                        </div>
+                        <div class="col-lg-4 col-sm-12">
+                            <InputDate
+                                class="form-control"
+                                id="transaction-date"
+                                disabled="@_working"
+                                @bind-Value="Transaction.TransactionDate"/>
+                        </div>
+                    </div>
+
+                    <div class="row mt-3">
+                        <div class="col-lg-2 col-sm-12 py-1">
+                            <label for="description">
+                                Description:
+                            </label>
+                        </div>
+                        <div class="col-lg-4 col-sm-12">
+                            <InputText
+                                class="form-control"
+                                id="description"
+                                disabled="@_working"
+                                @oninput="Transaction.OnDescriptionInput"
+                                @bind-Value="Transaction.Description"/>
+                        </div>
+                    </div>
+
+                    <div class="row mt-3">
+                        <div class="col-lg-2 col-sm-12">
+                            <label for="amount">
+                                Amount:
+                            </label>
+                        </div>
+                        <div class="col-lg-4 col-sm-12">
+                            <InputNumber
+                                class="form-control"
+                                id="amount"
+                                disabled="@_working"
+                                @oninput="Transaction.OnAmountInput"
+                                @bind-Value="Transaction.Amount"/>
+                        </div>
+                    </div>
+                    
+                    @if (Transaction.ValidationErrors.Any(x => !string.IsNullOrEmpty(x.Value)))
+                    {
+                        <div class="row mt-3">
+                            <div class="col-lg-8 col-sm-12">
+                                @foreach (var validationError in Transaction.ValidationErrors.Where(x => !string.IsNullOrEmpty(x.Value)))
+                                {
+                                    <div class="alert alert-danger" role="alert">
+                                        <p>@validationError.Value</p>
+                                    </div>
+                                }
+    
+                            </div>
+                        </div>
+                    }
+
+                    <div class="row mt-3">
+                        <div class="col-1">
+                            <button class="btn btn-primary" type="submit">Save</button>
+                        </div>
+                    </div>
+                </EditForm>
+            }
+        </div>
+    </section>
+</main>
+
+@code {
+
+    [Parameter]
+    public string TransactionId { get; set; }
+
+    private TransactionModel Transaction { get; set; }
+    private IList<AccountDto> Accounts { get; set; }
+    
+    private bool _working;
+
+    protected override async Task OnInitializedAsync()
+    {
+        Accounts = await _accountProvider.GetAccounts(new AccountSearchParameters());
+
+        var transactions = await _transactionProvider.GetTransactions(new TransactionSearchParameters { TransactionId = long.Parse(TransactionId) });
+
+        var transaction = transactions.FirstOrDefault();
+        
+        if (transaction == null)
+        {
+            return;
+        }
+        
+        Transaction = new TransactionModel
+        {
+            Id = transaction.Id,
+            CreatedDate = transaction.CreatedDate,
+            UpdatedDate = transaction.UpdatedDate,
+            Description = transaction.Description,
+            Amount = transaction.Amount, 
+            AccountId = transaction.AccountId,
+            TransactionDate = transaction.TransactionDate,
+            TransactionType = transaction.TransactionType,
+            TransactionId = transaction.TransactionId,
+            TransactionDirection = transaction.Amount > 0 ? 
+                TransactionDirection.In : 
+                TransactionDirection.Out
+        };
+    }
+
+    private async Task Save()
+    {
+        Transaction.Validate(out var isValid);
+        
+        if (!isValid)
+        {
+            return;
+        }
+        
+        _working = true;
+
+        await _transactionService.UpdateTransaction(Transaction);
+        
+        _working = false;
+
+        await GoBack();
+    }
+}

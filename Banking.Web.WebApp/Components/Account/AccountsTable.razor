@@ -13,13 +13,11 @@
     @if (!WidgetMode)
     {
         <header class="row">
-            <div class="col-6">
+            <div class="col-sm-12">
                 @if (ChildContent != null)
                 {
                     @ChildContent
                 }
-            </div>
-            <div class="col-2 offset-md-4">
                 <NavLink
                     class="btn btn-primary float-end"
                     disabled="@_saving"
@@ -30,8 +28,8 @@
         </header>
     }
 
-    <section class="card mt-5 min-width">
-        <div class="card-body">
+    <section class="card mt-5">
+        <div class="card-body table-container">
 
             @if (_searching)
             {
@@ -47,7 +45,7 @@
             }
             else
             {
-                <table class="table table-borderless table-hover">
+                <table class="table table-borderless table-hover @(WidgetMode ? "table-widget" : "table-full-size")">
                     @if (!WidgetMode)
                     {
                         <thead>
@@ -86,19 +84,6 @@
                     }
                     </tbody>
                 </table>
-            }
-            @if (WidgetMode)
-            {
-                <div class="row">
-                    <div class="col-12">
-                        <NavLink
-                            class="btn btn-primary"
-                            disabled="@_saving"
-                            href="accounts/add">
-                            Add account
-                        </NavLink>
-                    </div>
-                </div>
             }
         </div>
     </section>

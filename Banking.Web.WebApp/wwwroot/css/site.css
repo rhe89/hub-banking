@@ -29,7 +29,7 @@
   --bs-gray-800: #343a40;
   --bs-gray-900: #212529;
   --bs-primary: #045D56;
-  --bs-secondary: #045D56;
+  --bs-secondary: #034f49;
   --bs-success: #198754;
   --bs-info: #0dcaf0;
   --bs-warning: #ffc107;
@@ -37,7 +37,7 @@
   --bs-light: #f8f9fa;
   --bs-dark: #212529;
   --bs-primary-rgb: 4, 93, 86;
-  --bs-secondary-rgb: 4, 93, 86;
+  --bs-secondary-rgb: 3, 79, 73;
   --bs-success-rgb: 25, 135, 84;
   --bs-info-rgb: 13, 202, 240;
   --bs-warning-rgb: 255, 193, 7;
@@ -2026,15 +2026,15 @@ progress {
 }
 
 .table-secondary {
-  --bs-table-bg: #cddfdd;
-  --bs-table-striped-bg: #c3d4d2;
+  --bs-table-bg: #cddcdb;
+  --bs-table-striped-bg: #c3d1d0;
   --bs-table-striped-color: #000;
-  --bs-table-active-bg: #b9c9c7;
+  --bs-table-active-bg: #b9c6c5;
   --bs-table-active-color: #000;
-  --bs-table-hover-bg: #bececc;
+  --bs-table-hover-bg: #becccb;
   --bs-table-hover-color: #000;
   color: #000;
-  border-color: #b9c9c7;
+  border-color: #b9c6c5;
 }
 
 .table-success {
@@ -2958,32 +2958,32 @@ textarea.form-control-lg {
 
 .btn-secondary {
   color: #fff;
-  background-color: #045D56;
-  border-color: #045D56;
+  background-color: #034f49;
+  border-color: #034f49;
 }
 .btn-secondary:hover {
   color: #fff;
-  background-color: #034f49;
-  border-color: #034a45;
+  background-color: #03433e;
+  border-color: #023f3a;
 }
 .btn-check:focus + .btn-secondary, .btn-secondary:focus {
   color: #fff;
-  background-color: #034f49;
-  border-color: #034a45;
-  box-shadow: 0 0 0 0.25rem rgba(42, 117, 111, 0.5);
+  background-color: #03433e;
+  border-color: #023f3a;
+  box-shadow: 0 0 0 0.25rem rgba(41, 105, 100, 0.5);
 }
 .btn-check:checked + .btn-secondary, .btn-check:active + .btn-secondary, .btn-secondary:active, .btn-secondary.active, .show > .btn-secondary.dropdown-toggle {
   color: #fff;
-  background-color: #034a45;
-  border-color: #034641;
+  background-color: #023f3a;
+  border-color: #023b37;
 }
 .btn-check:checked + .btn-secondary:focus, .btn-check:active + .btn-secondary:focus, .btn-secondary:active:focus, .btn-secondary.active:focus, .show > .btn-secondary.dropdown-toggle:focus {
-  box-shadow: 0 0 0 0.25rem rgba(42, 117, 111, 0.5);
+  box-shadow: 0 0 0 0.25rem rgba(41, 105, 100, 0.5);
 }
 .btn-secondary:disabled, .btn-secondary.disabled {
   color: #fff;
-  background-color: #045D56;
-  border-color: #045D56;
+  background-color: #034f49;
+  border-color: #034f49;
 }
 
 .btn-success {
@@ -3192,27 +3192,27 @@ textarea.form-control-lg {
 }
 
 .btn-outline-secondary {
-  color: #045D56;
-  border-color: #045D56;
+  color: #034f49;
+  border-color: #034f49;
 }
 .btn-outline-secondary:hover {
   color: #fff;
-  background-color: #045D56;
-  border-color: #045D56;
+  background-color: #034f49;
+  border-color: #034f49;
 }
 .btn-check:focus + .btn-outline-secondary, .btn-outline-secondary:focus {
-  box-shadow: 0 0 0 0.25rem rgba(4, 93, 86, 0.5);
+  box-shadow: 0 0 0 0.25rem rgba(3, 79, 73, 0.5);
 }
 .btn-check:checked + .btn-outline-secondary, .btn-check:active + .btn-outline-secondary, .btn-outline-secondary:active, .btn-outline-secondary.active, .btn-outline-secondary.dropdown-toggle.show {
   color: #fff;
-  background-color: #045D56;
-  border-color: #045D56;
+  background-color: #034f49;
+  border-color: #034f49;
 }
 .btn-check:checked + .btn-outline-secondary:focus, .btn-check:active + .btn-outline-secondary:focus, .btn-outline-secondary:active:focus, .btn-outline-secondary.active:focus, .btn-outline-secondary.dropdown-toggle.show:focus {
-  box-shadow: 0 0 0 0.25rem rgba(4, 93, 86, 0.5);
+  box-shadow: 0 0 0 0.25rem rgba(3, 79, 73, 0.5);
 }
 .btn-outline-secondary:disabled, .btn-outline-secondary.disabled {
-  color: #045D56;
+  color: #034f49;
   background-color: transparent;
 }
 
@@ -4843,12 +4843,12 @@ textarea.form-control-lg {
 }
 
 .alert-secondary {
-  color: #023834;
-  background-color: #cddfdd;
-  border-color: #b4cecc;
+  color: #022f2c;
+  background-color: #cddcdb;
+  border-color: #b3cac8;
 }
 .alert-secondary .alert-link {
-  color: #022d2a;
+  color: #022623;
 }
 
 .alert-success {
@@ -5187,17 +5187,17 @@ textarea.form-control-lg {
 }
 
 .list-group-item-secondary {
-  color: #023834;
-  background-color: #cddfdd;
+  color: #022f2c;
+  background-color: #cddcdb;
 }
 .list-group-item-secondary.list-group-item-action:hover, .list-group-item-secondary.list-group-item-action:focus {
-  color: #023834;
-  background-color: #b9c9c7;
+  color: #022f2c;
+  background-color: #b9c6c5;
 }
 .list-group-item-secondary.list-group-item-action.active {
   color: #fff;
-  background-color: #023834;
-  border-color: #023834;
+  background-color: #022f2c;
+  border-color: #022f2c;
 }
 
 .list-group-item-success {
@@ -6291,10 +6291,10 @@ textarea.form-control-lg {
 }
 
 .link-secondary {
-  color: #045D56;
+  color: #034f49;
 }
 .link-secondary:hover, .link-secondary:focus {
-  color: #034a45;
+  color: #023f3a;
 }
 
 .link-success {
@@ -6734,7 +6734,7 @@ textarea.form-control-lg {
 }
 
 .border-secondary {
-  border-color: #045D56 !important;
+  border-color: #034f49 !important;
 }
 
 .border-success {
@@ -11126,6 +11126,13 @@ html, body {
   font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
 }
 
+.navbar-nav {
+  flex-direction: row;
+}
+.navbar-nav .nav-link {
+  padding-right: 1rem;
+}
+
 h1, .h1,
 h2,
 .h2,
@@ -11142,6 +11149,10 @@ th,
 td,
 label {
   color: white;
+}
+
+::-webkit-calendar-picker-indicator {
+  filter: invert(1);
 }
 
 input,
@@ -11175,6 +11186,19 @@ input:focus,
 .btn:disabled {
   color: white;
 }
+.btn-icon {
+  color: #06776c;
+  margin-bottom: 6px;
+}
+.btn-icon:hover {
+  color: #045D56;
+}
+.btn-icon:focus {
+  box-shadow: none;
+}
+.btn-icon:focus svg {
+  color: #034f49;
+}
 
 .card {
   background: #33333d;
@@ -11184,6 +11208,15 @@ input:focus,
   z-index: -1;
   box-shadow: 3px 3px #045d563b;
   border-radius: 3px;
+}
+
+.alert p {
+  margin-bottom: 0;
+}
+
+.alert-danger {
+  background-color: #814848;
+  border-color: #af6262;
 }
 
 td {
@@ -11242,6 +11275,12 @@ td {
 }
 .content .blazor-error-boundary::after {
   content: "An error has occurred.";
+}
+
+@media (min-width: 1400px) {
+  .container-xxl, .container-xl, .container-lg, .container-md, .container-sm, .container {
+    max-width: 1000px;
+  }
 }
 
 /*# sourceMappingURL=site.css.map */

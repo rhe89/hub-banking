@@ -3,6 +3,8 @@
 
 @using Banking.Providers
 @using Banking.Services
+@using Banking.Web.WebApp.Extensions
+@using Banking.Web.WebApp.Models
 @using Microsoft.AspNetCore.Components
 @using Hub.Shared.DataContracts.Banking.Dto
 @using Hub.Shared.DataContracts.Banking.SearchParameters
@@ -19,7 +21,7 @@
     <header class="row">
         <div class="col-sm-12">
             <h1 class="float-start">Add transaction</h1>
-            <button class="btn btn-primary float-end" @onclick="GoBack">Back</button>
+            <button class="btn btn-secondary float-end" @onclick="GoBack">Back</button>
         </div>
     </header>
 
@@ -28,9 +30,40 @@
             <EditForm Model="@Transaction">
                 <div class="row">
                     <div class="col-lg-2 col-sm-12 py-1">
-                        <label>Account: </label>
+                        <label>
+                            Direction:
+                        </label>
                     </div>
-                    <div class="col-lg-6 col-sm-12">
+                    <div class="col-lg-4 col-sm-12">
+
+                        <InputRadioGroup @bind-Value="Transaction.TransactionDirection">
+                            <InputRadio 
+                                class="d-inline-block"
+                                id="transaction-direction-in"
+                                Value="TransactionDirection.In"
+                                @oninput="Transaction.OnTransactionDirectionChanged"/>
+                            <label for="transaction-direction-in" class="d-inline-block me-3">
+                                In
+                            </label>
+                            <InputRadio 
+                                class="d-inline-block"
+                                id="transaction-direction-out"
+                                Value="TransactionDirection.Out"
+                                @oninput="Transaction.OnTransactionDirectionChanged"/>
+                            <label for="transaction-direction-out" class="d-inline-block">
+                                Out
+                            </label>
+                        </InputRadioGroup>
+
+                    </div>
+                </div>
+                <div class="row mt-3">
+                    <div class="col-lg-2 col-sm-12 py-1">
+                        <label for="account">
+                            Account:
+                        </label>
+                    </div>
+                    <div class="col-lg-4 col-sm-12">
                         @if (Accounts != null)
                         {
                             <InputSelect
@@ -49,11 +82,11 @@
 
                 <div class="row mt-3">
                     <div class="col-lg-2 col-sm-12 py-1">
-                        <label>
+                        <label for="transaction-date">
                             Transaction date:
                         </label>
                     </div>
-                    <div class="col-lg-6 col-sm-12">
+                    <div class="col-lg-4 col-sm-12">
                         <InputDate
                             class="form-control"
                             id="transaction-date"
@@ -61,55 +94,56 @@
                             @bind-Value="Transaction.TransactionDate"/>
                     </div>
                 </div>
-                
+
                 <div class="row mt-3">
                     <div class="col-lg-2 col-sm-12 py-1">
-                        <label>Description: </label>
+                        <label for="description">
+                            Description:
+                        </label>
                     </div>
-                    <div class="col-lg-6 col-sm-12">
+                    <div class="col-lg-4 col-sm-12">
                         <InputText
                             class="form-control"
                             id="description"
                             disabled="@_working"
-                            TValue="string"
-                            @oninput="Callback"
+                            @oninput="changeEventArgs => Transaction.OnDescriptionInput(changeEventArgs, OnDescriptionChanged)"
                             @bind-Value="Transaction.Description"/>
                     </div>
                 </div>
 
                 <div class="row mt-3">
                     <div class="col-lg-2 col-sm-12">
-                        <label>
+                        <label for="amount">
                             Amount:
                         </label>
                     </div>
-                    <div class="col-lg-6 col-sm-12">
+                    <div class="col-lg-4 col-sm-12">
                         <InputNumber
                             class="form-control"
                             id="amount"
                             disabled="@_working"
+                            @oninput="Transaction.OnAmountInput"
                             @bind-Value="Transaction.Amount"/>
                     </div>
                 </div>
-                
-                @if (ValidationErrors.Any(x => !string.IsNullOrEmpty(x.Value)))
+
+                @if (Transaction.ValidationErrors.Any(x => !string.IsNullOrEmpty(x.Value)))
                 {
                     <div class="row mt-3">
                         <div class="col-lg-8 col-sm-12">
-                            @foreach (var validationError in ValidationErrors.Where(x => !string.IsNullOrEmpty(x.Value)))
+                            @foreach (var validationError in Transaction.ValidationErrors.Where(x => !string.IsNullOrEmpty(x.Value)))
                             {
                                 <div class="alert alert-danger" role="alert">
                                     <p>@validationError.Value</p>
                                 </div>
                             }
-                            
+
                         </div>
                     </div>
                 }
-                
 
                 <div class="row mt-3">
-                    <div class="col-lg-5 col-sm-12 btn-group">
+                    <div class="col-lg-6 col-sm-12 btn-group">
                         <button
                             class="btn btn-primary me-2"
                             disabled="@_working"
@@ -142,21 +176,17 @@
                     <thead>
                     <tr>
                         <th>Date</th>
-                        <th class="w-50-ellipsis">Description</th>
+                        <th>Description</th>
                         <th>Amount</th>
-                        <th></th>
                     </tr>
                     </thead>
                     <tbody>
                     @foreach (var transaction in SimilarTransactions)
                     {
                         <tr>
-                            <td class="py-3">@transaction.TransactionDate.ToShortDateString()</td>
-                            <td class="py-3 w-50-ellipsis">@transaction.Description</td>
-                            <td class="py-3">@transaction.Amount</td>
-                            <td>
+                            <td class="py-3">
                                 <button
-                                    class="btn btn-primary"
+                                    class="btn btn-icon ps-0 pe-0 pb-0 pt-0 me-1"
                                     disabled="@_working"
                                     @onclick="() => UseTransactionDetails(transaction)">
                                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-plus-circle" viewBox="0 0 16 16">
@@ -164,7 +194,10 @@
                                       <path d="M8 4a.5.5 0 0 1 .5.5v3h3a.5.5 0 0 1 0 1h-3v3a.5.5 0 0 1-1 0v-3h-3a.5.5 0 0 1 0-1h3v-3A.5.5 0 0 1 8 4z"/>
                                     </svg>
                                 </button>
+                                @transaction.TransactionDate.ToNorwegianDateString()
                             </td>
+                            <td class="py-3">@transaction.Description</td>
+                            <td class="py-3">@transaction.Amount</td>
                         </tr>
                     }
                     </tbody>
@@ -181,15 +214,8 @@
     private const int PreviousTransactionsAgeInMonths = 3;
     private const string AddTransactionPreselectedAccountPreference = "AddTransactionPreselectedAccount";
     private string SimilarTransactionsHeader { get; set; }
-
-    private IDictionary<string, string> ValidationErrors { get; } = new Dictionary<string, string>()
-    {
-        { nameof(TransactionDto.Amount), "" },
-        { nameof(TransactionDto.AccountId), "" },
-        { nameof(TransactionDto.Description), "" },
-        { nameof(TransactionDto.TransactionDate), "" },
-    };
-    private TransactionDto Transaction { get; set; } = new();
+    
+    private TransactionModel Transaction { get; set; } = new();
     private IList<AccountDto> Accounts { get; set; } = new List<AccountDto>();
     private IList<TransactionDto> PreviousTransactions { get; set; } = new List<TransactionDto>();
     private IList<TransactionDto> SimilarTransactions { get; set; } = new List<TransactionDto>();
@@ -233,7 +259,7 @@
         Transaction.TransactionType = transaction.TransactionType;
         Transaction.TransactionDate = transaction.TransactionDate.AddMonths(1);
         
-        Validate(out _);
+        Transaction.Validate(out _);
         
         OnDescriptionChanged(Transaction.Description);
     }
@@ -266,7 +292,7 @@
 
     private async Task SaveAndAddNewTransaction()
     {
-        Validate(out var isValid);
+        Transaction.Validate(out var isValid);
         
         if (!isValid)
         {
@@ -275,8 +301,7 @@
         
         await Save();
 
-
-        Transaction = new TransactionDto
+        Transaction = new TransactionModel
         {
             AccountId = Transaction.AccountId,
             TransactionDate = DateTime.Now,
@@ -288,53 +313,15 @@
         SimilarTransactions = PreviousTransactions;
     }
 
-    private void Validate(out bool isValid)
-    {
-        isValid = true;
-        
-        if (string.IsNullOrEmpty(Transaction.Description))
-        {
-            ValidationErrors[nameof(TransactionDto.Description)] = "Missing description";
-            isValid = false;
-        }
-        else
-        {
-            ValidationErrors[nameof(TransactionDto.Description)] = "";
-        }
-        
-        if (Transaction.AccountId <= 0)
-        {
-            ValidationErrors[nameof(TransactionDto.AccountId)] = "Missing account";
-            isValid = false;
-        }
-        else
-        {
-            ValidationErrors[nameof(TransactionDto.AccountId)] = "";
-        }
-        
-        if (Transaction.Amount == 0)
-        {
-            ValidationErrors[nameof(TransactionDto.Amount)] = "Missing amount";
-            isValid = false;
-        }
-        else
-        {
-            ValidationErrors[nameof(TransactionDto.Amount)] = "";
-        }
-        
-        if (Transaction.TransactionDate == DateTime.MinValue)
-        {
-            ValidationErrors[nameof(TransactionDto.TransactionDate)] = "Missing transaction date";
-            isValid = false;
-        }
-        else
-        {
-            ValidationErrors[nameof(TransactionDto.TransactionDate)] = "";
-        }
-    }
-
     private async Task SaveAndGoBack()
     {
+        Transaction.Validate(out var isValid);
+        
+        if (!isValid)
+        {
+            return;
+        }
+        
         await Save();
 
         NavigationManager.NavigateTo("transactions");
@@ -352,17 +339,4 @@
         
         _working = false;
     }
-
-    private void Callback(ChangeEventArgs obj)
-    {
-        if (obj?.Value is not string value)
-        {
-            return;
-        }
-
-        Transaction.Description = value.ToUpper().Replace(" ", "_");
-        
-        OnDescriptionChanged(Transaction.Description);
-    }
-
 }
