@@ -10,25 +10,24 @@
 
 .table-full-size {
   min-width: 400px;
-  max-width: 800px;
 }
 
 .table-full-size td:nth-child(1),
 .table-full-size th:nth-child(1) {
-  width: 35%;
+  width: 30%;
 }
 
 .table-full-size td:nth-child(2),
 .table-full-size th:nth-child(2) {
-  width: 30%;
+  width: 15%;
 }
 
 .table-full-size td:nth-child(3),
 .table-full-size th:nth-child(3) {
-  width: 20%;
+  width: 30%;
 }
 
 .table-full-size td:nth-child(4),
 .table-full-size th:nth-child(4) {
-  width: 15%;
+  width: 35%;
 }
