@@ -147,8 +147,9 @@
                     }
 
                     <div class="row mt-3">
-                        <div class="col-1">
+                        <div class="col-2 btn-group">
                             <button class="btn btn-primary" type="submit">Save</button>
+                            <button class="btn btn-danger" type="button" @onclick="Delete">Delete</button>
                         </div>
                     </div>
                 </EditForm>
@@ -209,6 +210,17 @@
         _working = true;
 
         await _transactionService.UpdateTransaction(Transaction);
+        
+        _working = false;
+
+        await GoBack();
+    }
+    
+    private async Task Delete()
+    {
+        _working = true;
+
+        await _transactionService.Delete(Transaction);
         
         _working = false;
 

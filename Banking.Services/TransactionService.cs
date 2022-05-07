@@ -10,6 +10,7 @@ public interface ITransactionService
 {
     Task<bool> AddTransaction(TransactionDto transaction);
     Task<bool> UpdateTransaction(TransactionDto transaction);
+    Task Delete(TransactionDto transaction);
 }
     
 public class TransactionService : ITransactionService
@@ -46,5 +47,10 @@ public class TransactionService : ITransactionService
         await _messageSender.AddToQueue(QueueNames.BankingTransactionsUpdated);
 
         return true;
+    }
+
+    public async Task Delete(TransactionDto transaction)
+    {
+        await _hubDbRepository.RemoveAsync<Transaction, TransactionDto>(transaction);
     }
 }
