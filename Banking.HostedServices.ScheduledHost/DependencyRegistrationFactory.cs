@@ -4,6 +4,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Banking.Data;
+using Banking.HostedServices.ScheduledHost.Commands;
 
 namespace Banking.HostedServices.ScheduledHost;
 
@@ -11,6 +12,6 @@ public class DependencyRegistrationFactory : DependencyRegistrationFactory<Banki
 {
     protected override void AddDomainDependencies(IServiceCollection serviceCollection, IConfiguration configuration)
     {
-        serviceCollection.TryAddSingleton<IMessageSender, MessageSender>();
+        serviceCollection.AddSingleton<IScheduledCommand, QueueUpdateRecurringTransactionsCommand>();
     }
 }

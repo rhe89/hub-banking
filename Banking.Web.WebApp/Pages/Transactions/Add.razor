@@ -212,7 +212,6 @@
     public string AccountId { get; set; }
     
     private const int PreviousTransactionsAgeInMonths = 3;
-    private const string AddTransactionPreselectedAccountPreference = "AddTransactionPreselectedAccount";
     private string SimilarTransactionsHeader { get; set; }
 
     private TransactionModel Transaction { get; set; } = new()
@@ -239,11 +238,11 @@
         }
         else
         {
-            var previousSelectedAccounts = await _preferenceProvider.GetPreferences(AddTransactionPreselectedAccountPreference);
+            var lastViewedAccount = await _preferenceProvider.GetPreferences(Preferences.LastViewedAccount);
 
-            if (previousSelectedAccounts.Any())
+            if (lastViewedAccount.Any())
             {
-                Transaction.AccountId = long.Parse(previousSelectedAccounts.First().Value);
+                Transaction.AccountId = long.Parse(lastViewedAccount.First().Value);
             }
         }
 
@@ -338,7 +337,7 @@
     {
         _working = true;
 
-        await _preferenceService.AddOrReplacePreference(AddTransactionPreselectedAccountPreference, Transaction.AccountId.ToString());
+        await _preferenceService.AddOrUpdatePreference(Preferences.LastViewedAccount, Transaction.AccountId.ToString());
 
         Transaction.TransactionId = $"{Transaction.AccountId}-{Transaction.TransactionDate}-{Transaction.Description}-{Transaction.Amount}";
         

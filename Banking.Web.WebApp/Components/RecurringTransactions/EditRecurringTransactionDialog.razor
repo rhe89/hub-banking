@@ -1,0 +1,280 @@
+@page "/recurringtransactions/{RecurringTransactionId}"
+
+@using Banking.Providers
+@using Banking.Services
+@using Banking.Web.WebApp.Models
+@using Microsoft.AspNetCore.Components
+@using Hub.Shared.DataContracts.Banking.Dto
+@using Hub.Shared.DataContracts.Banking.SearchParameters
+@using Hub.Shared.Extensions
+
+@inject IRecurringTransactionProvider _recurringTransactionProvider
+@inject IAccountProvider _accountProvider;
+@inject IRecurringTransactionService _recurringTransactionService
+@inject IPreferenceProvider _preferenceProvider
+@inject IPreferenceService _preferenceService 
+@inject ISnackbar _snackbar
+
+@inherits Base
+
+<MudDialog>
+    <DialogContent>
+        <section class="card ">
+            <div class="card-body">
+                @if (RecurringTransaction == null)
+                {
+                    <p>
+                        <em>Loading...</em>
+                    </p>
+                }
+                else
+                {
+                    <EditForm Model="@RecurringTransaction" OnInvalidSubmit="Save">
+                        <div class="row">
+                            <div class="col-lg-2 col-sm-12 py-1">
+                                <label>
+                                    Direction:
+                                </label>
+                            </div>
+                            <div class="col-lg-4 col-sm-12">
+
+                                <InputRadioGroup @bind-Value="RecurringTransaction.TransactionDirection">
+                                    <InputRadio
+                                        class="d-inline-block"
+                                        id="transaction-direction-in"
+                                        Value="TransactionDirection.In"
+                                        @oninput="RecurringTransaction.OnTransactionDirectionChanged"/>
+                                    <label for="transaction-direction-in" class="d-inline-block me-3">
+                                        In
+                                    </label>
+                                    <InputRadio
+                                        class="d-inline-block"
+                                        id="transaction-direction-out"
+                                        Value="TransactionDirection.Out"
+                                        @oninput="RecurringTransaction.OnTransactionDirectionChanged"/>
+                                    <label for="transaction-direction-out" class="d-inline-block">
+                                        Out
+                                    </label>
+                                </InputRadioGroup>
+
+                            </div>
+                        </div>
+                        <div class="row mt-3">
+                            <div class="col-lg-2 col-sm-12 py-1">
+                                <label for="account">
+                                    Account:
+                                </label>
+                            </div>
+                            <div class="col-lg-4 col-sm-12">
+                                @if (Accounts != null)
+                                {
+                                    <InputSelect
+                                        class="form-control"
+                                        id="account"
+                                        disabled="@_working"
+                                        @bind-Value="RecurringTransaction.AccountId">
+                                        @foreach (var account in Accounts)
+                                        {
+                                            <option value="@account.Id">@($"{account.Name} ({account.Bank})")</option>
+                                        }
+                                    </InputSelect>
+                                }
+                            </div>
+                        </div>
+
+                        <div class="row mt-3">
+                            <div class="col-lg-2 col-sm-12 py-1">
+                                <label for="occurrence">
+                                    Occurrence:
+                                </label>
+                            </div>
+                            <div class="col-lg-4 col-sm-12">
+                                <InputSelect
+                                    class="form-control"
+                                    id="occurrence"
+                                    disabled="@_working"
+                                    @bind-Value="RecurringTransaction.Occurrence">
+                                    @foreach (Occurrence occurence in Enum.GetValues(typeof(Occurrence)))
+                                    {
+                                        <option value="@occurence">@occurence.GetEnumDisplayName()</option>
+                                    }
+                                </InputSelect>
+                            </div>
+                        </div>
+
+                        <div class="row mt-3">
+                            <div class="col-lg-2 col-sm-12 py-1">
+                                <label for="transaction-date">
+                                    Next transaction date:
+                                </label>
+                            </div>
+                            <div class="col-lg-4 col-sm-12">
+                                <InputDate
+                                    class="form-control"
+                                    id="transaction-date"
+                                    disabled="@_working"
+                                    @bind-Value="RecurringTransaction.NextTransactionDate"/>
+                            </div>
+                        </div>
+
+                        <div class="row mt-3">
+                            <div class="col-lg-2 col-sm-12 py-1">
+                                <label for="description">
+                                    Description:
+                                </label>
+                            </div>
+                            <div class="col-lg-4 col-sm-12">
+                                <InputText
+                                    class="form-control"
+                                    id="description"
+                                    disabled="@_working"
+                                    @oninput="changeEventArgs => RecurringTransaction.OnDescriptionInput(changeEventArgs)"
+                                    @bind-Value="RecurringTransaction.Description"/>
+                            </div>
+                        </div>
+
+                        <div class="row mt-3">
+                            <div class="col-lg-2 col-sm-12">
+                                <label for="amount">
+                                    Amount:
+                                </label>
+                            </div>
+                            <div class="col-lg-4 col-sm-12">
+                                <InputNumber
+                                    class="form-control"
+                                    id="amount"
+                                    disabled="@_working"
+                                    @oninput="RecurringTransaction.OnAmountInput"
+                                    @bind-Value="RecurringTransaction.Amount"/>
+                            </div>
+                        </div>
+
+                        @if (RecurringTransaction.ValidationErrors.Any(x => !string.IsNullOrEmpty(x.Value)))
+                        {
+                            <div class="row mt-3">
+                                <div class="col-lg-8 col-sm-12">
+                                    @foreach (var validationError in RecurringTransaction.ValidationErrors.Where(x => !string.IsNullOrEmpty(x.Value)))
+                                    {
+                                        <div class="alert alert-danger" role="alert">
+                                            <p>@validationError.Value</p>
+                                        </div>
+                                    }
+
+                                </div>
+                            </div>
+                        }
+
+                        <div class="row mt-3">
+                            <div class="col-lg-6 col-sm-12 btn-group">
+                                <button
+                                    class="btn btn-primary me-2"
+                                    disabled="@_working"
+                                    type="submit">
+                                    Save changes
+                                </button>
+                                <button
+                                    class="btn btn-danger me-2"
+                                    disabled="@_working"
+                                    @onclick="Delete"
+                                    type="button">
+                                    Delete
+                                </button>
+                                <button
+                                    class="btn btn-primary"
+                                    disabled="@_working"
+                                    @onclick="() => MudDialog.Close(DialogResult.Ok(true))"
+                                    type="button">
+                                    Close
+                                </button>
+                            </div>
+                        </div>
+                    </EditForm>
+                }
+            </div>
+        </section>
+    </DialogContent>
+</MudDialog>
+
+@code {
+    [CascadingParameter] 
+    MudDialogInstance MudDialog { get; set; }
+    
+    [Parameter]
+    public string RecurringTransactionId { get; set; }
+    
+    private RecurringTransactionModel RecurringTransaction { get; set; } = new()
+    {
+        Occurrence = Occurrence.Monthly
+    };
+    
+    private IList<AccountDto> Accounts { get; set; } = new List<AccountDto>();
+    
+    private bool _working;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _working = true;
+        
+        Accounts = await _accountProvider.GetAccounts(new AccountSearchParameters());
+
+        var recurringTransactions = await _recurringTransactionProvider.GetRecurringTransactions(new RecurringTransactionSearchParameters() { RecurringTransactionId = long.Parse(RecurringTransactionId) });
+
+        var recurringTransaction = recurringTransactions.FirstOrDefault();
+
+        if (recurringTransaction == null)
+        {
+            return;
+        }
+
+        RecurringTransaction = new RecurringTransactionModel
+        {
+            Id = recurringTransaction.Id, 
+            CreatedDate = recurringTransaction.CreatedDate, 
+            UpdatedDate = recurringTransaction.UpdatedDate, 
+            Description = recurringTransaction.Description, 
+            Amount = recurringTransaction.Amount, 
+            AccountId = recurringTransaction.AccountId, 
+            LatestTransactionCreated = recurringTransaction.LatestTransactionCreated, 
+            NextTransactionDate = recurringTransaction.NextTransactionDate, 
+            Occurrence = recurringTransaction.Occurrence, 
+            TransactionDirection = recurringTransaction.Amount > 0 ?
+                TransactionDirection.In :
+                TransactionDirection.Out
+        };
+        _working = false;
+    }
+
+    private async Task Save()
+    {
+        RecurringTransaction.Validate(out var isValid);
+        
+        if (!isValid)
+        {
+            return;
+        }
+
+        _working = true;
+
+        await _preferenceService.AddOrUpdatePreference(Preferences.LastViewedAccount, RecurringTransaction.AccountId.ToString());
+        
+        await _recurringTransactionService.UpdateRecurringTransaction(RecurringTransaction);
+        
+        _working = false;
+
+        MudDialog.Close(DialogResult.Ok(true));
+    }
+
+    private async Task Delete()
+    {
+        _working = true;
+        
+        await _recurringTransactionService.DeleteRecurringTransaction(RecurringTransaction);
+
+        _working = false;
+        
+        _snackbar.Add("Recurring transaction deleted", Severity.Success);
+        
+        MudDialog.Close(DialogResult.Ok(true));
+    }
+
+}

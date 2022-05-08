@@ -8,6 +8,7 @@
 
 @inject IAccountProvider _accountProvider
 @inject IAccountService _accountService
+@inject IPreferenceService _preferenceService
 @inject NavigationManager _uriHelper
 
 @inherits Base
@@ -117,7 +118,9 @@
     {
         var accounts = await _accountProvider.GetAccounts(new AccountSearchParameters() { AccountIds = new []{ long.Parse(AccountId) } });
         
-        Account = accounts.FirstOrDefault();
+        Account = accounts.Single();
+
+        await _preferenceService.AddOrUpdatePreference(Preferences.LastViewedAccount, Account.Id.ToString());
     }
     
     private async Task Save()

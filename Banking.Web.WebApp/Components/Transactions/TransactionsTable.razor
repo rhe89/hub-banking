@@ -145,9 +145,7 @@
     [Parameter]
     [CanBeNull]
     public RenderFragment ChildContent { get; set; }
-
-    private const string PreviousSelectedAccountPreference = "TransactionSearchPreselectedAccount";
-
+    
     private IList<int> _availableMonths = new List<int>();
     private IList<int> _availableYears;
     private IList<AccountDto> _availableAccounts;
@@ -162,8 +160,6 @@
     protected override async Task OnInitializedAsync()
     {
         await SetParameters();
-
-        await Search();
     }
 
     private async Task SetParameters()
@@ -178,13 +174,13 @@
             return;
         }
         
-        var previousSelectedAccounts = await _preferenceProvider.GetPreferences(PreviousSelectedAccountPreference);
+        var lastViewedAccount = await _preferenceProvider.GetPreferences(Preferences.LastViewedAccount);
 
         long accountId;
         
-        if (previousSelectedAccounts.Any())
+        if (lastViewedAccount.Any())
         {
-            accountId = long.Parse(previousSelectedAccounts.First().Value);
+            accountId = long.Parse(lastViewedAccount.First().Value);
         }
         else
         {
@@ -202,6 +198,11 @@
     
     private async Task OnAccountChanged(long selectedAccountId)
     {
+        if (SelectedAccountId != selectedAccountId)
+        {
+            await _preferenceService.AddOrUpdatePreference(Preferences.LastViewedAccount, selectedAccountId.ToString());
+        }
+        
         SelectedAccountId = selectedAccountId;
         TransactionSearchParameters.AccountIds = new[] { SelectedAccountId };
         
@@ -216,6 +217,9 @@
 
         if (!_availableYears.Any())
         {
+            TransactionSearchParameters.Years = null;
+            await Search();
+            
             return;
         }
         
@@ -254,8 +258,6 @@
     private async Task Search()
     {
         _searching = true;
-        
-        await _preferenceService.AddOrReplacePreference(PreviousSelectedAccountPreference, SelectedAccountId.ToString());
         
         Transactions = await _transactionProvider.GetTransactions(TransactionSearchParameters);
         

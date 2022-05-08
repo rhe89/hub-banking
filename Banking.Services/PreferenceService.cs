@@ -1,3 +1,4 @@
+using System.Linq;
 using System.Threading.Tasks;
 using Banking.Data.Entities;
 using Banking.Providers;
@@ -8,8 +9,7 @@ namespace Banking.Services;
 
 public interface IPreferenceService
 {
-    Task<bool> AddPreference(string key, string value);
-    Task<bool> AddOrReplacePreference(string key, string value);
+    Task<bool> AddOrUpdatePreference(string key, string value);
 }
 
 public class PreferenceService : IPreferenceService
@@ -22,39 +22,34 @@ public class PreferenceService : IPreferenceService
         _dbRepository = dbRepository;
         _preferenceProvider = preferenceProvider;
     }
-    
-    public async Task<bool> AddPreference(string key, string value)
+
+    public async Task<bool> AddOrUpdatePreference(string key, string value)
     {
-        var preference = new PreferenceDto
+        if (string.IsNullOrEmpty(key) || string.IsNullOrEmpty(value))
         {
-            Key = key,
-            Value = value
-        };
-
-        await _dbRepository.AddAsync<Preference, PreferenceDto>(preference);
-
-        return true;
-    }
-    
-    public async Task<bool> AddOrReplacePreference(string key, string value)
-    {
-        var existingPreferences = await _preferenceProvider.GetPreferences(key);
-
-        foreach (var existingPreference in existingPreferences)
-        {
-            _dbRepository.QueueRemove<Preference, PreferenceDto>(existingPreference);
+            return false;
         }
         
-        var preference = new PreferenceDto
+        var existingPreferences = await _preferenceProvider.GetPreferences(key);
+
+        var existingPreference = existingPreferences.FirstOrDefault();
+
+        if (existingPreference == null)
         {
-            Key = key,
-            Value = value
-        };
+            var preference = new PreferenceDto
+            {
+                Key = key,
+                Value = value
+            };
 
-        _dbRepository.QueueAdd<Preference, PreferenceDto>(preference);
-
-        await _dbRepository.ExecuteQueueAsync();
-
+            await _dbRepository.AddAsync<Preference, PreferenceDto>(preference);
+        }
+        else if (existingPreference.Value != value)
+        {
+            existingPreference.Value = value;
+            await _dbRepository.UpdateAsync<Preference, PreferenceDto>(existingPreference);
+        }
+        
         return true;
     }
 }

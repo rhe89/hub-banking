@@ -10,7 +10,7 @@ public interface ITransactionService
 {
     Task<bool> AddTransaction(TransactionDto transaction);
     Task<bool> UpdateTransaction(TransactionDto transaction);
-    Task Delete(TransactionDto transaction);
+    Task DeleteTransaction(TransactionDto transaction);
 }
     
 public class TransactionService : ITransactionService
@@ -49,7 +49,7 @@ public class TransactionService : ITransactionService
         return true;
     }
 
-    public async Task Delete(TransactionDto transaction)
+    public async Task DeleteTransaction(TransactionDto transaction)
     {
         await _hubDbRepository.RemoveAsync<Transaction, TransactionDto>(transaction);
     }

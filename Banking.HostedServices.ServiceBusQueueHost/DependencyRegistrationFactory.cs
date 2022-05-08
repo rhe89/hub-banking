@@ -4,6 +4,9 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Banking.Data;
 using Banking.Data.AutoMapper;
+using Banking.HostedServices.ServiceBusQueueHost.Commands;
+using Banking.HostedServices.ServiceBusQueueHost.QueueListenerServices;
+using Banking.Providers;
 
 namespace Banking.HostedServices.ServiceBusQueueHost;
 
@@ -11,8 +14,6 @@ public class DependencyRegistrationFactory : DependencyRegistrationFactory<Banki
 {
     protected override void AddDomainDependencies(IServiceCollection serviceCollection, IConfiguration configuration)
     {
-        serviceCollection.AddTransient<IMessageSender, MessageSender>();
-            
         serviceCollection.AddAutoMapper(c =>
         {
             c.AddEntityMappingProfiles();
@@ -21,5 +22,8 @@ public class DependencyRegistrationFactory : DependencyRegistrationFactory<Banki
 
     protected override void AddQueueListenerServices(IServiceCollection serviceCollection, IConfiguration configuration)
     {
+        serviceCollection.AddTransient<UpdateRecurringTransactionsCommand>();
+        serviceCollection.AddSingleton<IRecurringTransactionProvider, RecurringTransactionProvider>();
+        serviceCollection.AddHostedService<UpdateRecurringTransactionsQueueListener>();
     }
 }

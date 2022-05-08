@@ -23,6 +23,9 @@ public class BankingDbContext : HubDbContext
         
         builder.Entity<Preference>()
             .ToTable(schema: "dbo", name: "Preference");
+        
+        builder.Entity<RecurringTransaction>()
+            .ToTable(schema: "dbo", name: "RecurringTransaction");
 
     }
 }

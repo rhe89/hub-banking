@@ -1,0 +1,218 @@
+@using Banking.Providers
+@using Banking.Services
+@using Banking.Web.WebApp.Extensions
+@using Hub.Shared.DataContracts.Banking.Constants
+@using Hub.Shared.DataContracts.Banking.Dto
+@using Hub.Shared.DataContracts.Banking.SearchParameters
+@using Hub.Shared.Extensions
+@using JetBrains.Annotations
+
+@inject IRecurringTransactionProvider _recurringTransactionProvider
+@inject IAccountProvider _accountProvider
+@inject IPreferenceService _preferenceService;
+@inject IPreferenceProvider _preferenceProvider;
+@inject IDialogService _dialogService;
+
+@inherits Widget
+
+<section class="@Class">
+    
+    @if (!WidgetMode)
+    {
+        <header class="row">
+            <div class="col-sm-12">
+                @if (ChildContent != null)
+                {
+                    @ChildContent
+                }
+                <button
+                    class="btn btn-primary float-end"
+                    @onclick="OpenAddRecurringTransactionDialog">
+                    Add recurring transaction
+                </button>
+            </div>
+            
+        </header>
+    }
+
+    <section class="card mt-5">
+        <div class="card-body">
+            <EditForm Model="TransactionSearchParameters" class="row" OnValidSubmit="Search">
+                <p class="col-sm-12 @(WidgetMode ? "col-lg-5" : "col-lg-4")">
+                    @if (TransactionSearchParameters.AccountIds != null)
+                    {
+                        <InputSelect
+                            class="form-select py-2"
+                            disabled="@(_searching || AccountId != null)"
+                            TValue="long"
+                            Value="SelectedAccountId"
+                            ValueChanged="OnAccountChanged"
+                            ValueExpression="() => SelectedAccountId">
+                            @foreach (var account in _availableAccounts)
+                            {
+                                <option value="@account.Id">@($"{account.Name} ({account.Bank})")</option>
+                            }
+                        </InputSelect>
+                    }
+                </p>
+            </EditForm>
+        </div>
+    </section>
+    
+    <section class="card @(WidgetMode ? "" : "mt-5")">
+        <div class="card-body table-container">
+
+            @if (_searching)
+            {
+                <p>
+                    <em>Searching...</em>
+                </p>
+            }
+            else if (!RecurringTransactions.Any())
+            {
+                <p>
+                    <em>No recurring transactions found</em>
+                </p>
+            }
+            else
+            {
+                <table class="table table-borderless table-hover">
+                    @if (!WidgetMode)
+                    {
+                        <thead>
+                        <tr>
+                            <th>Next transaction date</th>
+                            <th>Occurence</th>
+                            <th>Description</th>
+                            <th>Amount</th>
+                        </tr>
+                        </thead>
+                    }
+                    <tbody>
+                    @foreach (var recurringTransaction in RecurringTransactions)
+                    {
+                        <tr onclick="@(() => OpenEditRecurringTransactionDialog(recurringTransaction.Id))">
+                            <td class="py-3">@recurringTransaction.NextTransactionDate.ToNorwegianDateString()</td>
+                            <td class="py-3">@recurringTransaction.Occurrence.GetEnumDisplayName()</td>
+                            <td class="py-3">@recurringTransaction.Description</td>
+                            <td class="py-3">@recurringTransaction.Amount</td>
+                        </tr>
+                    }
+                    </tbody>
+                </table>
+            }
+        </div>
+    </section>
+</section>
+
+@code {
+    [Parameter]
+    public string AccountId { get; set; }
+    
+    [Parameter]
+    public int? Take { get; set; }
+    
+    [Parameter]
+    [CanBeNull]
+    public RenderFragment ChildContent { get; set; }
+    
+    private IList<AccountDto> _availableAccounts;
+    private bool _searching = true;
+    
+    private long SelectedAccountId { get; set; }
+    private RecurringTransactionSearchParameters TransactionSearchParameters { get; } = new();
+    private IList<RecurringTransactionDto> RecurringTransactions { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        await SetParameters();
+    }
+
+    private async Task SetParameters()
+    {
+        TransactionSearchParameters.Take = Take;
+        
+        _availableAccounts = await _accountProvider.GetAccounts(new AccountSearchParameters());
+
+        if (AccountId != null)
+        {
+            await OnAccountChanged(long.Parse(AccountId));
+            return;
+        }
+        
+        var lastViewedAccounts = await _preferenceProvider.GetPreferences(Preferences.LastViewedAccount);
+
+        long accountId;
+        
+        if (lastViewedAccounts.Any())
+        {
+            accountId = long.Parse(lastViewedAccounts.First().Value);
+        }
+        else
+        {
+            var accounts = _availableAccounts.Where(x => x.AccountType == AccountTypes.Billing).ToList();
+
+            if (!accounts.Any())
+            {
+                await Search();
+                return;
+            }
+            
+            accountId = accounts.First().Id;
+        }
+
+        await OnAccountChanged(accountId);
+    }
+    
+    private async Task OnAccountChanged(long selectedAccountId)
+    {
+        if (SelectedAccountId != selectedAccountId)
+        {
+            await _preferenceService.AddOrUpdatePreference(Preferences.LastViewedAccount, selectedAccountId.ToString());
+        }
+        
+        SelectedAccountId = selectedAccountId;
+        TransactionSearchParameters.AccountIds = new[] { SelectedAccountId };
+        await Search();
+    }
+    
+    private async Task Search()
+    {
+        _searching = true;
+        
+        RecurringTransactions = await _recurringTransactionProvider.GetRecurringTransactions(TransactionSearchParameters);
+        
+        _searching = false;
+
+        await InvokeAsync(StateHasChanged);
+    }
+    
+    private void OpenEditRecurringTransactionDialog(long recurringTransactionId)
+    {
+        var options = new DialogOptions { CloseOnEscapeKey = true };
+        var parameters = new DialogParameters
+        {
+            { nameof(EditRecurringTransactionDialog.RecurringTransactionId), recurringTransactionId.ToString() }
+        };
+
+        _dialogService.Show<EditRecurringTransactionDialog>("Recurring transaction", parameters, options);
+    }
+
+    private void OpenAddRecurringTransactionDialog()
+    {
+        var options = new DialogOptions { CloseOnEscapeKey = true };
+        var parameters = new DialogParameters();
+
+        if (SelectedAccountId != 0)
+        {
+            parameters.Add(nameof(AddRecurringTransactionDialog.AccountId), SelectedAccountId.ToString());
+        }
+        else if (AccountId != null)
+        {
+            parameters.Add(nameof(AddRecurringTransactionDialog.AccountId), AccountId);
+        }
+        
+        _dialogService.Show<AddRecurringTransactionDialog>("Add recurring transaction", parameters, options);
+    }
+
+}
