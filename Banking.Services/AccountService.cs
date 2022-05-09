@@ -11,6 +11,7 @@ public interface IAccountService
 {
     Task<bool> AddAccount(AccountDto account);
     Task<bool> UpdateAccount(AccountDto account);
+    Task<bool> UpdateAccountBalance(long accountId, decimal amount);
 }
 
 public class AccountService : IAccountService
@@ -44,6 +45,15 @@ public class AccountService : IAccountService
         return true;
     }
 
+    public async Task<bool> UpdateAccountBalance(long accountId, decimal amount)
+    {
+        var accountInDb = await _dbRepository.SingleAsync<Account, AccountDto>(a => a.Id == accountId);
+
+        var newBalance = accountInDb.Balance + amount;
+
+        return await UpdateAccount(accountInDb, newBalance);
+    }
+
     public async Task<bool> UpdateAccount(AccountDto account)
     {
         var accountInDb = await _dbRepository.SingleAsync<Account, AccountDto>(a => a.Id == account.Id);
@@ -52,13 +62,18 @@ public class AccountService : IAccountService
         accountInDb.AccountType = account.AccountType;
         accountInDb.Bank = account.Bank;
 
-        if (accountInDb.Balance != account.Balance)
+        return await UpdateAccount(accountInDb, account.Balance);
+    }
+    
+    private async Task<bool> UpdateAccount(AccountDto accountInDb, decimal balance)
+    {
+        if (accountInDb.Balance != balance)
         {
-            accountInDb.Balance = account.Balance;
-            _dbRepository.QueueAdd<AccountBalance, AccountBalanceDto>(new AccountBalanceDto { AccountId = account.Id, Balance = account.Balance});
+            accountInDb.Balance = balance;
+            _dbRepository.QueueAdd<AccountBalance, AccountBalanceDto>(new AccountBalanceDto { AccountId = accountInDb.Id, Balance = balance});
         }
         
-        _dbRepository.QueueUpdate<Account, AccountDto>(account);
+        _dbRepository.QueueUpdate<Account, AccountDto>(accountInDb);
 
         await _dbRepository.ExecuteQueueAsync();
 

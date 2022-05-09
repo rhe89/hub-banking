@@ -15,11 +15,16 @@ public interface ITransactionService
     
 public class TransactionService : ITransactionService
 {
+    private readonly IAccountService _accountService;
     private readonly IHubDbRepository _hubDbRepository;
     private readonly IMessageSender _messageSender;
 
-    public TransactionService(IHubDbRepository hubDbRepository, IMessageSender messageSender)
+    public TransactionService(
+        IAccountService accountService,
+        IHubDbRepository hubDbRepository, 
+        IMessageSender messageSender)
     {
+        _accountService = accountService;
         _hubDbRepository = hubDbRepository;
         _messageSender = messageSender;
     }
@@ -27,9 +32,11 @@ public class TransactionService : ITransactionService
     public async Task<bool> AddTransaction(TransactionDto transaction)
     {
         await _hubDbRepository.AddAsync<Transaction, TransactionDto>(transaction);
-        
+
         await _messageSender.AddToQueue(QueueNames.BankingTransactionsUpdated);
 
+        await _accountService.UpdateAccountBalance(transaction.AccountId, transaction.Amount);
+        
         return true;
     }
         
