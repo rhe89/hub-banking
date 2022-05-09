@@ -44,17 +44,19 @@ public class UpdateRecurringTransactionsCommand : ServiceBusQueueCommand
 
     private async Task UpdateRecurringTransaction(RecurringTransactionDto recurringTransaction)
     {
-        var today = DateTime.Now.Date;
+        var todaysDate = DateTime.Now.Date;
         
-        if (recurringTransaction.NextTransactionDate < today)
+        if (DateTime.Compare(recurringTransaction.NextTransactionDate.Date, todaysDate) > 0)
         {
+            _logger.LogInformation("Transaction {Description} is not due until {Date}", recurringTransaction.Description, recurringTransaction.NextTransactionDate.ToString("dd.MM.yyyy"));
             return;
         }
 
         var transactionCreated = await _transactionService.AddTransaction(new TransactionDto
         {
             AccountId = recurringTransaction.AccountId,
-            TransactionDate = recurringTransaction.NextTransactionDate,
+            TransactionDate = recurringTransaction.NextTransactionDate.Date,
+            Description = recurringTransaction.Description,
             Amount = recurringTransaction.Amount,
             TransactionId = $"{recurringTransaction.AccountId}-{recurringTransaction.NextTransactionDate}-{recurringTransaction.Description}-{recurringTransaction.Amount}"
         });
@@ -68,19 +70,21 @@ public class UpdateRecurringTransactionsCommand : ServiceBusQueueCommand
         recurringTransaction.LatestTransactionCreated = recurringTransaction.NextTransactionDate;
         recurringTransaction.NextTransactionDate = recurringTransaction.Occurrence switch
         {
-            Occurrence.Daily => today.AddDays(1),
-            Occurrence.Weekly => today.AddDays(7),
-            Occurrence.BiWeekly => today.AddDays(14),
-            Occurrence.Monthly => today.AddMonths(1),
-            Occurrence.BiMonthly => today.AddMonths(2),
-            Occurrence.Annually => today.AddYears(1),
-            Occurrence.BiAnnually => today.AddYears(2),
-            Occurrence.Quarterly => today.AddMonths(3),
-            Occurrence.Semiannually => today.AddMonths(6),
+            Occurrence.Daily => recurringTransaction.NextTransactionDate.Date.AddDays(1),
+            Occurrence.Weekly => recurringTransaction.NextTransactionDate.Date.AddDays(7),
+            Occurrence.BiWeekly => recurringTransaction.NextTransactionDate.Date.AddDays(14),
+            Occurrence.Monthly => recurringTransaction.NextTransactionDate.Date.AddMonths(1),
+            Occurrence.BiMonthly => recurringTransaction.NextTransactionDate.Date.AddMonths(2),
+            Occurrence.Annually => recurringTransaction.NextTransactionDate.Date.AddYears(1),
+            Occurrence.BiAnnually => recurringTransaction.NextTransactionDate.Date.AddYears(2),
+            Occurrence.Quarterly => recurringTransaction.NextTransactionDate.Date.AddMonths(3),
+            Occurrence.Semiannually => recurringTransaction.NextTransactionDate.Date.AddMonths(6),
             _ => throw new ArgumentOutOfRangeException(nameof(recurringTransaction.Occurrence))
         };
 
         await _dbRepository.UpdateAsync<RecurringTransaction, RecurringTransactionDto>(recurringTransaction);
+        
+        _logger.LogInformation("Created transaction {Description} with amount {Amount}. Next transaction is due on {NexTransactionDate}", recurringTransaction.Description, recurringTransaction.Amount, recurringTransaction.NextTransactionDate.ToString("dd.MM.yyyy"));
     }
 
     public override string Trigger => QueueNames.UpdateRecurringTransactions;
