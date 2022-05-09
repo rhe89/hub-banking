@@ -13,5 +13,6 @@ public class DependencyRegistrationFactory : DependencyRegistrationFactory<Banki
     protected override void AddDomainDependencies(IServiceCollection serviceCollection, IConfiguration configuration)
     {
         serviceCollection.AddSingleton<IScheduledCommand, QueueUpdateRecurringTransactionsCommand>();
+        serviceCollection.AddSingleton<IMessageSender, MessageSender>();
     }
 }

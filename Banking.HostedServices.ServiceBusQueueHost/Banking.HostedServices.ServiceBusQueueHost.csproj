@@ -14,7 +14,4 @@
 		<ProjectReference Include="..\Banking.Services\Banking.Services.csproj" />
 	</ItemGroup>
 
-	<ItemGroup>
-		<Folder Include="CommandHandlers" />
-	</ItemGroup>
 </Project>
