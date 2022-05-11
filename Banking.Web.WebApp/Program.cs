@@ -10,7 +10,7 @@ using MudBlazor.Services;
 
 var builder = BlazorServerBuilder.CreateWebApplicationBuilder(args);
 
-builder.Services.AddDatabase<BankingDbContext>(builder.Configuration, "SQL_DB_BANKING", "Banking.Data");
+builder.Services.AddDatabase<BankingDbContext>(builder.Configuration, "SQL_DB_BANKING");
 builder.Services.AddTransient<ITransactionService, TransactionService>();
 builder.Services.AddTransient<ITransactionProvider, TransactionProvider>();
 builder.Services.AddSingleton<IPreferenceProvider, PreferenceProvider>();
@@ -27,6 +27,6 @@ builder.Services.AddAutoMapper(c =>
     c.AddEntityMappingProfiles();
 });
 
-var app = builder.BuildApp();
-
-app.Run();
+builder
+    .BuildApp()
+    .Run();

@@ -1,16 +1,16 @@
 using Hub.Shared.HostedServices.Schedule;
 using Microsoft.Extensions.Hosting;
 using Banking.Data;
+using Banking.HostedServices.ScheduledHost.Commands;
+using Hub.Shared.Storage.ServiceBus;
+using Microsoft.Extensions.DependencyInjection;
 
-namespace Banking.HostedServices.ScheduledHost;
-
-public static class Program
-{
-    public static void Main(string[] args)
+ScheduledHostBuilder
+    .CreateHostBuilder<BankingDbContext>(args, "SQL_DB_BANKING")
+    .ConfigureServices(serviceCollection =>
     {
-        new Bootstrapper<DependencyRegistrationFactory, BankingDbContext>(args, "SQL_DB_BANKING")
-            .CreateHostBuilder()
-            .Build()
-            .Run();
-    }
-}
+        serviceCollection.AddSingleton<IScheduledCommand, QueueUpdateRecurringTransactionsCommand>();
+        serviceCollection.AddSingleton<IMessageSender, MessageSender>();
+    })
+    .Build()
+    .Run();

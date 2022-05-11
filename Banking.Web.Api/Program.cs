@@ -1,20 +1,18 @@
 using Hub.Shared.Web.Api;
-using Microsoft.Extensions.Hosting;
 using Banking.Data;
+using Banking.Data.AutoMapper;
+using Banking.Providers;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 
-namespace Banking.Web.Api;
+var builder = WebApiBuilder.CreateWebApplicationBuilder<BankingDbContext>(args, "SQL_DB_BANKING");
 
-public static class Program
-{
-    public static void Main(string[] args)
-    {
-        CreateHostBuilder(args)
-            .Build()
-            .Run();
-    }
+builder.Services.TryAddTransient<IAccountProvider, AccountProvider>();
+builder.Services.TryAddTransient<ITransactionProvider, TransactionProvider>();
+builder.Services.TryAddTransient<IAccountBalanceProvider, AccountBalanceProvider>();
 
-    private static IHostBuilder CreateHostBuilder(string[] args)
-    {
-        return HostBuilder<DependencyRegistrationFactory, BankingDbContext>.Create(args);
-    }
-}
+builder.Services.AddAutoMapper(c => { c.AddEntityMappingProfiles(); });
+
+builder
+    .BuildApp()
+    .Run();
