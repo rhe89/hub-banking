@@ -6,6 +6,8 @@
 
 @inject IAccountProvider _accountProvider
 @inject IAccountService _accountService
+@inject IDialogService _dialogService;
+@inject ISnackbar _snackbar
 
 @inherits Widget
 
@@ -18,12 +20,11 @@
                 {
                     @ChildContent
                 }
-                <NavLink
+                <button
                     class="btn btn-primary float-end"
-                    disabled="@_saving"
-                    href="accounts/add">
+                    @onclick="OpenAddAccountDialog">
                     Add account
-                </NavLink>
+                </button>
             </div>
         </header>
     }
@@ -64,11 +65,11 @@
                     @foreach (var account in _accounts)
                     {
                         <tr>
-                            <td class="py-3 align-middle" onclick="@(() => GoTo($"accounts/{account.Id}"))">@(WidgetMode ? $"{account.Name} ({account.Bank})" : $"{account.Name}")</td>
+                            <td class="py-3 align-middle" onclick="@(() => OpenEditAccountDialog(account.Id))">@(WidgetMode ? $"{account.Name} ({account.Bank})" : $"{account.Name}")</td>
                             @if (!WidgetMode)
                             {
-                                <td class="py-3 align-middle" onclick="@(() => GoTo($"accounts/{account.Id}"))">@account.Bank</td>
-                                <td class="py-3 align-middle" onclick="@(() => GoTo($"accounts/{account.Id}"))">@account.AccountType</td>
+                                <td class="py-3 align-middle" onclick="@(() => OpenEditAccountDialog(account.Id))">@account.Bank</td>
+                                <td class="py-3 align-middle" onclick="@(() => OpenEditAccountDialog(account.Id))">@account.AccountType</td>
                             }
                             <td class="py-3">
                                 <EditForm Model="account">
@@ -121,6 +122,26 @@
         
         await _accountService.UpdateAccount(account);
         
+        _snackbar.Add("Account balance saved", Severity.Success);
+
         _saving = false;
+    }
+    
+    private void OpenAddAccountDialog()
+    {
+        var options = new DialogOptions { CloseOnEscapeKey = true };
+
+        _dialogService.Show<AddAccountDialog>("Add account", options);
+    }
+    
+    private void OpenEditAccountDialog(long accountId)
+    {
+        var options = new DialogOptions { CloseOnEscapeKey = true };
+        var parameters = new DialogParameters
+        {
+            { nameof(EditAccountDialog.AccountId), accountId.ToString() }
+        };
+
+        _dialogService.Show<EditAccountDialog>("Edit account", parameters, options);
     }
 }

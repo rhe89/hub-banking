@@ -48,7 +48,9 @@ public class TransactionProvider : ITransactionProvider
             (transactionSearchParameters.Years == null ||
              transactionSearchParameters.Years.Any(year => year == transaction.TransactionDate.Year)) &&
             (string.IsNullOrEmpty(transactionSearchParameters.Description) || transaction.Text
-                .Contains(transactionSearchParameters.Description));
+                .Contains(transactionSearchParameters.Description)) &&
+            (transactionSearchParameters.Recurring == null ||
+             transaction.Recurring == transactionSearchParameters.Recurring);
 
         var transactions = await _dbRepository
             .WhereAsync<Transaction, TransactionDto>(predicate,

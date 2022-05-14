@@ -58,7 +58,8 @@ public class UpdateRecurringTransactionsCommand : ServiceBusQueueCommand
             TransactionDate = recurringTransaction.NextTransactionDate.Date,
             Description = recurringTransaction.Description,
             Amount = recurringTransaction.Amount,
-            TransactionId = $"{recurringTransaction.AccountId}-{recurringTransaction.NextTransactionDate}-{recurringTransaction.Description}-{recurringTransaction.Amount}"
+            TransactionId = $"{recurringTransaction.AccountId}-{recurringTransaction.NextTransactionDate}-{recurringTransaction.Description}-{recurringTransaction.Amount}",
+            Recurring = true
         });
 
         if (!transactionCreated)

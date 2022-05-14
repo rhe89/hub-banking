@@ -12,8 +12,9 @@
 @inject IRecurringTransactionService _recurringTransactionService
 @inject IPreferenceProvider _preferenceProvider
 @inject IPreferenceService _preferenceService 
+@inject ISnackbar _snackbar
 
-@inherits Base
+@inherits Dialog
 
 <MudDialog>
     <DialogContent>
@@ -166,16 +167,9 @@
                             <button
                                 class="btn btn-primary me-2"
                                 disabled="@_working"
-                                @onclick="SaveAndGoBack"
+                                @onclick="SaveAndClose"
                                 type="button">
                                 Save and close
-                            </button>
-                            <button
-                                class="btn btn-primary"
-                                disabled="@_working"
-                                @onclick="() => MudDialog.Close(DialogResult.Ok(true))"
-                                type="button">
-                                Close
                             </button>
                         </div>
                     </div>
@@ -186,9 +180,6 @@
 </MudDialog>
 
 @code {
-    [CascadingParameter] 
-    MudDialogInstance MudDialog { get; set; }
-    
     [Parameter]
     [CanBeNull]
     public string AccountId { get; set; }
@@ -283,7 +274,7 @@
         };
     }
 
-    private async Task SaveAndGoBack()
+    private async Task SaveAndClose()
     {
         RecurringTransaction.Validate(out var isValid);
         
@@ -314,7 +305,9 @@
         await _preferenceService.AddOrUpdatePreference(Preferences.LastViewedAccount, RecurringTransaction.AccountId.ToString());
         
         await _recurringTransactionService.AddRecurringTransaction(RecurringTransaction);
-        
+
+        _snackbar.Add("Recurring transaction saved", Severity.Success);
+
         _working = false;
     }
 }

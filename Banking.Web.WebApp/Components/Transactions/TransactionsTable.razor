@@ -10,6 +10,7 @@
 @inject IAccountProvider _accountProvider
 @inject IPreferenceService _preferenceService;
 @inject IPreferenceProvider _preferenceProvider;
+@inject IDialogService _dialogService;
 
 @inherits Widget
 
@@ -23,11 +24,11 @@
                 {
                     @ChildContent
                 }
-                <NavLink
+                <button
                     class="btn btn-primary float-end"
-                    href="@($"transactions/add/{AccountId}")">
+                    @onclick="OpenAddTransactionDialog">
                     Add transaction
-                </NavLink>
+                </button>
             </div>
             
         </header>
@@ -122,7 +123,7 @@
                     <tbody>
                     @foreach (var transaction in Transactions)
                     {
-                        <tr onclick="@(() => GoTo($"transactions/{transaction.Id}"))">
+                        <tr onclick="@(() => OpenEditTransactionDialog(transaction.Id))">
                             <td class="py-3">
                                 <span>
                                     @transaction.TransactionDate.ToNorwegianDateString()
@@ -295,4 +296,22 @@
         12 => "December",
         _ => throw new ArgumentException("Invalid month", nameof(month))
     };
+    
+    private void OpenAddTransactionDialog()
+    {
+        var options = new DialogOptions { CloseOnEscapeKey = true };
+
+        _dialogService.Show<AddTransactionDialog>("Add transaction", options);
+    }
+    
+    private void OpenEditTransactionDialog(long transactionId)
+    {
+        var options = new DialogOptions { CloseOnEscapeKey = true };
+        var parameters = new DialogParameters
+        {
+            { nameof(EditTransactionDialog.TransactionId), transactionId.ToString() }
+        };
+
+        _dialogService.Show<EditTransactionDialog>("Edit transaction", parameters, options);
+    }
 }

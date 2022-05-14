@@ -31,6 +31,10 @@ public class Transaction : EntityBase
     [UsedImplicitly]
     [Column]
     public DateTime TransactionDate { get; set; }
+    
+    [UsedImplicitly]
+    [Column]
+    public bool Recurring { get; set; }
         
     [UsedImplicitly]
     public virtual Account Account { get; set; }

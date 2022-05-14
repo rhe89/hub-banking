@@ -1,0 +1,345 @@
+@using Banking.Providers
+@using Banking.Services
+@using Banking.Web.WebApp.Extensions
+@using Banking.Web.WebApp.Models
+@using Microsoft.AspNetCore.Components
+@using Hub.Shared.DataContracts.Banking.Dto
+@using Hub.Shared.DataContracts.Banking.SearchParameters
+
+@inject ITransactionProvider _transactionProvider
+@inject IAccountProvider _accountProvider;
+@inject ITransactionService _transactionService
+@inject IPreferenceService _preferenceService;
+@inject IPreferenceProvider _preferenceProvider;
+@inject ISnackbar _snackbar
+
+@inherits Dialog
+
+<MudDialog>
+    <DialogContent>
+         <MudContainer class="card" Style="max-height: 600px; overflow-y: scroll">
+                <div class="card-body">
+                    <EditForm Model="@Transaction">
+                        <div class="row">
+                            <div class="col-lg-2 col-sm-12 py-1">
+                                <label>
+                                    Direction:
+                                </label>
+                            </div>
+                            <div class="col-lg-4 col-sm-12">
+        
+                                <InputRadioGroup @bind-Value="Transaction.TransactionDirection">
+                                    <InputRadio 
+                                        class="d-inline-block"
+                                        id="transaction-direction-in"
+                                        Value="TransactionDirection.In"
+                                        @oninput="Transaction.OnTransactionDirectionChanged"/>
+                                    <label for="transaction-direction-in" class="d-inline-block me-3">
+                                        In
+                                    </label>
+                                    <InputRadio 
+                                        class="d-inline-block"
+                                        id="transaction-direction-out"
+                                        Value="TransactionDirection.Out"
+                                        @oninput="Transaction.OnTransactionDirectionChanged"/>
+                                    <label for="transaction-direction-out" class="d-inline-block">
+                                        Out
+                                    </label>
+                                </InputRadioGroup>
+        
+                            </div>
+                        </div>
+                        <div class="row mt-3">
+                            <div class="col-lg-2 col-sm-12 py-1">
+                                <label for="account">
+                                    Account:
+                                </label>
+                            </div>
+                            <div class="col-lg-4 col-sm-12">
+                                @if (Accounts != null)
+                                {
+                                    <InputSelect
+                                        class="form-control"
+                                        id="account"
+                                        disabled="@(_working || AccountId != null)"
+                                        @bind-Value="Transaction.AccountId">
+                                        @foreach (var account in Accounts)
+                                        {
+                                            <option value="@account.Id">@($"{account.Name} ({account.Bank})")</option>
+                                        }
+                                    </InputSelect>
+                                }
+                            </div>
+                        </div>
+        
+                        <div class="row mt-3">
+                            <div class="col-lg-2 col-sm-12 py-1">
+                                <label for="transaction-date">
+                                    Transaction date:
+                                </label>
+                            </div>
+                            <div class="col-lg-4 col-sm-12">
+                                <InputDate
+                                    class="form-control"
+                                    id="transaction-date"
+                                    disabled="@_working"
+                                    @bind-Value="Transaction.TransactionDate"/>
+                            </div>
+                        </div>
+        
+                        <div class="row mt-3">
+                            <div class="col-lg-2 col-sm-12 py-1">
+                                <label for="description">
+                                    Description:
+                                </label>
+                            </div>
+                            <div class="col-lg-4 col-sm-12">
+                                <InputText
+                                    class="form-control"
+                                    id="description"
+                                    disabled="@_working"
+                                    @oninput="changeEventArgs => Transaction.OnDescriptionInput(changeEventArgs, OnDescriptionChanged)"
+                                    @bind-Value="Transaction.Description"/>
+                            </div>
+                        </div>
+        
+                        <div class="row mt-3">
+                            <div class="col-lg-2 col-sm-12">
+                                <label for="amount">
+                                    Amount:
+                                </label>
+                            </div>
+                            <div class="col-lg-4 col-sm-12">
+                                <InputNumber
+                                    class="form-control"
+                                    id="amount"
+                                    disabled="@_working"
+                                    @oninput="Transaction.OnAmountInput"
+                                    @bind-Value="Transaction.Amount"/>
+                            </div>
+                        </div>
+        
+                        @if (Transaction.ValidationErrors.Any(x => !string.IsNullOrEmpty(x.Value)))
+                        {
+                            <div class="row mt-3">
+                                <div class="col-lg-8 col-sm-12">
+                                    @foreach (var validationError in Transaction.ValidationErrors.Where(x => !string.IsNullOrEmpty(x.Value)))
+                                    {
+                                        <div class="alert alert-danger" role="alert">
+                                            <p>@validationError.Value</p>
+                                        </div>
+                                    }
+        
+                                </div>
+                            </div>
+                        }
+        
+                        <div class="row mt-3">
+                            <div class="col-lg-6 col-sm-12 btn-group">
+                                <button
+                                    class="btn btn-primary me-2"
+                                    disabled="@_working"
+                                    @onclick="SaveAndAddNewTransaction"
+                                    type="button">
+                                    Save and add new transaction
+                                </button>
+                                <button
+                                    class="btn btn-primary"
+                                    disabled="@_working"
+                                    @onclick="SaveAndClose"
+                                    type="button">
+                                    Save and close
+                                </button>
+                            </div>
+                        </div>
+                    </EditForm>
+                </div>
+            </MudContainer>
+            <MudContainer class="card mt-5" Style="max-height: 400px; overflow-y: scroll">
+                <div class="card-body table-container">
+                    <header class="row">
+                        <div class="col">
+                            <h2 class="h3">@SimilarTransactionsHeader</h2>
+                        </div>
+                    </header>
+                    @if (SimilarTransactions.Any())
+                    {
+                        <table class="table table-borderless">
+                            <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>Description</th>
+                                <th>Amount</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            @foreach (var transaction in SimilarTransactions)
+                            {
+                                <tr>
+                                    <td class="py-3">
+                                        <button
+                                            class="btn btn-icon ps-0 pe-0 pb-0 pt-0 me-1"
+                                            disabled="@_working"
+                                            @onclick="() => UseTransactionDetails(transaction)">
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-plus-circle" viewBox="0 0 16 16">
+                                              <path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z"/>
+                                              <path d="M8 4a.5.5 0 0 1 .5.5v3h3a.5.5 0 0 1 0 1h-3v3a.5.5 0 0 1-1 0v-3h-3a.5.5 0 0 1 0-1h3v-3A.5.5 0 0 1 8 4z"/>
+                                            </svg>
+                                        </button>
+                                        @transaction.TransactionDate.ToNorwegianDateString()
+                                    </td>
+                                    <td class="py-3">@transaction.Description</td>
+                                    <td class="py-3">@transaction.Amount</td>
+                                </tr>
+                            }
+                            </tbody>
+                        </table>
+                    }
+                </div>
+            </MudContainer>
+    </DialogContent>
+</MudDialog>
+
+
+@code {
+    [Parameter]
+    public string AccountId { get; set; }
+    
+    private const int PreviousTransactionsAgeInMonths = 3;
+    private string SimilarTransactionsHeader { get; set; }
+
+    private TransactionModel Transaction { get; set; } = new()
+    {
+        TransactionDirection = TransactionDirection.Out
+    };
+    
+    private IList<AccountDto> Accounts { get; set; } = new List<AccountDto>();
+    private IList<TransactionDto> PreviousTransactions { get; set; } = new List<TransactionDto>();
+    private IList<TransactionDto> SimilarTransactions { get; set; } = new List<TransactionDto>();
+
+    private bool _working;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _working = true;
+        
+        Accounts = await _accountProvider.GetAccounts(new AccountSearchParameters());
+        PreviousTransactions = await _transactionProvider.GetTransactions(new TransactionSearchParameters { FromDate = DateTime.Now.AddMonths(-PreviousTransactionsAgeInMonths)});
+
+        if (AccountId != null)
+        {
+            Transaction.AccountId = long.Parse(AccountId);
+        }
+        else
+        {
+            var lastViewedAccount = await _preferenceProvider.GetPreferences(Preferences.LastViewedAccount);
+
+            if (lastViewedAccount.Any())
+            {
+                Transaction.AccountId = long.Parse(lastViewedAccount.First().Value);
+            }
+        }
+
+        Transaction.Amount = 0;
+        Transaction.TransactionDate = DateTime.Now;
+        Transaction.TransactionType = 0;
+        OnDescriptionChanged(Transaction.Description);
+        
+        _working = false;
+    }
+
+    private void UseTransactionDetails(TransactionDto transaction)
+    {
+        Transaction.Amount = transaction.Amount;
+        Transaction.AccountId = transaction.AccountId;
+        Transaction.Description = transaction.Description.ToUpper().Replace(" ", "_");
+        Transaction.TransactionType = transaction.TransactionType;
+        Transaction.TransactionDate = transaction.TransactionDate.AddMonths(1);
+        Transaction.TransactionDirection = transaction.Amount > 0 ?
+            TransactionDirection.In :
+            TransactionDirection.Out;
+        
+        Transaction.Validate(out _);
+        
+        OnDescriptionChanged(Transaction.Description);
+    }
+    
+    private void OnDescriptionChanged(string description)
+    {
+        _working = true;
+
+        Transaction.Description = description;
+
+        if (string.IsNullOrEmpty(Transaction.Description))
+        {
+            SimilarTransactionsHeader = $"Previous transactions last {PreviousTransactionsAgeInMonths} months";
+            SimilarTransactions = PreviousTransactions;
+        }
+        else
+        {
+            SimilarTransactionsHeader = $"Similar transactions to '{Transaction.Description}' last {PreviousTransactionsAgeInMonths} months";
+            SimilarTransactions = PreviousTransactions.Where(previousTransaction => previousTransaction.Description.Trim().ToLowerInvariant().Contains(Transaction.Description.Trim().ToLowerInvariant())).ToList();
+        }
+
+        if (!SimilarTransactions.Any())
+        {
+            SimilarTransactionsHeader = $"No similar transactions to '{Transaction.Description}'. Showing previous transactions last {PreviousTransactionsAgeInMonths} months";
+            SimilarTransactions = PreviousTransactions;
+        }
+        
+        _working = false;
+    }
+
+    private async Task SaveAndAddNewTransaction()
+    {
+        Transaction.Validate(out var isValid);
+        
+        if (!isValid)
+        {
+            return;
+        }
+        
+        await Save();
+
+        Transaction = new TransactionModel
+        {
+            AccountId = Transaction.AccountId,
+            TransactionDate = DateTime.Now,
+            TransactionType = 0
+        };
+        
+        PreviousTransactions = await _transactionProvider.GetTransactions(new TransactionSearchParameters { FromDate = DateTime.Now.AddMonths(-PreviousTransactionsAgeInMonths)});
+        SimilarTransactionsHeader = $"Previous transactions last {PreviousTransactionsAgeInMonths} months";
+        SimilarTransactions = PreviousTransactions;
+    }
+
+    private async Task SaveAndClose()
+    {
+        Transaction.Validate(out var isValid);
+        
+        if (!isValid)
+        {
+            return;
+        }
+        
+        await Save();
+        
+        MudDialog.Close(DialogResult.Ok(true));
+    }
+    
+    private async Task Save()
+    {
+        _working = true;
+
+        await _preferenceService.AddOrUpdatePreference(Preferences.LastViewedAccount, Transaction.AccountId.ToString());
+
+        Transaction.TransactionId = $"{Transaction.AccountId}-{Transaction.TransactionDate}-{Transaction.Description}-{Transaction.Amount}";
+        
+        await _transactionService.AddTransaction(Transaction);
+        
+        _snackbar.Add("Transaction saved", Severity.Success);
+
+        _working = false;
+    }
+
+}
