@@ -49,7 +49,7 @@ public class RecurringTransactionProvider : IRecurringTransactionProvider
         }
         
         return recurringTransactions
-            .OrderByDescending(x => x.NextTransactionDate)
+            .OrderBy(x => x.NextTransactionDate)
             .ToList();
     }
 }
