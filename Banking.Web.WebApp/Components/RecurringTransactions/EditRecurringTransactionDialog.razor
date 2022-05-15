@@ -19,8 +19,13 @@
 
 <MudDialog>
     <DialogContent>
-        <section class="card ">
+        <section class="card">
             <div class="card-body">
+                <header class="row mb-3">
+                    <div class="col-12">
+                        <h1 class="h3">Edit recurring transaction</h1>
+                    </div>
+                </header>
                 @if (RecurringTransaction == null)
                 {
                     <p>
@@ -192,6 +197,12 @@
     [Parameter]
     public string RecurringTransactionId { get; set; }
     
+    [Parameter]
+    public Func<RecurringTransactionDto, Task> OnRecurringTransactionUpdated { get; set; }
+    
+    [Parameter]
+    public Func<RecurringTransactionDto, Task> OnRecurringTransactionDeleted { get; set; }
+    
     private RecurringTransactionModel RecurringTransaction { get; set; } = new()
     {
         Occurrence = Occurrence.Monthly
@@ -249,6 +260,8 @@
         
         await _recurringTransactionService.UpdateRecurringTransaction(RecurringTransaction);
         
+        await OnRecurringTransactionUpdated.Invoke(RecurringTransaction);
+
         _working = false;
         
         _snackbar.Add("Recurring transaction saved", Severity.Success);
@@ -263,6 +276,8 @@
         await _recurringTransactionService.DeleteRecurringTransaction(RecurringTransaction);
 
         _working = false;
+
+        await OnRecurringTransactionDeleted.Invoke(RecurringTransaction);
         
         _snackbar.Add("Recurring transaction deleted", Severity.Success);
         

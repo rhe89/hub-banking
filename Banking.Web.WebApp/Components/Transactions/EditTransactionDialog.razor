@@ -18,6 +18,11 @@
     <DialogContent>
          <section class="card">
                  <div class="card-body">
+                     <header class="row mb-3">
+                         <div class="col-12">
+                             <h1 class="h3">Edit transaction</h1>
+                         </div>
+                     </header>
                      @if (Transaction == null)
                      {
                          <p>
@@ -159,6 +164,12 @@
 @code {
     [Parameter]
     public string TransactionId { get; set; }
+    
+    [Parameter]
+    public Func<TransactionDto, Task> OnTransactionUpdated { get; set; }
+    
+    [Parameter]
+    public Func<TransactionDto, Task> OnTransactionDeleted { get; set; }
 
     private TransactionModel Transaction { get; set; }
     private IList<AccountDto> Accounts { get; set; }
@@ -207,6 +218,8 @@
         _working = true;
 
         await _transactionService.UpdateTransaction(Transaction);
+
+        await OnTransactionUpdated.Invoke(Transaction);
         
         _snackbar.Add("Transaction saved", Severity.Success);
 
@@ -220,6 +233,8 @@
         _working = true;
 
         await _transactionService.DeleteTransaction(Transaction);
+
+        await OnTransactionDeleted.Invoke(Transaction);
         
         _snackbar.Add("Transaction deleted", Severity.Success);
 

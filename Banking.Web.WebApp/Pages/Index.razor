@@ -4,26 +4,29 @@
 
 <main class="container mt-3">
     <div class="row">
-        <div class="col-lg-6 col-sm-12" >
-            <AccountsTable 
-                Take="5" 
-                WidgetMode="@true" 
-                class="widget"
-                />
-        </div>
-        <div class="col-lg-6 col-sm-12" >
-            <TransactionsTable 
-                Take="5" 
+        <div class="col-lg-6 col-sm-12 mt-4">
+            <AccountsTable
+                Take="5"
                 WidgetMode="@true"
-                class="widget"
-            />
+                class="widget">
+                <h2 class="h3 float-start">Accounts</h2>
+            </AccountsTable>
         </div>
-        <div class="col-lg-6 col-sm-12" >
-            <RecurringTransactionsTable 
-                Take="5" 
+        <div class="col-lg-6 col-sm-12 mt-4">
+            <TransactionsTable
+                Take="5"
                 WidgetMode="@true"
-                class="widget"
-                />
+                class="widget">
+                <h2 class="h3 float-start">Transactions</h2>
+            </TransactionsTable>
+        </div>
+        <div class="col-lg-6 col-sm-12 mt-4" >
+            <RecurringTransactionsTable
+                Take="5"
+                WidgetMode="@true"
+                class="widget">
+                <h2 class="h3 float-start">Recurring transactions</h2>
+            </RecurringTransactionsTable>
         </div>
     </div>
 </main>

@@ -18,142 +18,147 @@
 <MudDialog>
     <DialogContent>
          <MudContainer class="card" Style="max-height: 600px; overflow-y: scroll">
-                <div class="card-body">
-                    <EditForm Model="@Transaction">
-                        <div class="row">
-                            <div class="col-lg-2 col-sm-12 py-1">
-                                <label>
-                                    Direction:
-                                </label>
-                            </div>
-                            <div class="col-lg-4 col-sm-12">
-        
-                                <InputRadioGroup @bind-Value="Transaction.TransactionDirection">
-                                    <InputRadio 
-                                        class="d-inline-block"
-                                        id="transaction-direction-in"
-                                        Value="TransactionDirection.In"
-                                        @oninput="Transaction.OnTransactionDirectionChanged"/>
-                                    <label for="transaction-direction-in" class="d-inline-block me-3">
-                                        In
-                                    </label>
-                                    <InputRadio 
-                                        class="d-inline-block"
-                                        id="transaction-direction-out"
-                                        Value="TransactionDirection.Out"
-                                        @oninput="Transaction.OnTransactionDirectionChanged"/>
-                                    <label for="transaction-direction-out" class="d-inline-block">
-                                        Out
-                                    </label>
-                                </InputRadioGroup>
-        
-                            </div>
-                        </div>
-                        <div class="row mt-3">
-                            <div class="col-lg-2 col-sm-12 py-1">
-                                <label for="account">
-                                    Account:
-                                </label>
-                            </div>
-                            <div class="col-lg-4 col-sm-12">
-                                @if (Accounts != null)
-                                {
-                                    <InputSelect
-                                        class="form-control"
-                                        id="account"
-                                        disabled="@(_working || AccountId != null)"
-                                        @bind-Value="Transaction.AccountId">
-                                        @foreach (var account in Accounts)
-                                        {
-                                            <option value="@account.Id">@($"{account.Name} ({account.Bank})")</option>
-                                        }
-                                    </InputSelect>
-                                }
-                            </div>
-                        </div>
-        
-                        <div class="row mt-3">
-                            <div class="col-lg-2 col-sm-12 py-1">
-                                <label for="transaction-date">
-                                    Transaction date:
-                                </label>
-                            </div>
-                            <div class="col-lg-4 col-sm-12">
-                                <InputDate
-                                    class="form-control"
-                                    id="transaction-date"
-                                    disabled="@_working"
-                                    @bind-Value="Transaction.TransactionDate"/>
-                            </div>
-                        </div>
-        
-                        <div class="row mt-3">
-                            <div class="col-lg-2 col-sm-12 py-1">
-                                <label for="description">
-                                    Description:
-                                </label>
-                            </div>
-                            <div class="col-lg-4 col-sm-12">
-                                <InputText
-                                    class="form-control"
-                                    id="description"
-                                    disabled="@_working"
-                                    @oninput="changeEventArgs => Transaction.OnDescriptionInput(changeEventArgs, OnDescriptionChanged)"
-                                    @bind-Value="Transaction.Description"/>
-                            </div>
-                        </div>
-        
-                        <div class="row mt-3">
-                            <div class="col-lg-2 col-sm-12">
-                                <label for="amount">
-                                    Amount:
-                                </label>
-                            </div>
-                            <div class="col-lg-4 col-sm-12">
-                                <InputNumber
-                                    class="form-control"
-                                    id="amount"
-                                    disabled="@_working"
-                                    @oninput="Transaction.OnAmountInput"
-                                    @bind-Value="Transaction.Amount"/>
-                            </div>
-                        </div>
-        
-                        @if (Transaction.ValidationErrors.Any(x => !string.IsNullOrEmpty(x.Value)))
-                        {
-                            <div class="row mt-3">
-                                <div class="col-lg-8 col-sm-12">
-                                    @foreach (var validationError in Transaction.ValidationErrors.Where(x => !string.IsNullOrEmpty(x.Value)))
-                                    {
-                                        <div class="alert alert-danger" role="alert">
-                                            <p>@validationError.Value</p>
-                                        </div>
-                                    }
-        
-                                </div>
-                            </div>
-                        }
-        
-                        <div class="row mt-3">
-                            <div class="col-lg-6 col-sm-12 btn-group">
-                                <button
-                                    class="btn btn-primary me-2"
-                                    disabled="@_working"
-                                    @onclick="SaveAndAddNewTransaction"
-                                    type="button">
-                                    Save and add new transaction
-                                </button>
-                                <button
-                                    class="btn btn-primary"
-                                    disabled="@_working"
-                                    @onclick="SaveAndClose"
-                                    type="button">
-                                    Save and close
-                                </button>
-                            </div>
-                        </div>
-                    </EditForm>
-                </div>
+             <div class="card-body">
+                 <header class="row mb-3">
+                     <div class="col-12">
+                         <h1 class="h3">Add transaction</h1>
+                     </div>
+                 </header>
+                 <EditForm Model="@Transaction">
+                     <div class="row">
+                         <div class="col-lg-2 col-sm-12 py-1">
+                             <label>
+                                 Direction:
+                             </label>
+                         </div>
+                         <div class="col-lg-4 col-sm-12">
+
+                             <InputRadioGroup @bind-Value="Transaction.TransactionDirection">
+                                 <InputRadio
+                                     class="d-inline-block"
+                                     id="transaction-direction-in"
+                                     Value="TransactionDirection.In"
+                                     @oninput="Transaction.OnTransactionDirectionChanged"/>
+                                 <label for="transaction-direction-in" class="d-inline-block me-3">
+                                     In
+                                 </label>
+                                 <InputRadio
+                                     class="d-inline-block"
+                                     id="transaction-direction-out"
+                                     Value="TransactionDirection.Out"
+                                     @oninput="Transaction.OnTransactionDirectionChanged"/>
+                                 <label for="transaction-direction-out" class="d-inline-block">
+                                     Out
+                                 </label>
+                             </InputRadioGroup>
+
+                         </div>
+                     </div>
+                     <div class="row mt-3">
+                         <div class="col-lg-2 col-sm-12 py-1">
+                             <label for="account">
+                                 Account:
+                             </label>
+                         </div>
+                         <div class="col-lg-4 col-sm-12">
+                             @if (Accounts != null)
+                             {
+                                 <InputSelect
+                                     class="form-control"
+                                     id="account"
+                                     disabled="@(_working || AccountId != null)"
+                                     @bind-Value="Transaction.AccountId">
+                                     @foreach (var account in Accounts)
+                                     {
+                                         <option value="@account.Id">@($"{account.Name} ({account.Bank})")</option>
+                                     }
+                                 </InputSelect>
+                             }
+                         </div>
+                     </div>
+
+                     <div class="row mt-3">
+                         <div class="col-lg-2 col-sm-12 py-1">
+                             <label for="transaction-date">
+                                 Transaction date:
+                             </label>
+                         </div>
+                         <div class="col-lg-4 col-sm-12">
+                             <InputDate
+                                 class="form-control"
+                                 id="transaction-date"
+                                 disabled="@_working"
+                                 @bind-Value="Transaction.TransactionDate"/>
+                         </div>
+                     </div>
+
+                     <div class="row mt-3">
+                         <div class="col-lg-2 col-sm-12 py-1">
+                             <label for="description">
+                                 Description:
+                             </label>
+                         </div>
+                         <div class="col-lg-4 col-sm-12">
+                             <InputText
+                                 class="form-control"
+                                 id="description"
+                                 disabled="@_working"
+                                 @oninput="changeEventArgs => Transaction.OnDescriptionInput(changeEventArgs, OnDescriptionChanged)"
+                                 @bind-Value="Transaction.Description"/>
+                         </div>
+                     </div>
+
+                     <div class="row mt-3">
+                         <div class="col-lg-2 col-sm-12">
+                             <label for="amount">
+                                 Amount:
+                             </label>
+                         </div>
+                         <div class="col-lg-4 col-sm-12">
+                             <InputNumber
+                                 class="form-control"
+                                 id="amount"
+                                 disabled="@_working"
+                                 @oninput="Transaction.OnAmountInput"
+                                 @bind-Value="Transaction.Amount"/>
+                         </div>
+                     </div>
+
+                     @if (Transaction.ValidationErrors.Any(x => !string.IsNullOrEmpty(x.Value)))
+                     {
+                         <div class="row mt-3">
+                             <div class="col-lg-8 col-sm-12">
+                                 @foreach (var validationError in Transaction.ValidationErrors.Where(x => !string.IsNullOrEmpty(x.Value)))
+                                 {
+                                     <div class="alert alert-danger" role="alert">
+                                         <p>@validationError.Value</p>
+                                     </div>
+                                 }
+
+                             </div>
+                         </div>
+                     }
+
+                     <div class="row mt-3">
+                         <div class="col-lg-6 col-sm-12 btn-group">
+                             <button
+                                 class="btn btn-primary me-2"
+                                 disabled="@_working"
+                                 @onclick="SaveAndAddNewTransaction"
+                                 type="button">
+                                 Save and add new transaction
+                             </button>
+                             <button
+                                 class="btn btn-primary"
+                                 disabled="@_working"
+                                 @onclick="SaveAndClose"
+                                 type="button">
+                                 Save and close
+                             </button>
+                         </div>
+                     </div>
+                 </EditForm>
+             </div>
             </MudContainer>
             <MudContainer class="card mt-5" Style="max-height: 400px; overflow-y: scroll">
                 <div class="card-body table-container">
@@ -204,6 +209,9 @@
 @code {
     [Parameter]
     public string AccountId { get; set; }
+    
+    [Parameter]
+    public Func<TransactionDto, Task> OnTransactionAdded { get; set; }
     
     private const int PreviousTransactionsAgeInMonths = 3;
     private string SimilarTransactionsHeader { get; set; }
@@ -336,6 +344,8 @@
         Transaction.TransactionId = $"{Transaction.AccountId}-{Transaction.TransactionDate}-{Transaction.Description}-{Transaction.Amount}";
         
         await _transactionService.AddTransaction(Transaction);
+
+        await OnTransactionAdded.Invoke(Transaction);
         
         _snackbar.Add("Transaction saved", Severity.Success);
 

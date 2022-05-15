@@ -12,84 +12,92 @@
 <MudDialog>
     <DialogContent>
         <section class="card">
-                <div class="card-body">
-                    <EditForm Model="@Account">
-        
-                        <div class="row mt-3">
-                            <div class="col-lg-2 col-sm-12 py-1">
-                                <label for="name">
-                                    Name:
-                                </label>
-                            </div>
-                            <div class="col-lg-4 col-sm-12">
-                                <InputText
-                                    class="form-control"
-                                    id="name"
-                                    @bind-Value="Account.Name"/>
-                            </div>
+            <div class="card-body">
+                <header class="row mb-3">
+                    <div class="col-12">
+                        <h1 class="h3">Add account</h1>
+                    </div>
+                </header>
+                
+                <EditForm Model="@Account">
+
+                    <div class="row mt-3">
+                        <div class="col-lg-2 col-sm-12 py-1">
+                            <label for="name">
+                                Name:
+                            </label>
                         </div>
-                        
-                        <div class="row mt-3">
-                            <div class="col-lg-2 col-sm-12 py-1">
-                                <label for="account-type">
-                                    Account type:
-                                </label>
-                            </div>
-                            <div class="col-lg-4 col-sm-12">
-                                <InputSelect
-                                    class="form-control"
-                                    id="account-type"
-                                    @bind-Value="Account.AccountType">
-                                    @foreach (var accountType in AccountTypes.ToArray)
-                                    {
-                                        <option value="@accountType">@accountType</option>
-                                    }
-                                </InputSelect>
-                            </div>
+                        <div class="col-lg-4 col-sm-12">
+                            <InputText
+                                class="form-control"
+                                id="name"
+                                @bind-Value="Account.Name"/>
                         </div>
-        
-                        <div class="row mt-3">
-                            <div class="col-lg-2 col-sm-12">
-                                <label for="bank">
-                                    Bank:
-                                </label>
-                            </div>
-                            <div class="col-lg-4 col-sm-12">
-                                <InputText
-                                    class="form-control"
-                                    id="bank"
-                                    @bind-Value="Account.Bank"/>
-                            </div>
+                    </div>
+
+                    <div class="row mt-3">
+                        <div class="col-lg-2 col-sm-12 py-1">
+                            <label for="account-type">
+                                Account type:
+                            </label>
                         </div>
-                        
-                        <div class="row mt-3">
-                            <div class="col-lg-2 col-sm-12">
-                                <label for="balance">
-                                    Balance:
-                                </label>
-                            </div>
-                            <div class="col-lg-4 col-sm-12">
-                                <InputNumber
-                                    class="form-control"
-                                    id="balance"
-                                    @bind-Value="Account.Balance"/>
-                            </div>
+                        <div class="col-lg-4 col-sm-12">
+                            <InputSelect
+                                class="form-control"
+                                id="account-type"
+                                @bind-Value="Account.AccountType">
+                                @foreach (var accountType in AccountTypes.ToArray)
+                                {
+                                    <option value="@accountType">@accountType</option>
+                                }
+                            </InputSelect>
                         </div>
-        
-                        <div class="row mt-3">
-                            <div class="col-lg-6 col-sm-12 btn-group">
-                                <button class="btn btn-primary me-2" @onclick="SaveAndAddNewAccount" type="button">Save and add new account</button>
-                                <button class="btn btn-primary" @onclick="SaveAndClose" type="button">Save and close</button>
-                            </div>
+                    </div>
+
+                    <div class="row mt-3">
+                        <div class="col-lg-2 col-sm-12">
+                            <label for="bank">
+                                Bank:
+                            </label>
                         </div>
-                    </EditForm>
-                </div>
+                        <div class="col-lg-4 col-sm-12">
+                            <InputText
+                                class="form-control"
+                                id="bank"
+                                @bind-Value="Account.Bank"/>
+                        </div>
+                    </div>
+
+                    <div class="row mt-3">
+                        <div class="col-lg-2 col-sm-12">
+                            <label for="balance">
+                                Balance:
+                            </label>
+                        </div>
+                        <div class="col-lg-4 col-sm-12">
+                            <InputNumber
+                                class="form-control"
+                                id="balance"
+                                @bind-Value="Account.Balance"/>
+                        </div>
+                    </div>
+
+                    <div class="row mt-3">
+                        <div class="col-lg-6 col-sm-12 btn-group">
+                            <button class="btn btn-primary me-2" @onclick="SaveAndAddNewAccount" type="button">Save and add new account</button>
+                            <button class="btn btn-primary" @onclick="SaveAndClose" type="button">Save and close</button>
+                        </div>
+                    </div>
+                </EditForm>
+            </div>
             </section>
     </DialogContent>
 </MudDialog>
 
 
 @code {
+    [Parameter]
+    public Func<AccountDto, Task> OnAccountAdded { get; set; }
     
     private AccountDto Account { get; set; } = new()
     {
@@ -108,6 +116,8 @@
     private async Task SaveAndClose()
     {
         await _accountService.AddAccount(Account);
+
+        await OnAccountAdded.Invoke(Account);
         
         _snackbar.Add("Account saved", Severity.Success);
 

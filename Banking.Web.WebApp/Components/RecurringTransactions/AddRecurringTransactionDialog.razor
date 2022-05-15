@@ -20,6 +20,11 @@
     <DialogContent>
         <section class="card">
             <div class="card-body">
+                <header class="row mb-3">
+                    <div class="col-12">
+                        <h1 class="h3">Add recurring transaction</h1>
+                    </div>
+                </header>
                 <EditForm Model="@RecurringTransaction">
                     <div class="row">
                         <div class="col-lg-2 col-sm-12 py-1">
@@ -196,6 +201,9 @@
     [CanBeNull]
     public string TransactionDate { get; set; }
     
+    [Parameter]
+    public Func<RecurringTransactionDto, Task> OnRecurringTransactionAdded { get; set; }
+    
     private RecurringTransactionModel RecurringTransaction { get; set; } = new()
     {
         TransactionDirection = TransactionDirection.Out,
@@ -306,6 +314,8 @@
         
         await _recurringTransactionService.AddRecurringTransaction(RecurringTransaction);
 
+        await OnRecurringTransactionAdded(RecurringTransaction);
+        
         _snackbar.Add("Recurring transaction saved", Severity.Success);
 
         _working = false;

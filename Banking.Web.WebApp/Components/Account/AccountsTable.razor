@@ -12,81 +12,77 @@
 @inherits Widget
 
 <section class="@Class">
-    @if (!WidgetMode)
-    {
-        <header class="row">
-            <div class="col-sm-12">
-                @if (ChildContent != null)
-                {
-                    @ChildContent
-                }
-                <button
-                    class="btn btn-primary float-end"
-                    @onclick="OpenAddAccountDialog">
-                    Add account
-                </button>
-            </div>
-        </header>
-    }
-
-    <section class="card mt-5">
-        <div class="card-body table-container">
-
-            @if (_searching)
+    <header class="@(WidgetMode ? "card" : "row mb-3")">
+        <div class="@(WidgetMode ? "card-body" : "col-12")">
+            @if (ChildContent != null)
             {
-                <p>
-                    <em>Searching...</em>
-                </p>
+                @ChildContent
             }
-            else if (!_accounts.Any())
-            {
-                <p>
-                    <em>No accounts found</em>
-                </p>
-            }
-            else
-            {
-                <table class="table table-borderless table-hover @(WidgetMode ? "table-widget" : "table-full-size")">
-                    @if (!WidgetMode)
-                    {
-                        <thead>
-                            <tr>
-                                <th>Name</th>
-                                @if (!WidgetMode)
-                                {
-                                    <th>Bank</th>
-                                    <th>Account type</th>
-                                }
-                                <th>Balance</th>
-                            </tr>
-                        </thead>
-                    }
-                    <tbody>
-                    @foreach (var account in _accounts)
-                    {
-                        <tr>
-                            <td class="py-3 align-middle" onclick="@(() => OpenEditAccountDialog(account.Id))">@(WidgetMode ? $"{account.Name} ({account.Bank})" : $"{account.Name}")</td>
-                            @if (!WidgetMode)
-                            {
-                                <td class="py-3 align-middle" onclick="@(() => OpenEditAccountDialog(account.Id))">@account.Bank</td>
-                                <td class="py-3 align-middle" onclick="@(() => OpenEditAccountDialog(account.Id))">@account.AccountType</td>
-                            }
-                            <td class="py-3">
-                                <EditForm Model="account">
-                                    <InputNumber class="form-control"
-                                                 disabled="@_saving"
-                                                 TValue="decimal"
-                                                 ValueChanged="async value => await UpdateAccountBalance(value, account)"
-                                                 Value="account.Balance"
-                                                 ValueExpression="() => account.Balance"/>
-                                </EditForm>
-                            </td>
-                        </tr>
-                    }
-                    </tbody>
-                </table>
-            }
+            <button
+                class="btn btn-primary float-end"
+                @onclick="OpenAddAccountDialog">
+                Add account
+            </button>
         </div>
+    </header>
+    
+   <section class="card @(WidgetMode ? "" : "mt-2")">
+       <div class="card-body table-container @(WidgetMode ? "pt-0" : "")">
+           @if (_searching)
+           {
+               <p>
+                   <em>Searching...</em>
+               </p>
+           }
+           else if (!Accounts.Any())
+           {
+               <p>
+                   <em>No accounts found</em>
+               </p>
+           }
+           else
+           {
+               <table class="table table-borderless table-hover @(WidgetMode ? "table-widget" : "table-full-size")">
+                   @if (!WidgetMode)
+                   {
+                       <thead>
+                       <tr>
+                           <th>Name</th>
+                           @if (!WidgetMode)
+                           {
+                               <th>Bank</th>
+                               <th>Account type</th>
+                           }
+                           <th>Balance</th>
+                       </tr>
+                       </thead>
+                   }
+                   <tbody>
+                   @foreach (var account in Accounts)
+                   {
+                       <tr>
+                           <td class="py-3 align-middle" onclick="@(() => OpenEditAccountDialog(account.Id))">@(WidgetMode ? $"{account.Name} ({account.Bank})" : $"{account.Name}")</td>
+                           @if (!WidgetMode)
+                           {
+                               <td class="py-3 align-middle" onclick="@(() => OpenEditAccountDialog(account.Id))">@account.Bank</td>
+                               <td class="py-3 align-middle" onclick="@(() => OpenEditAccountDialog(account.Id))">@account.AccountType</td>
+                           }
+                           <td class="py-3">
+                               <EditForm Model="account">
+                                   <InputNumber class="form-control"
+                                                disabled="@_saving"
+                                                TValue="decimal"
+                                                ValueChanged="async value => await UpdateAccountBalance(value, account)"
+                                                Value="account.Balance"
+                                                ValueExpression="() => account.Balance"/>
+                               </EditForm>
+                           </td>
+                       </tr>
+                   }
+                   </tbody>
+               </table>
+           }
+       </div>
     </section>
 </section>
 
@@ -100,20 +96,27 @@
     public RenderFragment ChildContent { get; set; }
     
     private AccountSearchParameters AccountSearchParameters { get; set; } = new();
-    private IList<AccountDto> _accounts;
+    private IList<AccountDto> Accounts { get; set; }
     private bool _searching = true;
     private bool _saving = false;
     
     protected override async Task OnInitializedAsync()
     {
         AccountSearchParameters.Take = Take;
+
+        await Search();
+    }
+
+    private async Task Search()
+    {
+        _searching = true;
         
-        _accounts = await _accountProvider.GetAccounts(AccountSearchParameters);
-        _accounts = _accounts.ToList();
+        Accounts = await _accountProvider.GetAccounts(AccountSearchParameters);
+        Accounts = Accounts.ToList();
 
         _searching = false;
     }
-    
+
     private async Task UpdateAccountBalance(decimal value, AccountDto account)
     {        
         account.Balance = value;
@@ -131,7 +134,19 @@
     {
         var options = new DialogOptions { CloseOnEscapeKey = true };
 
-        _dialogService.Show<AddAccountDialog>("Add account", options);
+        var parameters = new DialogParameters
+        {
+            { nameof(AddAccountDialog.OnAccountAdded), OnAccountAdded }
+        };
+        
+        _dialogService.Show<AddAccountDialog>("Add account", parameters, options);
+    }
+    
+    private async Task OnAccountAdded(AccountDto account)
+    {
+        await Search();
+
+        await InvokeAsync(StateHasChanged);
     }
     
     private void OpenEditAccountDialog(long accountId)
@@ -139,9 +154,31 @@
         var options = new DialogOptions { CloseOnEscapeKey = true };
         var parameters = new DialogParameters
         {
-            { nameof(EditAccountDialog.AccountId), accountId.ToString() }
+            { nameof(EditAccountDialog.AccountId), accountId.ToString() },
+            { nameof(EditAccountDialog.OnAccountUpdated), OnAccountUpdated }
         };
 
-        _dialogService.Show<EditAccountDialog>("Edit account", parameters, options);
+        _dialogService.Show<EditAccountDialog>(null, parameters, options);
+    }
+
+    private async Task OnAccountUpdated(AccountDto account)
+    {
+        var updatedAccount = Accounts.FirstOrDefault(updatedAccount => updatedAccount.Id == account.Id);
+
+        if (updatedAccount == null)
+        {
+            return;
+        }
+        
+        var index = Accounts.IndexOf(updatedAccount);
+
+        if (index == -1)
+        {
+            return;
+        }
+
+        Accounts[index] = account;
+        
+        await InvokeAsync(StateHasChanged);
     }
 }
