@@ -13,60 +13,6 @@ html, body {
   font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
 }
 
-.navbar-nav {
-  flex-direction: row;
-  
-  .nav-link {
-    padding-right: 1rem;
-    
-    &.dropdown-item {
-      padding-left: 13px;
-    }
-    
-  }
-  
-  .active {
-    background-color: transparent;
-    border-bottom: 1px solid $secondary;
-  }
-  
-  .mud-nav-link {
-    width: auto;
-    line-height: 1.55;
-    transition: none;
-    @extend .nav-link;
-
-    //&:active,
-    //&:hover,
-    //&:focus {
-    //  background-color: transparent;
-    //  transition: none;
-    //}
-    
-    &.mud-ripple {
-      .mud-nav-link-text {
-        display: inline-block;
-        margin: 0;
-        padding: 0;
-      }
-      
-      svg {
-        margin-bottom: 1px;
-      }
-      
-    }
-    
-    .active {
-      color: $text;
-      background-color: transparent;
-      border-bottom: 1px solid #045D56;
-    }
-
-    .mud-nav-link-text {
-      width: initial;
-    }
-  }
-}
 
 .mud-dialog {
   background-color: $card-bg;
@@ -255,3 +201,12 @@ td {
   }
 }
 
+.mud-dialog-container.mud-dialog-topcenter {
+  padding-top: 0;
+}
+
+@media (min-width: 600px){
+  .mud-dialog-container.mud-dialog-topcenter {
+    padding-top: 32px;
+  }
+}

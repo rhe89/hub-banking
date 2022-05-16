@@ -300,14 +300,12 @@
 
     private async Task SaveAndAddNewTransaction()
     {
-        Transaction.Validate(out var isValid);
-        
-        if (!isValid)
+        var saved = await Save();
+
+        if (!saved)
         {
             return;
         }
-        
-        await Save();
 
         Transaction = new TransactionModel
         {
@@ -323,22 +321,28 @@
 
     private async Task SaveAndClose()
     {
-        Transaction.Validate(out var isValid);
-        
-        if (!isValid)
+        var saved = await Save();
+
+        if (!saved)
         {
             return;
         }
         
-        await Save();
-        
         MudDialog.Close(DialogResult.Ok(true));
     }
     
-    private async Task Save()
-    {
+    private async Task<bool> Save()
+    {        
         _working = true;
-
+        
+        Transaction.Validate(out var isValid);
+        
+        if (!isValid)
+        {
+            _working = false;
+            return false;
+        }
+        
         await _preferenceService.AddOrUpdatePreference(Preferences.LastViewedAccount, Transaction.AccountId.ToString());
 
         Transaction.TransactionId = $"{Transaction.AccountId}-{Transaction.TransactionDate}-{Transaction.Description}-{Transaction.Amount}";
@@ -350,6 +354,8 @@
         _snackbar.Add("Transaction saved", Severity.Success);
 
         _working = false;
+
+        return true;
     }
 
 }

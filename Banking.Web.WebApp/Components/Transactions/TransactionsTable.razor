@@ -10,7 +10,6 @@
 @inject IAccountProvider _accountProvider
 @inject IPreferenceService _preferenceService;
 @inject IPreferenceProvider _preferenceProvider;
-@inject IDialogService _dialogService;
 
 @inherits Widget
 
@@ -124,20 +123,22 @@
                     {
                         <tr onclick="@(() => OpenEditTransactionDialog(transaction.Id))">
                             <td class="py-3">
-                                <span>
-                                    @transaction.TransactionDate.ToNorwegianDateString()
-                                </span>
+                                @transaction.TransactionDate.ToNorwegianDateString()
+                            </td>
+                            <td class="py-3">
                                 @if (transaction.Recurring)
                                 {
-                                    <span class="ml-1">
+                                    <span class="me-1">
                                         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-arrow-repeat" viewBox="0 0 16 16">
                                             <path d="M11.534 7h3.932a.25.25 0 0 1 .192.41l-1.966 2.36a.25.25 0 0 1-.384 0l-1.966-2.36a.25.25 0 0 1 .192-.41zm-11 2h3.932a.25.25 0 0 0 .192-.41L2.692 6.23a.25.25 0 0 0-.384 0L.342 8.59A.25.25 0 0 0 .534 9z"/>
                                             <path fill-rule="evenodd" d="M8 3c-1.552 0-2.94.707-3.857 1.818a.5.5 0 1 1-.771-.636A6.002 6.002 0 0 1 13.917 7H12.9A5.002 5.002 0 0 0 8 3zM3.1 9a5.002 5.002 0 0 0 8.757 2.182.5.5 0 1 1 .771.636A6.002 6.002 0 0 1 2.083 9H3.1z"/>
                                         </svg>
                                     </span>
                                 }
+                                <span>
+                                    @transaction.Description
+                                </span>
                             </td>
-                            <td class="py-3">@transaction.Description</td>
                             <td class="py-3">@transaction.Amount</td>
                         </tr>
                     }
@@ -356,16 +357,14 @@
         _ => throw new ArgumentException("Invalid month", nameof(month))
     };
     
-    private void OpenAddTransactionDialog()
+    private async Task OpenAddTransactionDialog()
     {
-        var options = new DialogOptions { CloseOnEscapeKey = true };
-        
         var parameters = new DialogParameters
         {
             { nameof(AddTransactionDialog.OnTransactionAdded), OnRecurringTransactionAdded }
         };
         
-        _dialogService.Show<AddTransactionDialog>("Add transaction", parameters, options);
+        await ShowDialog<AddTransactionDialog>(parameters);
     }
     
     private async Task OnRecurringTransactionAdded(TransactionDto transaction)
@@ -373,9 +372,8 @@
         await OnAccountChanged(transaction.AccountId, transaction.TransactionDate.Year, transaction.TransactionDate.Month);
     }
     
-    private void OpenEditTransactionDialog(long transactionId)
+    private async Task OpenEditTransactionDialog(long transactionId)
     {
-        var options = new DialogOptions { CloseOnEscapeKey = true };
         var parameters = new DialogParameters
         {
             { nameof(EditTransactionDialog.TransactionId), transactionId.ToString() },
@@ -383,7 +381,7 @@
             { nameof(EditTransactionDialog.OnTransactionDeleted), OnTransactionDeleted }
         };
 
-        _dialogService.Show<EditTransactionDialog>("Edit transaction", parameters, options);
+        await ShowDialog<EditTransactionDialog>(parameters);
     }
     
     private async Task OnTransactionUpdated(TransactionDto recurringTransaction)

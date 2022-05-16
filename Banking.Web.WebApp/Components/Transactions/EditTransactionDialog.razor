@@ -9,7 +9,6 @@
 @inject ITransactionProvider _transactionProvider
 @inject ITransactionService _transactionService
 @inject IAccountProvider _accountProvider;
-@inject IDialogService _dialogService;
 @inject ISnackbar _snackbar
 
 @inherits Dialog
@@ -243,9 +242,8 @@
         await GoBack();
     }
     
-    private void OpenAddRecurringTransactionDialog()
+    private async Task OpenAddRecurringTransactionDialog()
     {
-        var options = new DialogOptions { CloseOnEscapeKey = true };
         var parameters = new DialogParameters
         {
             { nameof(AddRecurringTransactionDialog.AccountId), Transaction.AccountId.ToString(CultureInfo.InvariantCulture) },
@@ -254,6 +252,6 @@
             { nameof(AddRecurringTransactionDialog.TransactionDate), Transaction.TransactionDate.ToString(CultureInfo.InvariantCulture) },
         };
         
-        _dialogService.Show<AddRecurringTransactionDialog>("Add recurring transaction", parameters, options);
+        await ShowDialog<AddRecurringTransactionDialog>(parameters);
     }
 }

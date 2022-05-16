@@ -6,7 +6,6 @@
 
 @inject IAccountProvider _accountProvider
 @inject IAccountService _accountService
-@inject IDialogService _dialogService;
 @inject ISnackbar _snackbar
 
 @inherits Widget
@@ -130,16 +129,14 @@
         _saving = false;
     }
     
-    private void OpenAddAccountDialog()
+    private async Task OpenAddAccountDialog()
     {
-        var options = new DialogOptions { CloseOnEscapeKey = true };
-
         var parameters = new DialogParameters
         {
             { nameof(AddAccountDialog.OnAccountAdded), OnAccountAdded }
         };
         
-        _dialogService.Show<AddAccountDialog>("Add account", parameters, options);
+        await ShowDialog<AddAccountDialog>(parameters);
     }
     
     private async Task OnAccountAdded(AccountDto account)
@@ -149,16 +146,15 @@
         await InvokeAsync(StateHasChanged);
     }
     
-    private void OpenEditAccountDialog(long accountId)
+    private async Task OpenEditAccountDialog(long accountId)
     {
-        var options = new DialogOptions { CloseOnEscapeKey = true };
         var parameters = new DialogParameters
         {
             { nameof(EditAccountDialog.AccountId), accountId.ToString() },
             { nameof(EditAccountDialog.OnAccountUpdated), OnAccountUpdated }
         };
 
-        _dialogService.Show<EditAccountDialog>(null, parameters, options);
+        await ShowDialog<EditAccountDialog>(parameters);
     }
 
     private async Task OnAccountUpdated(AccountDto account)

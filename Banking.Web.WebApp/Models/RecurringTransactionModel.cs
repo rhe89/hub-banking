@@ -63,7 +63,7 @@ public class RecurringTransactionModel : RecurringTransactionDto
     public void Validate(out bool isValid)
     {
         isValid = true;
-        
+
         if (string.IsNullOrEmpty(Description))
         {
             ValidationErrors[nameof(Description)] = "Missing description";

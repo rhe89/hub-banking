@@ -153,6 +153,10 @@
                                 {
                                     <div class="alert alert-danger" role="alert">
                                         <p>@validationError.Value</p>
+                                        @if (validationError.Key == "DuplicateDescription")
+                                        {
+                                            <button class="btn btn-primary mt-2" type="button" @onclick="ShowEditRecurringTransactionDialog">Show?</button>
+                                        }
                                     </div>
                                 }
 
@@ -204,12 +208,17 @@
     [Parameter]
     public Func<RecurringTransactionDto, Task> OnRecurringTransactionAdded { get; set; }
     
+    [Parameter]
+    public Func<long, Task> OnShowEditRecurringTransaction { get; set; }
+    
     private RecurringTransactionModel RecurringTransaction { get; set; } = new()
     {
         TransactionDirection = TransactionDirection.Out,
         Occurrence = Occurrence.Monthly,
         NextTransactionDate = DateTime.Now.AddMonths(1)
     };
+    
+    private RecurringTransactionDto RecurringTransactionWithSameDescription { get; set; }
     
     private IList<AccountDto> Accounts { get; set; } = new List<AccountDto>();
     
@@ -255,24 +264,12 @@
 
     private async Task SaveAndAddNewRecurringTransaction()
     {
-        RecurringTransaction.Validate(out var isValid);
-        
-        if (!isValid)
+        var saved = await Save();
+
+        if (!saved)
         {
             return;
         }
-
-        var recurringTransactionWithSameDescription = await _recurringTransactionProvider.GetRecurringTransactions(new RecurringTransactionSearchParameters
-        {
-            Description = RecurringTransaction.Description
-        });
-
-        if (recurringTransactionWithSameDescription.Any())
-        {
-            return;
-        }
-        
-        await Save();
 
         RecurringTransaction = new RecurringTransactionModel
         {
@@ -284,31 +281,46 @@
 
     private async Task SaveAndClose()
     {
-        RecurringTransaction.Validate(out var isValid);
-        
-        if (!isValid)
+        var saved = await Save();
+
+        if (!saved)
         {
             return;
         }
-
-        var recurringTransactionWithSameDescription = await _recurringTransactionProvider.GetRecurringTransactions(new RecurringTransactionSearchParameters
-        {
-            Description = RecurringTransaction.Description
-        });
-
-        if (recurringTransactionWithSameDescription.Any())
-        {
-            return;
-        }
-        
-        await Save();
 
         MudDialog.Close(DialogResult.Ok(true));
     }
     
-    private async Task Save()
+    private async Task<bool> Save()
     {
         _working = true;
+
+        RecurringTransaction.ValidationErrors.Remove("DuplicateDescription");
+        
+        RecurringTransaction.Validate(out var isValid);
+        
+        if (!isValid)
+        {
+            _working = false;
+            return false;
+        }
+
+        var recurringTransactionsWithSameDescription = await _recurringTransactionProvider.GetRecurringTransactions(new RecurringTransactionSearchParameters
+        {
+            Description = RecurringTransaction.Description
+        });
+
+        if (recurringTransactionsWithSameDescription.Any())
+        {
+            RecurringTransactionWithSameDescription = recurringTransactionsWithSameDescription.First();
+            
+            RecurringTransaction.ValidationErrors.Add("DuplicateDescription", 
+                $"A recurring transaction with the same description already exists");
+            
+            _working = false;
+            return false;
+        }
+        
 
         await _preferenceService.AddOrUpdatePreference(Preferences.LastViewedAccount, RecurringTransaction.AccountId.ToString());
         
@@ -319,5 +331,17 @@
         _snackbar.Add("Recurring transaction saved", Severity.Success);
 
         _working = false;
+        
+        return true;
+    }
+
+    private async Task ShowEditRecurringTransactionDialog()
+    {
+        if (RecurringTransactionWithSameDescription == null)
+        {
+            return;
+        }
+        
+        await OnShowEditRecurringTransaction.Invoke(RecurringTransactionWithSameDescription.Id);
     }
 }
