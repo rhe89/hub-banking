@@ -1,0 +1,12 @@
+@using Hub.Shared.DataContracts.Banking.Query
+@using JetBrains.Annotations
+
+@inherits TableBaseComponent<AccountQuery> 
+
+<GenericTable
+    Widget="@Widget"
+    TableHeader="Accounts"
+    TableHeaderIcon="@IconUtils.AccountIcon"
+    TQuery="AccountQuery"
+    Query="Query"
+    @ref="TableRef"/>

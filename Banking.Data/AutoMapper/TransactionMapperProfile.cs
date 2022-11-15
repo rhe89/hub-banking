@@ -10,7 +10,9 @@ public class TransactionMapperProfile : Profile
     {
         CreateMap<Transaction, TransactionDto>()
             .ForMember(dest => dest.Description,
-                opt => opt.MapFrom(x => x.Text))
-            .ReverseMap();
+                       opt => opt.MapFrom(x => x.Text))
+            .ReverseMap()
+            .ForMember(dest => dest.TransactionSubCategory, opt => opt.Ignore())
+            .ForMember(dest => dest.Account, opt => opt.Ignore());
     }
 }

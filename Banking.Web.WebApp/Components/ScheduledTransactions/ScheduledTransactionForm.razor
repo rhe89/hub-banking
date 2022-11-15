@@ -1,0 +1,169 @@
+@using Microsoft.AspNetCore.Components
+@using Banking.Web.WebApp.Models
+@using Banking.Web.WebApp.Models.Form
+@using Hub.Shared.DataContracts.Banking.Constants
+@using Hub.Shared.DataContracts.Banking.Dto
+@using Hub.Shared.DataContracts.Banking.Query
+@using Hub.Shared.Extensions
+
+@inherits BaseComponent
+
+<EditForm Model="@ScheduledTransaction">
+    <div class="row">
+        <div class="@Constants.FormInputCol">
+            <MudRadioGroup
+                T="TransactionDirection"
+                SelectedOption="ScheduledTransaction.TransactionDirection"
+                SelectedOptionChanged="ScheduledTransaction.OnTransactionDirectionChanged">
+                <MudRadio
+                    Disabled="@Working"
+                    Option="@TransactionDirection.In"
+                    Color="@Color.Primary">
+                    Incoming
+                </MudRadio>
+                <MudRadio
+                    Disabled="@Working"
+                    Option="@TransactionDirection.Out"
+                    Color="@Color.Primary">
+                    Outgoing
+                </MudRadio>
+            </MudRadioGroup>
+        </div>
+    </div>
+
+    <div class="row mt-3">
+        <div class="@Constants.FormInputCol">
+            <TransactionCategoriesSelect
+                Disabled="@Working"
+                @bind-SelectedTransactionSubCategoryId="ScheduledTransaction.TransactionSubCategoryId"/>
+        </div>
+    </div>
+
+    <div class="row mt-3">
+        <div class="@Constants.FormInputCol">
+            <MudSelect
+                ReadOnly="@Working"
+                Placeholder="Select"
+                T="Occurrence"
+                @bind-Value="@ScheduledTransaction.Occurrence"
+                Label="Occurence"
+                Variant="@Constants.InputVariant"
+                AnchorOrigin="@Origin.BottomCenter">
+                @foreach (Occurrence occurence in Enum.GetValues(typeof(Occurrence)))
+                {
+                    <MudSelectItem T="Occurrence" Value="@occurence">@occurence.GetEnumDisplayName()</MudSelectItem>
+                }
+            </MudSelect>
+        </div>
+    </div>
+
+    <div class="row mt-3">
+        <div class="@Constants.FormInputCol">
+            <MudDatePicker
+                Label="Next transaction date"
+                Placeholder="Select transaction date"
+                DateFormat="dd.MM.yyyy"
+                Variant="@Constants.InputVariant"
+                Disabled="@Working"
+                @bind-Date="ScheduledTransaction.NextTransactionDate"/>
+        </div>
+    </div>
+    
+    <div class="row mt-3">
+        <div class="col-12 mt-3">
+            <MudSelect
+                ReadOnly="@Working"
+                Placeholder="Select"
+                T="string"
+                @bind-Value="ScheduledTransaction.AccountType"
+                Label="Account type"
+                Variant="@Constants.InputVariant"
+                AnchorOrigin="@Origin.BottomCenter">
+                @foreach (var accountType in AccountTypes.ToArray)
+                {
+                    <MudSelectItem T="string" Value="@accountType">@accountType</MudSelectItem>
+                }
+            </MudSelect>
+        </div>
+    </div>
+
+    <div class="row mt-3">
+        <div class="@Constants.FormInputCol">
+            <MudTextField
+                Label="Description"
+                Variant="@Constants.InputVariant"
+                Disabled="@Working"
+                @bind-Value="@ScheduledTransaction.Description"/>
+        </div>
+    </div>
+
+    <div class="row mt-3">
+        <div class="@Constants.FormInputCol">
+            <MudNumericField
+                Label="Amount"
+                Variant="@Constants.InputVariant"
+                Disabled="@Working"
+                T="decimal"
+                Format="N2"
+                ValueChanged="@ScheduledTransaction.OnAmountChanged"
+                Value="@ScheduledTransaction.Amount"
+                HideSpinButtons="true"/>
+        </div>
+    </div>
+
+    <div class="row mt-3">
+        <div class="@Constants.FormInputCol">
+            <MudCheckBox
+                Disabled="@Working"
+                Label="Completed"
+                @bind-Checked="@ScheduledTransaction.Completed"/>
+        </div>
+    </div>
+
+    @if (ValidationSummary != null)
+    {
+        @ValidationSummary
+    }
+
+    @if (SubmitActions != null)
+    {
+        <div class="row mt-3">
+            <MudButtonGroup
+                class="col-lg-6 col-sm-12"
+                OverrideStyles="@false">
+                @SubmitActions
+            </MudButtonGroup>
+        </div>
+    }
+
+</EditForm>
+
+@code {
+
+    [Parameter]
+    public new bool Working { get; set; }
+
+    [Parameter]
+    public ScheduledTransactionModel ScheduledTransaction { get; set; }
+
+    [Parameter]
+    public RenderFragment ValidationSummary { get; set; }
+
+    [Parameter]
+    public RenderFragment SubmitActions { get; set; }
+
+    private long? SelectedTransactionCategoryId { get; set; }
+
+    protected override void OnParametersSet()
+    {
+        Working = true;
+
+        if (ScheduledTransaction != null)
+        {
+            SelectedTransactionCategoryId = ScheduledTransaction.TransactionSubCategory?.TransactionCategoryId;
+        }
+
+        Working = false;
+    }
+
+}

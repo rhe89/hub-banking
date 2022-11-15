@@ -1,0 +1,141 @@
+@using Banking.Providers
+@using Banking.Services
+@using Banking.Web.WebApp.Models.Form
+@using Hub.Shared.DataContracts.Banking.Dto
+@using Hub.Shared.DataContracts.Banking.Query
+
+@inject IScheduledTransactionProvider ScheduledTransactionProvider
+@inject IScheduledTransactionService ScheduledTransactionService
+@inject UIHelpers UiHelpers
+
+@inherits BaseComponent
+
+<Dialog
+    HeaderText="@ScheduledTransaction?.Description"
+    HeaderIcon="@IconUtils.ScheduledTransactionIcon">
+    
+    @if (ScheduledTransaction == null)
+    {
+        <LoadingIndicator/>
+    }
+    else
+    {
+        <ScheduledTransactionForm
+            ScheduledTransaction="@ScheduledTransaction"
+            Working="@Working">
+
+            <ValidationSummary>
+                @if (ScheduledTransaction.ValidationErrors.Any(x => !string.IsNullOrEmpty(x.Value)))
+                {
+                    <div class="row mt-3">
+                        <div class="col-lg-8 col-sm-12">
+                            @foreach (var validationError in ScheduledTransaction.ValidationErrors.Where(x => !string.IsNullOrEmpty(x.Value)))
+                            {
+                                <div class="alert alert-danger" role="alert">
+                                    <p>@validationError.Value</p>
+                                </div>
+                            }
+
+                        </div>
+                    </div>
+                }
+            </ValidationSummary>
+
+            <SubmitActions>
+                <EditButtons
+                    SaveAction="Save"
+                    DeleteAction="Delete"
+                    Disabled="@Working"/>
+            </SubmitActions>
+        </ScheduledTransactionForm>
+    }
+</Dialog>
+
+@code {
+    [Parameter]
+    public long ScheduledTransactionId { get; set; }
+    
+    [Parameter]
+    public Func<UIHelpers, long, Task> OnScheduledTransactionUpdated { get; set; }
+    
+    [Parameter]
+    public Func<UIHelpers, long, Task> OnScheduledTransactionDeleted { get; set; }
+    
+    [CascadingParameter] 
+    public MudDialogInstance MudDialog { get; set; }
+    
+    private ScheduledTransactionModel ScheduledTransaction { get; set; } = new()
+    {
+        Occurrence = Occurrence.Monthly
+    };
+    
+    protected override async Task OnInitializedAsync()
+    {
+        Working = true;
+        
+        var scheduledTransactions = await ScheduledTransactionProvider
+            .GetScheduledTransactions(new ScheduledTransactionQuery { Id = ScheduledTransactionId });
+
+        var scheduledTransaction = scheduledTransactions.FirstOrDefault();
+
+        if (scheduledTransaction == null)
+        {
+            Working = false;
+            return;
+        }
+
+        ScheduledTransaction = new ScheduledTransactionModel
+        {
+            Id = scheduledTransaction.Id, 
+            CreatedDate = scheduledTransaction.CreatedDate, 
+            UpdatedDate = scheduledTransaction.UpdatedDate, 
+            Description = scheduledTransaction.Description,
+            AccountType = scheduledTransaction.AccountType,
+            TransactionSubCategoryId = scheduledTransaction.TransactionSubCategoryId,
+            Amount = scheduledTransaction.Amount, 
+            NextTransactionDate = scheduledTransaction.NextTransactionDate, 
+            Occurrence = scheduledTransaction.Occurrence, 
+            TransactionDirection = scheduledTransaction.Amount > 0 ?
+                TransactionDirection.In :
+                TransactionDirection.Out,
+            Completed = scheduledTransaction.Completed
+        };
+        
+        Working = false;
+    }
+
+    private async Task Save()
+    {
+        Working = true;
+
+        ScheduledTransaction.Validate(out var isValid);
+        
+        if (!isValid)
+        {
+            Working = false;
+            return;
+        }
+        
+        await ScheduledTransactionService.UpdateScheduledTransaction(ScheduledTransaction, true);
+        
+        await OnScheduledTransactionUpdated.Invoke(UiHelpers, ScheduledTransaction.Id);
+
+        Working = false;
+        
+        MudDialog.Close(DialogResult.Ok(true));
+    }
+
+    private async Task Delete()
+    {
+        Working = true;
+        
+        await ScheduledTransactionService.DeleteScheduledTransaction(ScheduledTransaction, true);
+
+        Working = false;
+
+        await OnScheduledTransactionDeleted.Invoke(UiHelpers, ScheduledTransaction.Id);
+        
+        MudDialog.Close(DialogResult.Ok(true));
+    }
+
+}

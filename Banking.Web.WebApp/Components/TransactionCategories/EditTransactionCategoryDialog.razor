@@ -1,0 +1,122 @@
+@using Banking.Providers
+@using Banking.Services
+@using Banking.Web.WebApp.Models.Form
+@using Hub.Shared.DataContracts.Banking.Query
+
+@inject ITransactionCategoryService TransactionCategoryService
+@inject ITransactionCategoryProvider TransactionCategoryProvider;
+@inject UIHelpers UiHelpers
+
+@inherits BaseComponent
+
+<Dialog 
+    HeaderText="@TransactionCategory?.Name"
+    HeaderIcon="@IconUtils.TransactionCategoryIcon">
+
+    @if (TransactionCategory == null)
+    {
+        <LoadingIndicator/>
+    }
+    else
+    {
+        <TransactionCategoryForm
+            TransactionCategory="@TransactionCategory"
+            Working="@Working"
+            ExpandDetails="false">
+
+            <ValidationSummary>
+                @if (TransactionCategory.ValidationErrors.Any(x => !string.IsNullOrEmpty(x.Value)))
+                {
+                    <div class="row mt-3">
+                        <div class="col-lg-8 col-sm-12">
+                            @foreach (var validationError in TransactionCategory.ValidationErrors.Where(x => !string.IsNullOrEmpty(x.Value)))
+                            {
+                                <div class="alert alert-danger" role="alert">
+                                    <p>@validationError.Value</p>
+                                </div>
+                            }
+
+                        </div>
+                    </div>
+                }
+            </ValidationSummary>
+            
+            <SubmitActions>
+                <EditButtons
+                    SaveAction="Save"
+                    DeleteAction="Delete"
+                    Disabled="@Working"
+                    DisableDelete="true"/>
+            </SubmitActions>
+        </TransactionCategoryForm>
+    }
+
+    @if (TransactionCategory != null)
+    {
+        <AdditionalData>
+            <TransactionsTable
+                TransactionCategoryId="@TransactionCategoryId"/>
+        </AdditionalData>
+    }
+</Dialog>
+
+@code {
+    [Parameter]
+    public long TransactionCategoryId { get; set; }
+
+    [Parameter]
+    public Func<UIHelpers, long, Task> OnTransactionCategoryUpdated { get; set; }
+    
+    [Parameter]
+    public Func<UIHelpers, long, Task> OnTransactionCategoryDeleted { get; set; }
+    
+    [CascadingParameter] 
+    public MudDialogInstance MudDialog { get; set; }
+    
+    private TransactionCategoryModel TransactionCategory { get; set; } = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        var transactionCategoryDto = (await TransactionCategoryProvider
+            .GetTransactionCategories(new TransactionCategoryQuery { Id = TransactionCategoryId }))
+            .Single();
+
+        TransactionCategory = TransactionCategoryModel.CreateFromDto(transactionCategoryDto);
+
+        Working = false;
+    }
+
+    private async Task Save()
+    {
+        Working = true;
+        
+        TransactionCategory.Validate(out var isValid);
+        
+        if (!isValid)
+        {
+            Working = false;
+            return;
+        }
+
+        await TransactionCategoryService.UpdateTransactionCategory(TransactionCategory, true);
+        
+        Working = false;
+        
+        MudDialog.Close(DialogResult.Ok(true));
+        
+        await OnTransactionCategoryUpdated.Invoke(UiHelpers, TransactionCategory.Id);
+    }
+
+    private async Task Delete()
+    {
+        Working = true;
+
+        await TransactionCategoryService.DeleteTransactionCategory(TransactionCategory.Id, true);
+        
+        MudDialog.Close(DialogResult.Ok(true));
+
+        Working = false;
+        
+        await OnTransactionCategoryDeleted(UiHelpers, TransactionCategory.Id);
+    }
+}

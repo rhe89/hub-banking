@@ -1,0 +1,57 @@
+@using Hub.Shared.DataContracts.Banking.Dto
+@using JetBrains.Annotations
+
+@inherits BaseComponent
+
+<EditForm Model="@Bank">
+    <div class="row mt-3">
+        <div class="@Constants.FormInputCol">
+            <MudTextField
+                Disabled="@Working"
+                Label="Name"
+                Variant="@Constants.InputVariant"
+                @bind-Value="@Bank.Name"/>
+        </div>
+    </div>
+                    
+    <div class="row mt-3">
+        <div class="@Constants.FormInputCol">
+            <MudTextField
+                Disabled="@Working"
+                Variant="@Constants.InputVariant"
+                Label="Account number prefix"
+                @bind-Value="@Bank.AccountNumberPrefix"/>
+        </div>
+    </div>
+    
+    @if (ValidationSummary != null)
+    {
+        @ValidationSummary
+    }
+    
+    @if (SubmitActions != null)
+    {
+        <div class="row mt-3">
+            <MudButtonGroup
+                class="col-lg-6 col-sm-12"
+                OverrideStyles="@false">
+                @SubmitActions
+            </MudButtonGroup>
+        </div>
+    }
+</EditForm>
+
+@code {
+    [Parameter]
+    public new bool Working { get; set; }
+    
+    [Parameter]
+    public BankDto Bank { get; set; }
+    
+    [Parameter]
+    [CanBeNull]
+    public RenderFragment ValidationSummary { get; set; }
+    
+    [Parameter]
+    public RenderFragment SubmitActions { get; set; }
+}

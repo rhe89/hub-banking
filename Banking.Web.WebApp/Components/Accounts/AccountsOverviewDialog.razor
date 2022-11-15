@@ -1,0 +1,13 @@
+@using Hub.Shared.DataContracts.Banking.Query
+<Dialog>
+    <CascadingValue Value="@AccountQuery" Name="@nameof(AccountsTable.Query)">
+        <AccountsTable/>
+    </CascadingValue>
+</Dialog>
+
+@code {
+
+    [Parameter]
+    public AccountQuery AccountQuery { get; set; } = new();
+
+}

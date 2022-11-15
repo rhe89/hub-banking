@@ -1,0 +1,190 @@
+@using Banking.Providers
+@using Banking.Services
+@using Hub.Shared.DataContracts.Banking.Constants
+@using Hub.Shared.DataContracts.Banking.Dto
+@using Hub.Shared.DataContracts.Banking.Query
+@using JetBrains.Annotations
+@using System.Globalization
+@using Banking.Web.WebApp.Models.Form
+
+@inject IScheduledTransactionProvider ScheduledTransactionProvider
+@inject IScheduledTransactionService ScheduledTransactionService
+@inject UIHelpers UiHelpers
+
+@inherits BaseComponent
+
+<Dialog
+    HeaderText="Add scheduled transaction"
+    HeaderIcon="@IconUtils.ScheduledTransactionIcon">
+    
+    <ScheduledTransactionForm
+        ScheduledTransaction="@ScheduledTransaction"
+        Working="@Working">
+
+        <ValidationSummary>
+            @if (ScheduledTransaction.ValidationErrors.Any(x => !string.IsNullOrEmpty(x.Value)))
+            {
+                <div class="row mt-3">
+                    <div class="col-lg-8 col-sm-12">
+                        @foreach (var validationError in ScheduledTransaction.ValidationErrors.Where(x => !string.IsNullOrEmpty(x.Value)))
+                        {
+                            <div class="alert alert-danger" role="alert">
+                                <p>@validationError.Value</p>
+                                @if (validationError.Key == "DuplicateDescription")
+                                {
+                                    <button class="btn btn-primary mt-2" type="button" @onclick="ShowEditScheduledTransactionDialog">Show?</button>
+                                }
+                            </div>
+                        }
+                    </div>
+                </div>
+            }
+        </ValidationSummary>
+        <SubmitActions>
+            <AddButtons
+                SaveAndCloseAction="SaveAndClose"
+                SaveAndAddNewAction="SaveAndAddNew"
+                Disabled="@Working"/>
+        </SubmitActions>
+    </ScheduledTransactionForm>
+</Dialog>
+
+@code {
+    [Parameter]
+    [CanBeNull]
+    public string TransactionSubCategoryId { get; set; }
+    
+    [Parameter]
+    [CanBeNull]
+    public string Description { get; set; }
+    
+    [Parameter]
+    [CanBeNull]
+    public string Amount { get; set; }
+    
+    [Parameter]
+    [CanBeNull]
+    public string TransactionDate { get; set; }
+    
+    [Parameter]
+    public Func<UIHelpers, long, Task> OnScheduledTransactionAdded { get; set; }
+    
+    [Parameter]
+    public Func<UIHelpers, long, Task> OnShowEditScheduledTransaction { get; set; }
+    
+    [CascadingParameter] 
+    public MudDialogInstance MudDialog { get; set; }
+    
+    private ScheduledTransactionModel ScheduledTransaction { get; set; } = new()
+    {
+        TransactionDirection = TransactionDirection.Out,
+        Occurrence = Occurrence.Monthly,
+        NextTransactionDate = DateTime.Now,
+        AccountType = AccountTypes.Billing
+    };
+    private ScheduledTransactionDto ScheduledTransactionWithSameDescription { get; set; }
+
+    protected override void OnInitialized()
+    {
+        Working = true;
+        
+        if (!string.IsNullOrEmpty(TransactionSubCategoryId))
+        {
+            ScheduledTransaction.TransactionSubCategoryId = long.Parse(TransactionSubCategoryId);
+        }
+        
+        if (!string.IsNullOrEmpty(Description))
+        {
+            ScheduledTransaction.Description = Description;
+        }
+
+        if (!string.IsNullOrEmpty(Amount))
+        {
+            ScheduledTransaction.Amount = decimal.Parse(Amount, CultureInfo.InvariantCulture);
+        }
+
+        if (!string.IsNullOrEmpty(TransactionDate))
+        {
+            ScheduledTransaction.NextTransactionDate = DateTime.Parse(TransactionDate, CultureInfo.InvariantCulture).AddMonths(1);
+        }
+        
+        Working = false;
+    }
+
+    private async Task SaveAndAddNew()
+    {
+        var saved = await Save();
+
+        if (!saved)
+        {
+            return;
+        }
+
+        ScheduledTransaction = new ScheduledTransactionModel
+        {
+            Occurrence = ScheduledTransaction.Occurrence,
+            NextTransactionDate = ScheduledTransaction.NextTransactionDate
+        };
+    }
+
+    private async Task SaveAndClose()
+    {
+        var saved = await Save();
+
+        if (!saved)
+        {
+            return;
+        }
+
+        MudDialog.Close(DialogResult.Ok(true));
+    }
+    
+    private async Task<bool> Save()
+    {
+        Working = true;
+
+        ScheduledTransaction.ValidationErrors.Remove("DuplicateDescription");
+        
+        ScheduledTransaction.Validate(out var isValid);
+        
+        if (!isValid)
+        {
+            Working = false;
+            return false;
+        }
+
+        var scheduledTransactionsWithSameDescription = await ScheduledTransactionProvider.GetScheduledTransactions(new ScheduledTransactionQuery
+        {
+            Description = ScheduledTransaction.Description
+        });
+
+        if (scheduledTransactionsWithSameDescription.Any())
+        {
+            ScheduledTransactionWithSameDescription = scheduledTransactionsWithSameDescription.First();
+            
+            ScheduledTransaction.ValidationErrors.Add("DuplicateDescription", 
+                $"A scheduled transaction with the same description already exists");
+            
+            Working = false;
+            return false;
+        }
+        
+        var addedScheduledTransaction = await ScheduledTransactionService.AddScheduledTransaction(ScheduledTransaction, true);
+
+        await OnScheduledTransactionAdded.Invoke(UiHelpers, addedScheduledTransaction.Id);
+        
+        Working = false;
+        
+        return true;
+    }
+
+    private async Task ShowEditScheduledTransactionDialog()
+    {
+        if (ScheduledTransactionWithSameDescription == null)
+        {
+            return;
+        }
+        
+        await OnShowEditScheduledTransaction.Invoke(UiHelpers, ScheduledTransactionWithSameDescription.Id);
+    }
+}

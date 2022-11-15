@@ -1,0 +1,27 @@
+@using Banking.Web.WebApp.Services.Table
+@using Banking.Shared
+@using Hub.Shared.DataContracts.Banking.Constants
+
+@inherits TableBaseComponent<Banking.Web.WebApp.Services.Table.AccountTypesQuery> 
+
+<Dialog HeaderText="Investments">
+    <GenericTable
+        TQuery="AccountTypesQuery"
+        Query="Query"
+        @ref="TableRef"/>
+</Dialog>
+
+@code {
+    protected async override Task OnParametersSetAsync()
+    {
+        Working = true;
+
+        Query.AccountType = AccountTypes.Investment;
+        Query.DiscontinuedDate = DateTimeUtils.LastDayOfMonth(State.Year, State.Month);
+        Query.BalanceToDate = DateTimeUtils.LastDayOfMonth(State.Year, State.Month);
+
+        await base.OnParametersSetAsync();
+        
+        Working = false;
+    }
+}

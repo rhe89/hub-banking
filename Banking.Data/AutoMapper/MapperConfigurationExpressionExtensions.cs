@@ -10,6 +10,10 @@ public static class MapperConfigurationExpressionExtensions
         mapperConfigurationExpression.AddProfile<TransactionMapperProfile>();
         mapperConfigurationExpression.AddProfile<AccountBalanceMapperProfile>();
         mapperConfigurationExpression.AddProfile<PreferenceMapperProfile>();
-        mapperConfigurationExpression.AddProfile<RecurringTransactionMapperProfile>();
+        mapperConfigurationExpression.AddProfile<ScheduledTransactionMapperProfile>();
+        mapperConfigurationExpression.AddProfile<CsvImportMapperProfile>();
+        mapperConfigurationExpression.AddProfile<BankMapperProfile>();
+        mapperConfigurationExpression.AddProfile<BankMapperProfile>();
+        mapperConfigurationExpression.AddProfile<TransactionCategoryMapperProfile>();
     }
 }

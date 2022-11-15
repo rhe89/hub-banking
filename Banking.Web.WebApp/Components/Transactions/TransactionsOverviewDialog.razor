@@ -1,0 +1,14 @@
+@using JetBrains.Annotations
+@using Hub.Shared.DataContracts.Banking.Query
+
+<Dialog>
+    <CascadingValue Value="@TransactionQuery" Name="@nameof(TransactionsTable.Query)">
+        <TransactionsTable/>
+    </CascadingValue>
+</Dialog>
+
+@code {
+    [Parameter]
+    [CanBeNull]
+    public TransactionQuery TransactionQuery { get; set; } = new();
+}

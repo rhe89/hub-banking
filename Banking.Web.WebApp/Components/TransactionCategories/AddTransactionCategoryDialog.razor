@@ -1,0 +1,141 @@
+@using Banking.Providers
+@using Banking.Services
+@using Banking.Web.WebApp.Models.Form
+@using Hub.Shared.DataContracts.Banking.Dto
+@using Hub.Shared.DataContracts.Banking.Query
+
+@inject ITransactionCategoryService TransactionCategoryService
+@inject ITransactionCategoryProvider TransactionCategoryProvider;
+@inject UIHelpers UiHelpers
+
+@inherits BaseComponent
+
+<Dialog
+    HeaderText="Add transaction category"
+    HeaderIcon="@IconUtils.TransactionCategoryIcon">
+    
+    <TransactionCategoryForm
+        TransactionCategory="@TransactionCategory"
+        Working="@Working">
+
+        <ValidationSummary>
+            @if (TransactionCategory.ValidationErrors.Any(x => !string.IsNullOrEmpty(x.Value)))
+            {
+                <div class="row mt-3">
+                    <div class="col-lg-8 col-sm-12">
+                        @foreach (var validationError in TransactionCategory.ValidationErrors.Where(x => !string.IsNullOrEmpty(x.Value)))
+                        {
+                            <div class="alert alert-danger" role="alert">
+                                <p>@validationError.Value</p>
+                                @if (validationError.Key == "DuplicateCategory")
+                                {
+                                    <button class="btn btn-primary mt-2" type="button" @onclick="ShowEditTransactionCategoryDialog">Show?</button>
+                                }
+                            </div>
+                        }
+
+                    </div>
+                </div>
+            }
+        </ValidationSummary>
+
+        <SubmitActions>
+            <AddButtons
+                SaveAndCloseAction="SaveAndClose"
+                SaveAndAddNewAction="SaveAndAddNew"
+                Disabled="@Working"/>
+        </SubmitActions>
+    </TransactionCategoryForm>
+</Dialog>
+
+@code {
+    [Parameter]
+    public Func<UIHelpers, long, Task> OnTransactionCategoryAdded { get; set; }
+    
+    [Parameter]
+    public Func<UIHelpers, long, Task> OnShowEditTransactionCategory { get; set; }
+
+    [CascadingParameter] 
+    public MudDialogInstance MudDialog { get; set; }
+    
+    private TransactionCategoryModel TransactionCategory { get; set; } = new();
+    private TransactionCategoryDto TransactionCategoryWithSameName { get; set; }
+
+    protected override void OnInitialized()
+    {
+        Working = false;
+    }
+    
+    private async Task SaveAndAddNew()
+    {
+        var saved = await Save();
+
+        if (!saved)
+        {
+            return;
+        }
+
+        TransactionCategory = new TransactionCategoryModel();
+    }
+
+    private async Task SaveAndClose()
+    {
+        var saved = await Save();
+
+        if (!saved)
+        {
+            return;
+        }
+
+        MudDialog.Close(DialogResult.Ok(true));
+    }
+    
+    private async Task<bool> Save()
+    {
+        Working = true;
+
+        TransactionCategory.ValidationErrors.Remove("DuplicateCategory");
+            
+        TransactionCategory.Validate(out var isValid);
+        
+        if (!isValid)
+        {
+            Working = false;
+            return false;
+        }
+
+        var transactionCategoryWithSameName = await TransactionCategoryProvider.GetTransactionCategories(new TransactionCategoryQuery
+        {
+            Name = TransactionCategory.Name
+        });
+
+        if (transactionCategoryWithSameName.Any())
+        {
+            TransactionCategoryWithSameName = transactionCategoryWithSameName.First();
+            
+            TransactionCategory.ValidationErrors.Add("DuplicateCategory", 
+                $"A category with the same name already exists");
+            
+            Working = false;
+            return false;
+        }
+
+        var addedTransactionCategory = await TransactionCategoryService.AddTransactionCategory(TransactionCategory, true);
+        
+        await OnTransactionCategoryAdded.Invoke(UiHelpers, addedTransactionCategory.Id);
+        
+        Working = false;
+        
+        return true;
+    }
+
+    private async Task ShowEditTransactionCategoryDialog()
+    {
+        if (TransactionCategoryWithSameName == null)
+        {
+            return;
+        }
+        
+        await OnShowEditTransactionCategory.Invoke(UiHelpers, TransactionCategoryWithSameName.Id);
+    }
+}

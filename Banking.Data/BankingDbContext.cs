@@ -13,10 +13,16 @@ public class BankingDbContext : HubDbContext
         base.OnModelCreating(builder);
             
         builder.Entity<Account> ()
-            .ToTable(schema: "dbo", name: "Account");
+            .ToTable(schema: "dbo", name: "Account")
+                .HasMany(c => c.AccountBalance)
+                .WithOne(e => e.Account)
+                .IsRequired();
             
         builder.Entity<AccountBalance> ()
-            .ToTable(schema: "dbo", name: "AccountBalance");
+            .ToTable(schema: "dbo", name: "AccountBalance")
+            .HasOne(e => e.Account)
+            .WithMany(x => x.AccountBalance)
+            .IsRequired();
 
         builder.Entity<Transaction>()
             .ToTable(schema: "dbo", name: "Transaction");
@@ -24,8 +30,19 @@ public class BankingDbContext : HubDbContext
         builder.Entity<Preference>()
             .ToTable(schema: "dbo", name: "Preference");
         
-        builder.Entity<RecurringTransaction>()
+        builder.Entity<ScheduledTransaction>()
             .ToTable(schema: "dbo", name: "RecurringTransaction");
-
+        
+        builder.Entity<CsvImport>()
+            .ToTable(schema: "dbo", name: "CsvImport");
+        
+        builder.Entity<Bank>()
+            .ToTable(schema: "dbo", name: "Bank");
+        
+        builder.Entity<TransactionCategory>()
+            .ToTable(schema: "dbo", name: "TransactionCategory");
+        
+        builder.Entity<TransactionSubCategory>()
+            .ToTable(schema: "dbo", name: "TransactionSubCategory");
     }
 }

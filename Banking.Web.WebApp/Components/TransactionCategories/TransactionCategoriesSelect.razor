@@ -1,0 +1,201 @@
+@using Banking.Providers
+@using Hub.Shared.DataContracts.Banking.Dto
+@using Hub.Shared.DataContracts.Banking.Query
+@using JetBrains.Annotations
+
+@inject UIHelpers UiHelpers
+@inject ITransactionCategoryProvider TransactionCategoryProvider
+
+<div class="row">
+    @if (TransactionCategories != null)
+    {
+        <div class="widget-col-12 col-8 col-sm-9">
+            <MudSelect ReadOnly="@Disabled"
+                       Placeholder="Select"
+                       @bind-Value="@SelectedTransactionCategoryId"
+                       Label="Transaction category"
+                       Variant="@Constants.InputVariant"
+                       AnchorOrigin="@Origin.BottomCenter">
+                @foreach (var transactionCategory in TransactionCategories)
+                {
+                    <MudSelectItem T="long?" Value="@transactionCategory.Id">@transactionCategory.Name</MudSelectItem>
+                }
+            </MudSelect>
+        
+            @if (SelectedTransactionCategory != null)
+            {
+                <MudSelect ReadOnly="@Disabled"
+                           Placeholder="Select"
+                           Value="@SelectedTransactionSubCategoryId"
+                           ValueChanged="@SelectedTransactionSubCategoryIdChanged"
+                           Label="Sub category"
+                           Variant="@Constants.InputVariant"
+                           AnchorOrigin="@Origin.BottomCenter">
+                    @foreach (var subCategory in SelectedTransactionCategory.TransactionSubCategories)
+                    {
+                        <MudSelectItem T="long?" Value="@subCategory.Id">@subCategory.Name</MudSelectItem>
+                    }
+                </MudSelect>
+            }
+        </div>
+    
+        <MudButtonGroup
+            class="col-3 col-sm-2 d-widget-none"
+            Size="@Size.Small"
+            DisableElevation="true"
+            OverrideStyles="@false">
+            <MudIconButton
+                Disabled="@(SelectedTransactionCategoryId == null)"
+                Color="@Color.Primary"
+                Icon="@Icons.Filled.OpenInNew"
+                @onclick="() => OpenEditTransactionCategoryDialog(UiHelpers, SelectedTransactionCategoryId ?? 0)"/>
+            <MudIconButton
+                Icon="@Icons.Filled.Add"
+                Color="@Color.Primary"
+                @onclick="() => OpenAddTransactionCategoryDialog(UiHelpers)"/>
+        </MudButtonGroup>
+    }
+</div>
+
+@code {
+    [Parameter]
+    public long? SelectedTransactionSubCategoryId { get; set; }
+
+    [Parameter]
+    public EventCallback<long?> SelectedTransactionSubCategoryIdChanged { get; set; }
+    
+    [Parameter]
+    public IList<TransactionCategoryDto> TransactionCategories { get; set; }
+    
+    [Parameter]
+    public bool Disabled { get; set; }
+
+    IList<TransactionSubCategoryDto> TransactionSubCategories { get; set; } = new List<TransactionSubCategoryDto>();
+
+    private bool ParametersSet { get; set; }
+    
+    private long? _selectedTransactionCategoryId;
+    
+    public long? SelectedTransactionCategoryId
+    {
+        get => _selectedTransactionCategoryId;
+        set
+        {
+            _selectedTransactionCategoryId = value;
+
+            if (_selectedTransactionCategoryId != null)
+            {
+                SelectedTransactionCategory = TransactionCategories.Single(x => x.Id == _selectedTransactionCategoryId);
+                
+                if (ParametersSet)
+                {
+                    SelectedTransactionSubCategoryId = SelectedTransactionCategory.TransactionSubCategories.FirstOrDefault()?.Id;
+                    SelectedTransactionSubCategoryIdChanged.InvokeAsync(SelectedTransactionSubCategoryId).GetAwaiter().GetResult();
+                }
+            }
+        }
+    }
+    
+    private TransactionCategoryDto SelectedTransactionCategory { get; set; }
+    
+    protected override async Task OnParametersSetAsync()
+    {
+        if (ParametersSet)
+        {
+            return;
+        }
+        
+        TransactionCategories ??= await TransactionCategoryProvider.GetTransactionCategories();
+
+        if (SelectedTransactionSubCategoryId != null)
+        {
+            SelectedTransactionCategoryId = TransactionCategories
+                .FirstOrDefault(x => x.TransactionSubCategories.Any(y => y.Id == SelectedTransactionSubCategoryId.Value))?.Id;
+        }
+
+        ParametersSet = true;
+    }
+    
+    private async Task OpenAddTransactionCategoryDialog(UIHelpers uiHelpers)
+    {
+        var parameters = new DialogParameters
+        {
+            { nameof(AddTransactionCategoryDialog.OnTransactionCategoryAdded), OnTransactionCategoryAdded },
+            { nameof(AddTransactionCategoryDialog.OnShowEditTransactionCategory), OpenEditTransactionCategoryDialog }
+        };
+
+        await uiHelpers.ShowDialog<AddTransactionCategoryDialog>(parameters);
+    }
+    
+    private async Task OnTransactionCategoryAdded(UIHelpers uiHelpers, long transactionCategoryId)
+    {
+        var addedTransactionCategory = (await TransactionCategoryProvider.GetTransactionCategories(new TransactionCategoryQuery { Id = transactionCategoryId })).Single();
+
+        TransactionCategories.Insert(0, addedTransactionCategory);
+        
+        uiHelpers.ShowSnackbar("Transaction category added", Severity.Success);
+
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private async Task OpenEditTransactionCategoryDialog(UIHelpers uiHelpers, long transactionCategoryId)
+    {
+        var parameters = new DialogParameters
+        {
+            { nameof(EditTransactionCategoryDialog.TransactionCategoryId), transactionCategoryId },
+            { nameof(EditTransactionCategoryDialog.OnTransactionCategoryUpdated), OnTransactionCategoryUpdated },
+            { nameof(EditTransactionCategoryDialog.OnTransactionCategoryDeleted), OnTransactionCategoryDeleted }
+        };
+
+        await uiHelpers.ShowDialog<EditTransactionCategoryDialog>(parameters);
+    }
+
+    private async Task OnTransactionCategoryUpdated(UIHelpers uiHelpers, long transactionCategoryId)
+    {
+        var updatedTransactionCategory = (await TransactionCategoryProvider
+            .GetTransactionCategories(new TransactionCategoryQuery { Id = transactionCategoryId })).Single();
+
+        TransactionSubCategories = await TransactionCategoryProvider.GetTransactionSubCategories(new TransactionSubCategoryQuery
+        {
+            TransactionCategoryIds = TransactionCategories.Select(x => x.Id).ToArray()
+        });
+        
+        var existingTransactionCategory = TransactionCategories
+            .FirstOrDefault(scheduledTransaction => scheduledTransaction.Id == updatedTransactionCategory.Id);
+
+        if (existingTransactionCategory == null)
+        {
+            return;
+        }
+        
+        var index = TransactionCategories.IndexOf(existingTransactionCategory);
+
+        if (index == -1)
+        {
+            return;
+        }
+
+        TransactionCategories[index] = updatedTransactionCategory;
+        
+        uiHelpers.ShowSnackbar("Transaction category updated", Severity.Success);
+
+        await InvokeAsync(StateHasChanged);
+    }
+    
+    private async Task OnTransactionCategoryDeleted(UIHelpers uiHelpers, long transactionCategoryId)
+    {
+        var deletedTransactionCategory = TransactionCategories
+            .FirstOrDefault(updatedTransactionCategory => updatedTransactionCategory.Id == transactionCategoryId);
+
+        if (deletedTransactionCategory == null)
+        {
+            return;
+        }
+        
+        TransactionCategories.Remove(deletedTransactionCategory);
+        
+        uiHelpers.ShowSnackbar("Transaction category deleted", Severity.Success);
+
+        await InvokeAsync(StateHasChanged);
+    }
+}

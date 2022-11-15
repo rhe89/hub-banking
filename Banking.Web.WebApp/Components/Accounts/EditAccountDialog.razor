@@ -1,0 +1,142 @@
+@using Banking.Providers
+@using Banking.Services
+@using Banking.Shared
+@using Hub.Shared.DataContracts.Banking.Dto
+@using Hub.Shared.DataContracts.Banking.Query
+
+@inherits BaseComponent
+
+@inject IAccountProvider AccountProvider
+@inject IAccountService AccountService
+@inject UIHelpers UiHelpers
+
+<Dialog
+    HeaderText="@($"{Account?.Name} ({Account?.Bank?.Name})")"
+    HeaderIcon="@IconUtils.AccountIcon">
+
+    @if (Account == null)
+    {
+        <LoadingIndicator/>
+    }
+    else
+    {
+        <AccountForm
+            Account="Account"
+            Working="Working"
+            ExpandDetails="false">
+            <SubmitActions>
+                
+                <EditButtons
+                    SaveAction="Save"
+                    DeleteAction="Delete"
+                    Disabled="Working"
+                    DisableDelete="true">
+                    <AdditionalButtons>
+                        <MudButton
+                            class="ms-2"
+                            Color="@Color.Primary"
+                            DisableElevation="true"
+                            Variant="@Constants.FormButtonVariant"
+                            Disabled="Working"
+                            @onclick="UpdateAccountBalance">
+                            <MudIcon Icon="@Icons.Filled.SaveAs"/>
+                            <span class="ms-2 d-none d-md-block">
+                                Update account balance
+                            </span>
+                        </MudButton>
+                    </AdditionalButtons>
+                </EditButtons>
+            </SubmitActions>
+        </AccountForm>
+    }
+
+    <AdditionalData>
+        @if (TransactionQuery != null)
+        {
+            <CascadingValue Name="UseState" Value="false">
+                <CascadingValue Name="Query" Value="TransactionQuery">
+                    <TransactionsTable/>
+                </CascadingValue>
+            </CascadingValue>
+        }
+    </AdditionalData>
+</Dialog>
+
+
+@code {
+
+    [Parameter]
+    public long AccountId { get; set; }
+
+    [Parameter]
+    public Func<UIHelpers, long, Task> OnAccountUpdated { get; set; }
+
+    [Parameter]
+    public Func<UIHelpers, long, Task> OnAccountDeleted { get; set; }
+
+    [CascadingParameter]
+    public MudDialogInstance MudDialog { get; set; }
+
+    private AccountDto Account { get; set; }
+    private TransactionQuery TransactionQuery { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        var accounts = await AccountProvider.GetAccounts(new AccountQuery
+        {
+            AccountId = AccountId, 
+            BalanceToDate = DateTimeUtils.LastDayOfMonth(State.Year, State.Month)
+        });
+
+        Account = accounts.Single();
+
+        TransactionQuery = new TransactionQuery
+        {
+            BankId = Account.BankId,
+            AccountId = Account.Id,
+            Month = State.Month,
+            Year = State.Year
+        };
+
+        Working = false;
+    }
+    
+    private async Task UpdateAccountBalance()
+    {
+        Working = true;
+
+        await AccountService.UpdateAccountBalance(Account.Id, Account.BalanceDate ?? DateTime.Now, Account.Balance, saveChanges: true);
+        
+        await OnAccountUpdated.Invoke(UiHelpers, Account.Id);
+
+        Working = false;
+
+        MudDialog.Close(DialogResult.Ok(true));
+    }
+
+    private async Task Save()
+    {
+        Working = true;
+
+        await AccountService.UpdateAccount(Account, saveChanges: true);
+
+        await OnAccountUpdated.Invoke(UiHelpers, Account.Id);
+
+        Working = false;
+
+        MudDialog.Close(DialogResult.Ok(true));
+    }
+
+    private async Task Delete()
+    {
+        Working = true;
+
+        await AccountService.DeleteAccount(Account, true);
+
+        Working = false;
+
+        await OnAccountDeleted.Invoke(UiHelpers, Account.Id);
+
+        MudDialog.Close(DialogResult.Ok(true));
+    }
+}

@@ -1,0 +1,165 @@
+@using Hub.Shared.DataContracts.Banking.Dto
+@using Banking.Providers
+@using Banking.Services
+@using Hub.Shared.DataContracts.Banking.Query
+@using JetBrains.Annotations
+
+@inherits BaseComponent
+
+@inject UIHelpers UiHelpers
+@inject IAccountService AccountService
+@inject IAccountProvider AccountProvider
+
+<div class="row">
+    <div class="widget-col-12 front-page-col-12 col-8 col-sm-9">
+            <MudSelect ReadOnly="@Disabled"
+                       Value="@SelectedAccountId"
+                       ValueChanged="@SelectedAccountIdChanged"
+                       Label="@Label"
+                       Variant="@Constants.InputVariant"
+                       AnchorOrigin="@Origin.BottomCenter">
+                @if (Accounts != null)
+                {
+                    foreach (var account in Accounts)
+                    {
+                        <MudSelectItem T="long" Value="@account.Id">@account.Name @(!string.IsNullOrEmpty(account.Bank?.Name) ? $" ({account.Bank.Name})" : "")</MudSelectItem>
+                    }
+                }
+            </MudSelect>
+        </div>
+        
+        <MudButtonGroup
+            class="col-3 col-sm-2 d-widget-none d-front-page-none"
+            Size="@Size.Small"
+            DisableElevation="true"
+            OverrideStyles="@false">
+            <MudIconButton
+                Disabled="@(SelectedAccountId == 0)"
+                Color="@Color.Primary"
+                Icon="@Icons.Filled.OpenInNew"
+                @onclick="() => OpenEditAccountDialog(UiHelpers, SelectedAccountId)"/>
+            <MudIconButton
+                Icon="@Icons.Filled.Add"
+                Color="@Color.Primary"
+                @onclick="() => OpenAddAccountDialog(UiHelpers)"/>
+        </MudButtonGroup>
+</div>
+
+@code {
+    [Parameter]
+    public EventCallback<long> SelectedAccountIdChanged { get; set; }
+    
+    [Parameter]
+    public long SelectedAccountId { get; set; }
+    
+    [Parameter]
+    public IList<AccountDto> Accounts { get; set; }
+
+    [Parameter]
+    public long? BankId { get; set; }
+    
+    [Parameter]
+    public string Label { get; set; }
+
+    [Parameter]
+    public bool Disabled { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        Working = true;
+        
+        Accounts ??= await AccountProvider.GetAccounts();
+        
+        if (BankId != null)
+        {
+            Accounts = Accounts.Where(account => account.BankId == BankId).ToList();
+        }
+
+        Working = false;
+    }
+
+    protected override async Task OnParametersSetAsync()
+    {
+        await InvokeAsync(StateHasChanged);
+    }
+    
+    protected async Task OpenAddAccountDialog(UIHelpers uiHelpers)
+    {
+        var parameters = new DialogParameters
+        {
+            { nameof(AddAccountDialog.OnAccountAdded), OnAccountAdded }
+        };
+        
+        await uiHelpers.ShowDialog<AddAccountDialog>(parameters);
+    }
+    
+    protected async Task OnAccountAdded(UIHelpers uiHelpers, long accountId)
+    {
+        var addedAccount = (await AccountProvider.GetAccounts(new AccountQuery { AccountId = accountId })).Single();
+        
+        Accounts.Insert(0, addedAccount);
+        
+        uiHelpers.ShowSnackbar("Account added", Severity.Success);
+
+        await InvokeAsync(StateHasChanged);
+    }
+    
+    protected async Task OpenEditAccountDialog(UIHelpers uiHelpers, long? accountId)
+    {
+        if (accountId == null)
+        {
+            return;
+        }
+        
+        var parameters = new DialogParameters
+        {
+            { nameof(EditAccountDialog.AccountId), accountId.Value },
+            { nameof(EditAccountDialog.OnAccountUpdated), OnAccountUpdated },
+            { nameof(EditAccountDialog.OnAccountDeleted), OnAccountDeleted }
+        };
+
+        await uiHelpers.ShowDialog<EditAccountDialog>(parameters);
+    }
+
+    protected async Task OnAccountUpdated(UIHelpers uiHelpers, long accountId)
+    {
+        var updatedAccount = (await AccountProvider.GetAccounts(new AccountQuery { AccountId = accountId })).Single();
+        
+        var existingAccount = Accounts.FirstOrDefault(account => account.Id == updatedAccount.Id);
+
+        if (existingAccount == null)
+        {
+            return;
+        }
+        
+        var index = Accounts.IndexOf(existingAccount);
+
+        if (index == -1)
+        {
+            return;
+        }
+
+        Accounts[index] = updatedAccount;
+        
+        uiHelpers.ShowSnackbar("Account updated", Severity.Success);
+
+        await InvokeAsync(StateHasChanged);
+    }
+    
+    protected async Task OnAccountDeleted(UIHelpers uiHelpers, long bankId)
+    {
+        var deletedAccount = Accounts
+            .FirstOrDefault(account => account.Id == bankId);
+
+        if (deletedAccount == null)
+        {
+            return;
+        }
+        
+        Accounts.Remove(deletedAccount);
+        
+        uiHelpers.ShowSnackbar("Account deleted", Severity.Success);
+
+        await InvokeAsync(StateHasChanged);
+    }
+}

@@ -1,0 +1,12 @@
+<MudDivider Class="mt-4 mb-1"/>
+
+<article class="row additional-data">
+    <section class="col-12">
+        @ChildContent
+    </section>
+</article>
+
+@code {
+    [Parameter]
+    public RenderFragment ChildContent { get; set; }
+}

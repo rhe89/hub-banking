@@ -1,0 +1,42 @@
+<MudButton
+    class="me-2"
+    Color="@Color.Primary"
+    DisableElevation="true"
+    Variant="@Constants.FormButtonVariant"
+    disabled="@Disabled"
+    @onclick="@SaveAndCloseAction">
+    <MudIcon Icon="@Icons.Filled.SaveAlt"/>
+    <span class="ms-2 d-none d-md-block">
+        Save and close
+    </span>
+</MudButton>
+<MudButton
+    Color="@Color.Primary"
+    DisableElevation="true"
+    Variant="@Constants.FormButtonVariant"
+    disabled="@Disabled"
+    @onclick="@SaveAndAddNewAction">
+    <MudIcon Icon="@Icons.Filled.SaveAs"/>
+    <span class="ms-2 d-none d-md-block">
+        Save and add new
+    </span>
+</MudButton>
+
+@if (AdditionalButtons != null)
+{
+    @AdditionalButtons
+}
+
+@code {
+    [Parameter]
+    public Func<Task> SaveAndCloseAction { get; set; }
+    
+    [Parameter]
+    public Func<Task> SaveAndAddNewAction { get; set; }
+    
+    [Parameter]
+    public RenderFragment AdditionalButtons { get; set; }
+    
+    [Parameter]
+    public bool Disabled { get; set; }
+}

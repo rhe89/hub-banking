@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations.Schema;
 using Hub.Shared.Storage.Repository.Core;
@@ -10,23 +11,31 @@ public class Account : EntityBase
 {
     [UsedImplicitly]
     [Column]
-    public string Name { get; set; }
-        
+    public long? BankId { get; set; }
+    
     [UsedImplicitly]
-    [Column(TypeName = "decimal(18,2)")]
-    public decimal CurrentBalance { get; set; }
+    [Column]
+    public string Name { get; set; }
+    
+    [UsedImplicitly]
+    [Column]
+    public string AccountNumber { get; set; }
 
     [UsedImplicitly]
     [Column]
     public string AccountType { get; set; }
+
+    [UsedImplicitly]
+    [Column]
+    public bool SharedAccount { get; set; }
     
     [UsedImplicitly]
     [Column]
-    public string Bank { get; set; }
-        
+    public DateTime? DiscontinuedDate { get; set; }
+    
     [UsedImplicitly]
-    public virtual ICollection<Transaction> Transactions { get; set; }
-        
+    public virtual Bank Bank { get; set; }
+    
     [UsedImplicitly]
-    public virtual ICollection<AccountBalance> AccountBalances { get; set; }
+    public virtual ICollection<AccountBalance> AccountBalance { get; set; }
 }

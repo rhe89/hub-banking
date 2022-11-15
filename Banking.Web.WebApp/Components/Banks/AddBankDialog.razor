@@ -1,0 +1,64 @@
+@using Banking.Services
+@using Hub.Shared.DataContracts.Banking.Dto
+
+@inherits BaseComponent
+
+@inject IBankService BankService
+@inject UIHelpers UiHelpers
+
+<Dialog
+    HeaderText="Add bank"
+    HeaderIcon="@IconUtils.BankIcon">
+    
+    <BankForm
+        Bank="@Bank"
+        Working="@Working">
+        <SubmitActions>
+            <AddButtons
+                SaveAndCloseAction="SaveAndClose"
+                SaveAndAddNewAction="SaveAndAddNew"
+                Disabled="@Working"/>
+        </SubmitActions>
+    </BankForm>
+</Dialog>
+
+
+@code {
+    [Parameter]
+    public Func<UIHelpers, long, Task> OnBankAdded { get; set; }
+
+    [CascadingParameter] 
+    public MudDialogInstance MudDialog { get; set; }
+    
+    private BankDto Bank { get; set; } = new();
+    
+    protected override void OnInitialized()
+    {
+        Working = false;
+    }
+
+    private async Task SaveAndAddNew()
+    {
+        await Save();
+
+        Bank = new BankDto();
+    }
+
+    private async Task SaveAndClose()
+    {
+        await Save();
+
+        MudDialog.Close(DialogResult.Ok(true));
+    }
+
+    private async Task Save()
+    {
+        Working = true;
+        
+        var addedBank = await BankService.AddBank(Bank, saveChanges: true);
+
+        await OnBankAdded.Invoke(UiHelpers, addedBank.Id);
+        
+        Working = false;
+    }
+}

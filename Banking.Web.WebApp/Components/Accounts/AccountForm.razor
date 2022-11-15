@@ -1,0 +1,153 @@
+@using Microsoft.AspNetCore.Components
+@using Hub.Shared.DataContracts.Banking.Constants
+@using Hub.Shared.DataContracts.Banking.Dto
+@using Banking.Providers
+
+@inherits BaseComponent
+
+@inject IBankProvider BankProvider;
+
+<EditForm Model="@Account">
+    <div class="row mt-3">
+        <div class="@Constants.FormInputCol">
+            <MudNumericField
+                Disabled="@(Working || Account.BalanceIsAccumulated)"
+                Label="@($"Balance {Account.BalanceDate:dd.MM.yyyy} {(Account.BalanceIsAccumulated ? "(accumulated)" : "")}")"
+                Variant="@Constants.InputVariant"
+                Format="N2"
+                @bind-Value="@Account.Balance"
+                HideSpinButtons="true"/>
+        </div>
+        @if (!Account.BalanceIsAccumulated)
+        {
+            <div class="@Constants.FormInputCol">
+                <MudDatePicker
+                    Label="Balance date"
+                    Placeholder="Select balance date"
+                    DateFormat="dd.MM.yyyy"
+                    Variant="@Constants.InputVariant"
+                    Disabled="@Working"
+                    @bind-Date="Account.BalanceDate"/>
+            </div>
+        }
+    </div>
+    <div class="row mt-3">
+        <div class="@Constants.FormInputCol">
+            <MudExpansionPanel
+                IsInitiallyExpanded="ExpandDetails"
+                Dense="true"
+                DisableGutters="true"
+                Elevation="0">
+                <TitleContent>
+                    <h2 class="fs-4">
+                        Details
+                    </h2>
+                </TitleContent>
+                <ChildContent>
+                    <div class="row">
+                        <div class="col-12 mt-3">
+                            <MudTextField
+                                Disabled="@Working"
+                                Label="Name"
+                                Variant="@Constants.InputVariant"
+                                @bind-Value="@Account.Name"/>
+                        </div>
+
+                        <div class="col-12 mt-3">
+                            <BanksSelect
+                                Disabled="@Working"
+                                @bind-SelectedBankId="Account.BankId"/>
+                        </div>
+
+                        <div class="col-12 mt-3">
+                            <MudTextField
+                                Disabled="@Working"
+                                Label="AccountNumber"
+                                Variant="@Constants.InputVariant"
+                                @bind-Value="@Account.AccountNumber"/>
+                        </div>
+
+                        <div class="col-12 mt-3">
+                            <MudSelect
+                                ReadOnly="@Working"
+                                Placeholder="Select"
+                                T="string"
+                                @bind-Value="@Account.AccountType"
+                                Label="Account type"
+                                Variant="@Constants.InputVariant"
+                                AnchorOrigin="@Origin.BottomCenter">
+                                @foreach (var accountType in AccountTypes.ToArray)
+                                {
+                                    <MudSelectItem T="string" Value="@accountType">@accountType</MudSelectItem>
+                                }
+                            </MudSelect>
+                        </div>
+                        
+                        <div class="col-12 mt-3">
+                            <MudDatePicker
+                                Label="Discontinued date"
+                                Placeholder="Select discontinued date"
+                                DateFormat="dd.MM.yyyy"
+                                Variant="@Constants.InputVariant"
+                                Disabled="@Working"
+                                @bind-Date="Account.DiscontinuedDate"/>
+                        </div>
+
+                        <div class="col-12 mt-3">
+                            <MudCheckBox
+                                Disabled="@Working"
+                                Label="Shared account"
+                                @bind-Checked="Account.SharedAccount"/>
+                        </div>
+                    </div>
+                </ChildContent>
+            </MudExpansionPanel>
+        </div>
+    </div>
+
+    @if (ValidationSummary != null)
+    {
+        @ValidationSummary
+    }
+
+    @if (SubmitActions != null)
+    {
+        <div class="row mt-3">
+            <MudButtonGroup
+                class="col-lg-6 col-sm-12"
+                OverrideStyles="@false">
+                @SubmitActions
+            </MudButtonGroup>
+        </div>
+    }
+</EditForm>
+
+@code {
+
+    [Parameter]
+    public new bool Working { get; set; }
+
+    [Parameter]
+    public AccountDto Account { get; set; }
+
+    [Parameter]
+    public RenderFragment ValidationSummary { get; set; }
+
+    [Parameter]
+    public RenderFragment SubmitActions { get; set; }
+
+    [Parameter]
+    public bool ExpandDetails { get; set; } = true;
+
+    private IList<BankDto> Banks { get; set; } = new List<BankDto>();
+
+    protected override async Task OnInitializedAsync()
+    {
+        Working = true;
+
+        Banks = await BankProvider.GetBanks();
+
+        Working = false;
+    }
+
+}

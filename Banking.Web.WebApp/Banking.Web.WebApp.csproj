@@ -5,9 +5,10 @@
 
 	<ItemGroup>
 		<PackageReference Include="JetBrains.Annotations" Version="2021.3.0" />
+		<PackageReference Include="Microsoft.AspNetCore.Mvc.Razor.RuntimeCompilation" Version="6.0.9" />
 		<PackageReference Include="MudBlazor" Version="6.0.9" />
-		<PackageReference Include="Hub.Shared.Extensions" Version="6.2.0" />
-		<PackageReference Include="Hub.Shared.Web.BlazorServer" Version="6.2.0" />
+		<PackageReference Include="Hub.Shared.Extensions" Version="7.0.0" />
+		<PackageReference Include="Hub.Shared.Web.BlazorServer" Version="7.0.0" />
 	</ItemGroup>
 
 	<ItemGroup>
@@ -17,6 +18,7 @@
 	</ItemGroup>
 
 	<ItemGroup>
+		<Folder Include="Components\Billing" />
 		<Folder Include="wwwroot" />
 	</ItemGroup>
 </Project>

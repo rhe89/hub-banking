@@ -1,7 +1,7 @@
 ﻿using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Banking.Providers;
-using Hub.Shared.DataContracts.Banking.SearchParameters;
+using Hub.Shared.DataContracts.Banking.Query;
 
 namespace Banking.Web.Api.Controllers;
 
@@ -17,9 +17,9 @@ public class AccountsController : ControllerBase
     }
 
     [HttpPost]
-    public async Task<IActionResult> GetAccounts(AccountSearchParameters accountSearchParameters)
+    public async Task<IActionResult> GetAccounts(AccountQuery accountQuery)
     {
-        var accounts = await _accountProvider.GetAccounts(accountSearchParameters);
+        var accounts = await _accountProvider.GetAccounts(accountQuery);
 
         return Ok(accounts);
     }

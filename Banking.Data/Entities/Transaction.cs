@@ -10,8 +10,16 @@ public class Transaction : EntityBase
 {
     [UsedImplicitly]
     [Column]
+    public long AccountId { get; set; }
+    
+    [UsedImplicitly]
+    [Column]
+    public long? TransactionSubCategoryId { get; set; }
+    
+    [UsedImplicitly]
+    [Column]
     public string Text { get; set; }
-        
+    
     [UsedImplicitly]
     [Column(TypeName = "decimal(18,2)")]
     public decimal Amount { get; set; }
@@ -19,11 +27,7 @@ public class Transaction : EntityBase
     [UsedImplicitly]
     [Column]
     public string TransactionId { get; set; }
-        
-    [UsedImplicitly]
-    [Column]
-    public long AccountId { get; set; }
-        
+    
     [UsedImplicitly]
     [Column]
     public int TransactionType { get; set; }
@@ -34,8 +38,15 @@ public class Transaction : EntityBase
     
     [UsedImplicitly]
     [Column]
-    public bool Recurring { get; set; }
-        
+    public bool Exclude { get; set; }
+    
+    [UsedImplicitly]
+    public string Source { get; set; }
+    
     [UsedImplicitly]
     public virtual Account Account { get; set; }
+
+    [UsedImplicitly]
+    public virtual TransactionSubCategory TransactionSubCategory { get; set; }
+    
 }

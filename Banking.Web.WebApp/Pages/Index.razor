@@ -1,33 +1,230 @@
 @page "/"
 @page "/index"
+@using Hub.Shared.DataContracts.Banking.Constants
+@using Hub.Shared.DataContracts.Banking.Dto
+@using Hub.Shared.Storage.ServiceBus
+@using Hub.Shared.Storage.ServiceBus.MessageBody
+@using Banking.Providers
+@using Hub.Shared.DataContracts.Banking.Query
 
-@inherits Base
+@inherits BaseComponent
+@implements IDisposable
 
-<main class="container mt-3">
+@inject IAccountProvider AccountProvider
+@inject IBankProvider BankProvider
+@inject ITransactionProvider TransactionProvider
+@inject IMessageSender MessageSender
+@inject UIHelpers UiHelpers
+
+<main class="front-page container">
     <div class="row">
-        <div class="col-lg-6 col-sm-12 mt-4">
-            <AccountsTable
-                Take="5"
-                WidgetMode="@true"
-                class="widget">
-                <h2 class="h3 float-start">Accounts</h2>
-            </AccountsTable>
+        <div class="col-12">
+            <MudButtonGroup
+                Variant="Variant.Filled"
+                Color="Color.Primary">
+                <MudButton
+                    @onclick="QueueImportTransactionsCsv"
+                    class="me-3">
+                    Import transactions
+                </MudButton>
+                <MudButton
+                    @onclick="QueueBankingTransactionsUpdated"
+                    class="me-3">
+                    Notify transactions updated
+                </MudButton>
+                <MudButton
+                    @onclick="QueueBankingAccountBalancesUpdated">
+                    Notify account balances updated
+                </MudButton>
+            </MudButtonGroup>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-lg-4 col-6 mt-4">
+            <InvestmentsWidget/>
+        </div>
+        <div class="col-lg-4 col-6 mt-4">
+            <SavingsWidget/>
+        </div>
+        <div class="col-lg-4 col-6 mt-4">
+            <BillingWidget/>
+        </div>
+        
+        <div class="row mt-3">
+            <div class="col-sm-12 col-lg-3">
+                <BanksSelect
+                    Banks="Banks"
+                    SelectedBankId="State.BankId"
+                    SelectedBankIdChanged="BankIdChanged"
+                    Disabled="@Working"/>
+            </div>
+            <div class="col-sm-12 col-lg-3">
+                <AccountsSelect
+                    Label="Account"
+                    Accounts="Accounts"
+                    @bind-SelectedAccountId="State.AccountId"
+                    Disabled="@Working"/>
+            </div>
+            <div class="col-sm-12 col-lg-3">
+                <MudSelect
+                    ReadOnly="@Working"
+                    Placeholder="Select"
+                    T="int"
+                    @bind-Value="@State.Month"
+                    Label="Month"
+                    Variant="@Constants.InputVariant"
+                    AnchorOrigin="@Origin.BottomCenter">
+                    @if (State.Months != null)
+                    {
+                        foreach (var month in State.Months)
+                        {
+                            <MudSelectItem T="int" Value="month">@TextUtils.GetMonthText(month)</MudSelectItem>
+                        }
+                    }
+                </MudSelect>
+            </div>
+            <div class="col-sm-12 col-lg-3">
+                <MudSelect
+                    ReadOnly="@Working"
+                    Placeholder="Select"
+                    T="int"
+                    @bind-Value="@State.Year"
+                    Label="Year"
+                    Variant="@Constants.InputVariant"
+                    AnchorOrigin="@Origin.BottomCenter">
+                    @if (State.Years != null)
+                    {
+                        foreach (var year in State.Years)
+                        {
+                            <MudSelectItem T="int" Value="year">@year</MudSelectItem>
+                        }
+                    }
+                </MudSelect>
+            </div>
         </div>
         <div class="col-lg-6 col-sm-12 mt-4">
-            <TransactionsTable
-                Take="5"
-                WidgetMode="@true"
-                class="widget">
-                <h2 class="h3 float-start">Transactions</h2>
-            </TransactionsTable>
+            <Widget>
+                <TransactionsTable
+                    Widget="true"
+                    Take="5"/>
+            </Widget>
         </div>
-        <div class="col-lg-6 col-sm-12 mt-4" >
-            <RecurringTransactionsTable
-                Take="5"
-                WidgetMode="@true"
-                class="widget">
-                <h2 class="h3 float-start">Recurring transactions</h2>
-            </RecurringTransactionsTable>
+        <div class="col-lg-6 col-sm-12 mt-4">
+            <Widget>
+                <AccountsTable
+                    Widget="true"
+                    Take="5"/>
+            </Widget>
+        </div>
+        <div class="col-lg-6 col-sm-12 mt-4">
+            <Widget>
+                <TransactionCategoriesTable
+                    Widget="true"
+                    Take="5"/>
+            </Widget>
+        </div>
+        <div class="col-lg-6 col-sm-12 mt-4">
+            <Widget>
+                <ScheduledTransactionsTable
+                    Widget="true"
+                    Take="5"/>
+            </Widget>
         </div>
     </div>
 </main>
+
+@code {
+    private IList<BankDto> Banks { get; set; }
+    private IList<AccountDto> Accounts { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        Working = true;
+        
+        State.Month = DateTime.Now.Month;
+        State.Year = DateTime.Now.Year;
+
+        State.Months ??= new [] { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12};
+        State.Years ??= await TransactionProvider.GetTransactionYears();
+
+        var latestYear = State.Years.Last();
+        
+        for (var year = latestYear; year < latestYear+2; year++)
+        {
+            State.Years.Add(year);
+        }
+
+        Banks = await BankProvider.GetBanks();
+        
+        Banks.Insert(0, new BankDto { Id = 0, Name = "All"});
+
+        Accounts = await AccountProvider.GetAccounts();
+        
+        Accounts.Insert(0, new AccountDto { Id = 0, Name = "All"});
+        
+        State.QueryParametersChanged += OnStateChanged;
+
+        await InvokeAsync(StateHasChanged);
+        
+        Working = false;
+    }
+
+    private async void OnStateChanged(object o, EventArgs eventArgs)
+    {
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private void QueueImportTransactionsCsv()
+    {
+        MessageSender.AddToQueue(QueueNames.ImportTransactionsCsv);
+
+        UiHelpers.ShowSnackbar("Queued message for importing transactions from CSV-file(s)", Severity.Success);
+    }
+
+    private void QueueBankingTransactionsUpdated()
+    {
+        MessageSender.AddToQueue(QueueNames.BankingTransactionsUpdated, new BankingTransactionsUpdatedBody
+        {
+            Month = State.Month,
+            Year = State.Year
+        });
+
+        UiHelpers.ShowSnackbar("Queued message for notifying consumers that transactions has been updated for selected period", Severity.Success);
+    }
+
+    private void QueueBankingAccountBalancesUpdated()
+    {
+        MessageSender.AddToQueue(QueueNames.BankingAccountsUpdated, new BankingAccountBalancesUpdatedBody
+        {
+            Month = State.Month,
+            Year = State.Year
+        });
+
+        UiHelpers.ShowSnackbar("Queued message for notifying consumers that banking account balances has been updated for selected period", Severity.Success);
+    }
+    
+    public void Dispose()
+    {
+        State.QueryParametersChanged -= OnStateChanged;
+    }
+
+    private async Task BankIdChanged(long? bankId)
+    {
+        if (bankId == null)
+        {
+            return;
+        }
+
+        Working = true;
+
+        State.BankId = bankId.Value;
+        
+        Accounts = await AccountProvider.GetAccounts(new AccountQuery { BankId = bankId });
+        Accounts.Insert(0, new AccountDto { Id = 0, Name = "All"});
+        
+        State.AccountId = Accounts.FirstOrDefault()?.Id ?? 0;
+
+        Working = false;
+    }
+
+}

@@ -1,163 +1,71 @@
 @using Banking.Providers
 @using Banking.Services
-@using Banking.Web.WebApp.Models
-@using Microsoft.AspNetCore.Components
-@using Hub.Shared.DataContracts.Banking.Dto
-@using Hub.Shared.DataContracts.Banking.SearchParameters
+@using Hub.Shared.DataContracts.Banking.Query
 @using System.Globalization
+@using Banking.Web.WebApp.Models.Form
 
-@inject ITransactionProvider _transactionProvider
-@inject ITransactionService _transactionService
-@inject IAccountProvider _accountProvider;
-@inject ISnackbar _snackbar
+@inject ITransactionProvider TransactionProvider
+@inject ITransactionService TransactionService
+@inject UIHelpers UiHelpers
 
-@inherits Dialog
+@inherits BaseComponent
 
-<MudDialog>
-    <DialogContent>
-         <section class="card">
-                 <div class="card-body">
-                     <header class="row mb-3">
-                         <div class="col-12">
-                             <h1 class="h3">Edit transaction</h1>
-                         </div>
-                     </header>
-                     @if (Transaction == null)
-                     {
-                         <p>
-                             <em>Loading...</em>
-                         </p>
-                     }
-                     else
-                     {
-                         <EditForm Model="@Transaction" OnValidSubmit="@Save">
-                             <div class="row">
-                                 <div class="col-lg-2 col-sm-12 py-1">
-                                     <label>
-                                         Direction:
-                                     </label>
-                                 </div>
-                                 <div class="col-lg-4 col-sm-12">
-                                     <InputRadioGroup @bind-Value="Transaction.TransactionDirection">
-                                         <InputRadio 
-                                             class="d-inline-block"
-                                             id="transaction-direction-in"
-                                             Value="TransactionDirection.In"
-                                             @oninput="Transaction.OnTransactionDirectionChanged"/>
-                                         <label for="transaction-direction-in" class="d-inline-block me-3">
-                                             In
-                                         </label>
-                                         <InputRadio 
-                                             class="d-inline-block"
-                                             id="transaction-direction-out"
-                                             Value="TransactionDirection.Out"
-                                             @oninput="Transaction.OnTransactionDirectionChanged"/>
-                                         <label for="transaction-direction-out" class="d-inline-block">
-                                             Out
-                                         </label>
-                                     </InputRadioGroup>
-                             
-                                 </div>
-                             </div>
-                             
-                             <div class="row mt-3">
-                                 <div class="col-lg-2 col-sm-12 py-1">
-                                     <label for="account">
-                                         Account:
-                                     </label>
-                                 </div>
-                                 <div class="col-lg-4 col-sm-12">
-                                     @if (Accounts != null)
-                                     {
-                                         <InputSelect
-                                             class="form-control"
-                                             id="account"
-                                             disabled="@_working"
-                                             @bind-Value="Transaction.AccountId">
-                                             @foreach (var account in Accounts)
-                                             {
-                                                 <option value="@account.Id">@($"{account.Name} ({account.Bank})")</option>
-                                             }
-                                         </InputSelect>
-                                     }
-                                 </div>
-                             </div>
-         
-                             <div class="row mt-3">
-                                 <div class="col-lg-2 col-sm-12 py-1">
-                                     <label for="transaction-date">
-                                         Transaction date:
-                                     </label>
-                                 </div>
-                                 <div class="col-lg-4 col-sm-12">
-                                     <InputDate
-                                         class="form-control"
-                                         id="transaction-date"
-                                         disabled="@_working"
-                                         @bind-Value="Transaction.TransactionDate"/>
-                                 </div>
-                             </div>
-         
-                             <div class="row mt-3">
-                                 <div class="col-lg-2 col-sm-12 py-1">
-                                     <label for="description">
-                                         Description:
-                                     </label>
-                                 </div>
-                                 <div class="col-lg-4 col-sm-12">
-                                     <InputText
-                                         class="form-control"
-                                         id="description"
-                                         disabled="@_working"
-                                         @oninput="Transaction.OnDescriptionInput"
-                                         @bind-Value="Transaction.Description"/>
-                                 </div>
-                             </div>
-         
-                             <div class="row mt-3">
-                                 <div class="col-lg-2 col-sm-12">
-                                     <label for="amount">
-                                         Amount:
-                                     </label>
-                                 </div>
-                                 <div class="col-lg-4 col-sm-12">
-                                     <InputNumber
-                                         class="form-control"
-                                         id="amount"
-                                         disabled="@_working"
-                                         @oninput="Transaction.OnAmountInput"
-                                         @bind-Value="Transaction.Amount"/>
-                                 </div>
-                             </div>
-                             
-                             @if (Transaction.ValidationErrors.Any(x => !string.IsNullOrEmpty(x.Value)))
-                             {
-                                 <div class="row mt-3">
-                                     <div class="col-lg-8 col-sm-12">
-                                         @foreach (var validationError in Transaction.ValidationErrors.Where(x => !string.IsNullOrEmpty(x.Value)))
-                                         {
-                                             <div class="alert alert-danger" role="alert">
-                                                 <p>@validationError.Value</p>
-                                             </div>
-                                         }
-             
-                                     </div>
-                                 </div>
-                             }
-         
-                             <div class="row mt-3">
-                                 <div class="col-6 btn-group">
-                                     <button class="btn btn-primary me-2" type="submit">Save</button>
-                                     <button class="btn btn-primary me-2" type="button" @onclick="OpenAddRecurringTransactionDialog">Add recurring transaction</button>
-                                     <button class="btn btn-danger" type="button" @onclick="Delete">Delete</button>
-                                 </div>
-                             </div>
-                         </EditForm>
-                     }
-                 </div>
-             </section>
-    </DialogContent>
-</MudDialog>
+<Dialog 
+    HeaderText="@($"{Transaction?.Description}")"
+    HeaderIcon="@IconUtils.TransactionIcon">
+
+    @if (Transaction == null)
+    {
+        <LoadingIndicator/>
+    }
+    else
+    {
+        <TransactionForm
+            Transaction="@Transaction"
+            Working="@Working">
+
+            <ValidationSummary>
+                @if (Transaction.ValidationErrors.Any(x => !string.IsNullOrEmpty(x.Value)))
+                {
+                    <div class="row mt-3">
+                        <div class="col-lg-8 col-sm-12">
+                            @foreach (var validationError in Transaction.ValidationErrors.Where(x => !string.IsNullOrEmpty(x.Value)))
+                            {
+                                <div class="alert alert-danger" role="alert">
+                                    <p>@validationError.Value</p>
+                                </div>
+                            }
+
+                        </div>
+                    </div>
+                }
+            </ValidationSummary>
+
+            <SubmitActions>
+                <EditButtons
+                    SaveAction="Save"
+                    DeleteAction="Delete"
+                    Disabled="@Working">
+                    <AdditionalButtons>
+                        <MudButton
+                            class="ms-2"
+                            Color="@Color.Primary"
+                            DisableElevation="true"
+                            Variant="@Constants.FormButtonVariant"
+                            disabled="@Working"
+                            @onclick="OpenAddScheduledTransactionDialog">
+                            <MudIcon Icon="@Icons.Filled.Loop"/>
+                            <span class="d-none d-md-block ms-2">
+                                Add scheduled transaction
+                            </span>
+                        </MudButton>
+                    </AdditionalButtons>
+                </EditButtons>
+            </SubmitActions>
+
+        </TransactionForm>
+    }
+</Dialog>
 
 
 @code {
@@ -165,26 +73,27 @@
     public string TransactionId { get; set; }
     
     [Parameter]
-    public Func<TransactionDto, Task> OnTransactionUpdated { get; set; }
+    public Func<UIHelpers, long, Task> OnTransactionUpdated { get; set; }
     
     [Parameter]
-    public Func<TransactionDto, Task> OnTransactionDeleted { get; set; }
+    public Func<UIHelpers, long, Task> OnTransactionDeleted { get; set; }
+    
+    [CascadingParameter]
+    public MudDialogInstance MudDialog { get; set; }
 
     private TransactionModel Transaction { get; set; }
-    private IList<AccountDto> Accounts { get; set; }
-    
-    private bool _working;
 
     protected override async Task OnInitializedAsync()
     {
-        Accounts = await _accountProvider.GetAccounts(new AccountSearchParameters());
-
-        var transactions = await _transactionProvider.GetTransactions(new TransactionSearchParameters { TransactionId = long.Parse(TransactionId) });
+        Working = true;
+        
+        var transactions = await TransactionProvider.GetTransactions(new TransactionQuery { Id = long.Parse(TransactionId) });
 
         var transaction = transactions.FirstOrDefault();
         
         if (transaction == null)
         {
+            Working = false;
             return;
         }
         
@@ -196,62 +105,63 @@
             Description = transaction.Description,
             Amount = transaction.Amount, 
             AccountId = transaction.AccountId,
+            TransactionSubCategoryId = transaction.TransactionSubCategoryId,
             TransactionDate = transaction.TransactionDate,
             TransactionType = transaction.TransactionType,
             TransactionId = transaction.TransactionId,
             TransactionDirection = transaction.Amount > 0 ? 
                 TransactionDirection.In : 
-                TransactionDirection.Out
+                TransactionDirection.Out,
+            Exclude = transaction.Exclude
         };
+
+        Working = false;
     }
 
     private async Task Save()
     {
+        Working = true;
+
         Transaction.Validate(out var isValid);
         
         if (!isValid)
         {
+            Working = false;
             return;
         }
         
-        _working = true;
+        await TransactionService.UpdateTransaction(Transaction, saveChanges: true);
 
-        await _transactionService.UpdateTransaction(Transaction);
-
-        await OnTransactionUpdated.Invoke(Transaction);
+        await OnTransactionUpdated.Invoke(UiHelpers, Transaction.Id);
         
-        _snackbar.Add("Transaction saved", Severity.Success);
-
-        _working = false;
+        Working = false;
 
         MudDialog.Close(DialogResult.Ok(true));
     }
     
     private async Task Delete()
     {
-        _working = true;
+        Working = true;
 
-        await _transactionService.DeleteTransaction(Transaction);
+        await TransactionService.DeleteTransaction(Transaction, saveChanges: true);
 
-        await OnTransactionDeleted.Invoke(Transaction);
+        await OnTransactionDeleted.Invoke(UiHelpers, Transaction.Id);
         
-        _snackbar.Add("Transaction deleted", Severity.Success);
-
-        _working = false;
-
-        await GoBack();
+        Working = false;
+        
+        MudDialog.Close(DialogResult.Ok(true));
     }
     
-    private async Task OpenAddRecurringTransactionDialog()
+    private async Task OpenAddScheduledTransactionDialog()
     {
         var parameters = new DialogParameters
         {
-            { nameof(AddRecurringTransactionDialog.AccountId), Transaction.AccountId.ToString(CultureInfo.InvariantCulture) },
-            { nameof(AddRecurringTransactionDialog.Description), Transaction.Description },
-            { nameof(AddRecurringTransactionDialog.Amount), Transaction.Amount.ToString(CultureInfo.InvariantCulture) },
-            { nameof(AddRecurringTransactionDialog.TransactionDate), Transaction.TransactionDate.ToString(CultureInfo.InvariantCulture) },
+            { nameof(AddScheduledTransactionDialog.TransactionSubCategoryId), Transaction.TransactionSubCategoryId.ToString() },
+            { nameof(AddScheduledTransactionDialog.Description), Transaction.Description },
+            { nameof(AddScheduledTransactionDialog.Amount), Transaction.Amount.ToString(CultureInfo.InvariantCulture) },
+            { nameof(AddScheduledTransactionDialog.TransactionDate), Transaction.TransactionDate?.ToString(CultureInfo.InvariantCulture) },
         };
         
-        await ShowDialog<AddRecurringTransactionDialog>(parameters);
+        await UiHelpers.ShowDialog<AddScheduledTransactionDialog>(parameters);
     }
 }

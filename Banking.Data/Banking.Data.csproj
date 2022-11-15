@@ -4,8 +4,8 @@
 	</PropertyGroup>
 
 	<ItemGroup>
-		<PackageReference Include="Hub.Shared.DataContracts.Banking" Version="6.2.1" />
-		<PackageReference Include="Hub.Shared.Storage.Repository" Version="6.2.0" />
+		<PackageReference Include="Hub.Shared.DataContracts.Banking" Version="7.0.0" />
+		<PackageReference Include="Hub.Shared.Storage.Repository" Version="7.0.0" />
 		<PackageReference Include="JetBrains.Annotations" Version="2021.3.0" />
 	</ItemGroup>
 

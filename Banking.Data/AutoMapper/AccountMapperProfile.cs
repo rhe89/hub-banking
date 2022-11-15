@@ -9,8 +9,13 @@ public class AccountMapperProfile : Profile
     public AccountMapperProfile()
     {
         CreateMap<Account, AccountDto>()
-            .ForMember(dest => dest.Balance,
-                opt => opt.MapFrom(x => x.CurrentBalance))
-            .ReverseMap();
+            .ForMember(dto => dto.Balance, opt => opt.Ignore())
+            .ForMember(dto => dto.BalanceDate, opt => opt.Ignore())
+            .ForMember(dto => dto.BalanceIsAccumulated, opt => opt.Ignore())
+            .ForMember(dto => dto.NoBalanceForGivenPeriod, opt => opt.Ignore())
+            .ReverseMap()
+            .ForMember(dest => dest.AccountBalance, opt => opt.Ignore())
+            .ForMember(dest => dest.Bank, opt => opt.Ignore());
+
     }
 }

@@ -1,0 +1,23 @@
+@using Hub.Shared.DataContracts.Banking.Query
+@using JetBrains.Annotations
+
+@inherits TableBaseComponent<BankQuery> 
+
+<GenericTable 
+    Widget="@Widget"
+    TableHeader="Banks"
+    TableHeaderIcon="@IconUtils.BankIcon"
+    TQuery="BankQuery"
+    Query="Query"
+    @ref="TableRef"/>
+
+@code {
+    protected override async Task OnParametersSetAsync()
+    {
+        Working = true;
+        
+        await base.OnParametersSetAsync();
+        
+        Working = false;
+    }
+}

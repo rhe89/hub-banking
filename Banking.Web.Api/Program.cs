@@ -7,9 +7,12 @@ using Microsoft.Extensions.DependencyInjection.Extensions;
 
 var builder = WebApiBuilder.CreateWebApplicationBuilder<BankingDbContext>(args, "SQL_DB_BANKING");
 
-builder.Services.TryAddTransient<IAccountProvider, AccountProvider>();
-builder.Services.TryAddTransient<ITransactionProvider, TransactionProvider>();
-builder.Services.TryAddTransient<IAccountBalanceProvider, AccountBalanceProvider>();
+builder.Services.TryAddSingleton<IAccountProvider, AccountProvider>();
+builder.Services.TryAddSingleton<IAccountBalanceProvider, AccountBalanceProvider>();
+builder.Services.TryAddSingleton<ITransactionProvider, TransactionProvider>();
+builder.Services.TryAddSingleton<IScheduledTransactionProvider, ScheduledTransactionProvider>();
+builder.Services.TryAddSingleton<IBankProvider, BankProvider>();
+builder.Services.TryAddSingleton<ITransactionCategoryProvider, TransactionCategoryProvider>();
 
 builder.Services.AddAutoMapper(c => { c.AddEntityMappingProfiles(); });
 

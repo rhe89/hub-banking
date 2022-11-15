@@ -1,0 +1,80 @@
+@using Banking.Shared
+@using Hub.Shared.DataContracts.Banking.Query
+
+@inherits BaseComponent
+
+
+<Dialog HeaderText="Bills">
+    <section class="row">
+        <div class="col-3 col-lg-2">
+            <MudText>Available: kr @BillingAccountsBalance.ToString("N2")</MudText>
+        </div>
+        <div class="col-3 col-lg-2">
+            <MudText>Paid: kr @AmountPaid.ToString("N2")</MudText>
+        </div>
+        <div class="col-3 col-lg-2">
+            <MudText>Remaining: kr @AmountRemaining.ToString("N2")</MudText>
+        </div>
+    </section>
+
+    <CascadingValue Name="UseState" Value="false">
+        @if (!MonthHasPassed)
+        {
+            <GenericTable
+                HideFilter="true"
+                TableHeader="Upcoming payments"
+                TableHeaderIcon="@Icons.Sharp.ReceiptLong"
+                TQuery="ScheduledTransactionQuery"
+                Query="UpcomingBillsQuery"
+                @ref="UpcomingBillsTableRef"/>
+        }
+        
+        <GenericTable
+            HideFilter="true"
+            TableHeader="Completed payments"
+            TableHeaderIcon="@Icons.Sharp.ReceiptLong"
+            TQuery="TransactionQuery"
+            Query="PaidBillsQuery"
+            @ref="PaidBillsTableRef"/>
+    </CascadingValue>
+</Dialog>
+
+
+@code {
+
+    [Parameter]
+    public bool Widget { get; set; }
+
+    [Parameter]
+    public ScheduledTransactionQuery UpcomingBillsQuery { get; set; }
+
+    [Parameter]
+    public TransactionQuery PaidBillsQuery { get; set; }
+
+    [Parameter]
+    public decimal BillingAccountsBalance { get; set; }
+
+    [Parameter]
+    public decimal AmountPaid { get; set; }
+
+    [Parameter]
+    public decimal AmountRemaining { get; set; }
+    
+    private GenericTable<ScheduledTransactionQuery> UpcomingBillsTableRef { get; set; }
+    private GenericTable<TransactionQuery> PaidBillsTableRef { get; set; }
+
+    private bool MonthHasPassed { get; set; } = true;
+
+    protected override void OnInitialized()
+    {
+        Working = true;
+
+        if (State.Month != 0 && State.Year != 0)
+        {
+            MonthHasPassed = DateTime.Now > DateTimeUtils.LastDayOfMonth(State.Year, State.Month);
+        }
+
+        Working = false;
+    }
+
+}

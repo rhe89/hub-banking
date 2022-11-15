@@ -1,0 +1,68 @@
+@using Banking.Services
+@using Hub.Shared.DataContracts.Banking.Constants
+@using Hub.Shared.DataContracts.Banking.Dto
+
+@inherits BaseComponent
+
+@inject IAccountService AccountService
+@inject UIHelpers UiHelpers
+
+<Dialog
+    HeaderText="Add account"
+    HeaderIcon="@IconUtils.AccountIcon">
+    
+    <AccountForm
+        Account="@Account"
+        Working="@Working">
+        <SubmitActions>
+            <AddButtons
+                SaveAndCloseAction="SaveAndClose"
+                SaveAndAddNewAction="SaveAndAddNew"
+                Disabled="@Working"/>
+        </SubmitActions>
+    </AccountForm>
+</Dialog>
+
+@code { 
+    [Parameter]
+    public Func<UIHelpers, long, Task> OnAccountAdded { get; set; }
+    
+    [CascadingParameter] 
+    public MudDialogInstance MudDialog { get; set; }
+    
+    private AccountDto Account { get; set; } = new()
+    {
+        AccountType = AccountTypes.Standard
+    };
+
+    protected override void OnInitialized()
+    {
+        Working = false;
+    }
+
+    private async Task SaveAndAddNew()
+    {
+        await Save();
+
+        Account = new AccountDto();
+    }
+
+    private async Task SaveAndClose()
+    {
+        await Save();
+        
+        MudDialog.Close(DialogResult.Ok(true));
+    }
+
+    private async Task Save()
+    {
+        Working = true;
+
+        var addedAccount = await AccountService.AddAccount(Account, saveChanges: true);
+
+        await OnAccountAdded.Invoke(UiHelpers, addedAccount.Id);
+        
+        Working = false;
+    }
+
+}
