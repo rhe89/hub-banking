@@ -25,9 +25,7 @@ public sealed class UIHelpers : ComponentBase
     public async Task ShowDialog<TDialog>()
         where TDialog : ComponentBase
     {
-        var windowSize = await _resizeService.GetBrowserWindowSize();
-        
-        var options = new DialogOptions { CloseOnEscapeKey = true, FullScreen = windowSize.Width <= 600};
+        var options = new DialogOptions { CloseOnEscapeKey = true, FullScreen = await IsDesktop()};
 
         _dialogService.Show<TDialog>(null, options);
     }
@@ -35,9 +33,7 @@ public sealed class UIHelpers : ComponentBase
     public async Task ShowDialog<TDialog>(DialogParameters dialogParameters)
         where TDialog : ComponentBase
     {
-        var windowSize = await _resizeService.GetBrowserWindowSize();
-        
-        var options = new DialogOptions { CloseOnEscapeKey = true, FullScreen = windowSize.Width <= 600};
+        var options = new DialogOptions { CloseOnEscapeKey = true, FullScreen = await IsDesktop()};
 
         _dialogService.Show<TDialog>(null, dialogParameters, options);
     }
@@ -46,9 +42,7 @@ public sealed class UIHelpers : ComponentBase
         Type component,
         DialogParameters dialogParameters)
     {
-        var windowSize = await _resizeService.GetBrowserWindowSize();
-        
-        var options = new DialogOptions { CloseOnEscapeKey = true, FullScreen = windowSize.Width <= 600};
+        var options = new DialogOptions { CloseOnEscapeKey = true, FullScreen = await IsDesktop()};
 
         _dialogService.Show(component, null, dialogParameters, options);
     }
@@ -61,5 +55,12 @@ public sealed class UIHelpers : ComponentBase
             options.ShowTransitionDuration = 200;
             options.HideTransitionDuration = 200;
         });
+    }
+
+    public async Task<bool> IsDesktop()
+    {
+        var windowSize = await _resizeService.GetBrowserWindowSize();
+
+        return windowSize.Width > 600;
     }
 }

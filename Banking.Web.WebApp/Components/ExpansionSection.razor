@@ -1,0 +1,37 @@
+@inject UIHelpers UiHelpers
+
+@if (IsDesktop)
+{
+    @ExpansionBody
+}
+else
+{
+    <MudExpansionPanel
+        IsInitiallyExpanded="false"
+        Dense="true"
+        DisableGutters="true"
+        Elevation="0">
+        <TitleContent>
+            @TitleContent
+        </TitleContent>
+        <ChildContent>
+            @ExpansionBody
+        </ChildContent>
+    </MudExpansionPanel>
+}
+
+@code {
+    [Parameter]
+    public RenderFragment TitleContent { get; set; }
+    
+    [Parameter]
+    public RenderFragment ExpansionBody { get; set; }
+
+    public bool IsDesktop { get; set; }
+    
+    protected override async Task OnInitializedAsync()
+    {
+        IsDesktop = await UiHelpers.IsDesktop();
+    }
+
+}

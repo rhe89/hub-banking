@@ -33,17 +33,13 @@
     </div>
     <div class="row mt-3">
         <div class="@Constants.FormInputCol">
-            <MudExpansionPanel
-                IsInitiallyExpanded="ExpandDetails"
-                Dense="true"
-                DisableGutters="true"
-                Elevation="0">
+            <ExpansionSection>
                 <TitleContent>
                     <h2 class="fs-4">
                         Details
                     </h2>
                 </TitleContent>
-                <ChildContent>
+                <ExpansionBody>
                     <div class="row">
                         <div class="col-12 mt-3">
                             <MudTextField
@@ -100,8 +96,8 @@
                                 @bind-Checked="Account.SharedAccount"/>
                         </div>
                     </div>
-                </ChildContent>
-            </MudExpansionPanel>
+                </ExpansionBody>
+            </ExpansionSection>
         </div>
     </div>
 

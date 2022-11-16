@@ -11161,6 +11161,10 @@ html, body {
   padding: 0;
 }
 
+.mud-layout .mud-main-content {
+  padding-top: 20px;
+}
+
 .mud-table {
   background: none;
   box-shadow: var(--mud-elevation-0) !important;
@@ -11169,9 +11173,6 @@ html, body {
 .mud-table .mud-table-toolbar,
 .mud-table .mud-table-container {
   background: #33333d;
-}
-.mud-table .header-centered h2.clickable:hover, .mud-table .header-centered .clickable.h2:hover {
-  background: #31313a;
 }
 .mud-table .mud-table-toolbar {
   padding: 20px 10px;
@@ -11183,12 +11184,21 @@ html, body {
 .mud-table .mud-table-toolbar:empty {
   display: none;
 }
-.mud-table .mud-table-pagination-toolbar {
-  margin-top: 10px;
+.mud-table .mud-table-root .mud-table-head .header-centered h2.clickable:hover, .mud-table .mud-table-root .mud-table-head .header-centered .clickable.h2:hover {
+  background: #31313a;
 }
 .mud-table .mud-table-root .mud-table-body tr:hover {
   cursor: pointer;
   background: #31313a;
+}
+.mud-table .mud-table-root .mud-table-body tr .mud-table-cell {
+  border-bottom: none;
+}
+.mud-table .mud-table-root .mud-table-foot .mud-table-cell {
+  border-bottom: none;
+}
+.mud-table .mud-table-pagination-toolbar {
+  margin-top: 10px;
 }
 
 .mud-dialog-container.mud-dialog-topcenter {
@@ -11196,6 +11206,10 @@ html, body {
 }
 .mud-dialog-container .mud-dialog {
   background-color: #33333d;
+}
+.mud-dialog-container .mud-dialog.mud-dialog-width-full {
+  width: 100%;
+  height: 100vh;
 }
 .mud-dialog-container .mud-dialog .mud-dialog-title {
   color: white;

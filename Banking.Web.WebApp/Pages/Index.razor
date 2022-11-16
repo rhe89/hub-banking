@@ -18,38 +18,107 @@
 
 <main class="front-page container">
     <div class="row">
-        <div class="col-12 col-lg-3 ms-2 ms-lg-0 mt-3 mt-lg-0">
-            <MudButton
-                class="w-100"
-                Variant="Variant.Filled"
-                Color="Color.Primary"
-                @onclick="QueueImportTransactionsCsv">
-                Import transactions
-            </MudButton>
-        </div>
-        <div class="col-12 col-lg-4 ms-2 ms-lg-0 mt-3 mt-lg-0">
-            <MudButton
-                class="w-100"
-                Variant="Variant.Filled"
-                Color="Color.Primary"
-                @onclick="QueueBankingTransactionsUpdated">
-                Notify transactions updated
-            </MudButton>
-        </div>
-        <div class="col-12 col-lg-4 ms-2 ms-lg-0 mt-3 mt-lg-0">
-            <MudButton
-                class="w-100"
-                Variant="Variant.Filled"
-                Color="Color.Primary"
-                @onclick="QueueBankingAccountBalancesUpdated">
-                Notify account balances updated
-            </MudButton>
-        </div>
-
-
+        <ExpansionSection>
+            <TitleContent>
+                <h2 class="fs-4">
+                    Actions
+                </h2>
+            </TitleContent>
+            <ExpansionBody>
+                <div class="col-12 col-lg-3 mt-lg-0">
+                    <MudButton
+                        class="w-100"
+                        Variant="Variant.Filled"
+                        Color="Color.Primary"
+                        @onclick="QueueImportTransactionsCsv">
+                        Import transactions
+                    </MudButton>
+                </div>
+                <div class="col-12 col-lg-4 mt-2 mt-lg-0">
+                    <MudButton
+                        class="w-100"
+                        Variant="Variant.Filled"
+                        Color="Color.Primary"
+                        @onclick="QueueBankingTransactionsUpdated">
+                        Notify transactions updated
+                    </MudButton>
+                </div>
+                <div class="col-12 col-lg-4 mt-2 mt-lg-0 mb-3 mb-lg-0">
+                    <MudButton
+                        class="w-100"
+                        Variant="Variant.Filled"
+                        Color="Color.Primary"
+                        @onclick="QueueBankingAccountBalancesUpdated">
+                        Notify account balances updated
+                    </MudButton>
+                </div>
+            </ExpansionBody>
+        </ExpansionSection>
     </div>
     <div class="row">
-        <div class="col-lg-4 col-12 mt-4">
+        <ExpansionSection>
+            <TitleContent>
+                <h2 class="fs-4">
+                    Filters
+                </h2>
+            </TitleContent>
+            <ExpansionBody>
+                <div class="col-sm-12 col-lg-3 mt-2 mt-lg-0">
+                    <BanksSelect
+                        Banks="Banks"
+                        SelectedBankId="State.BankId"
+                        SelectedBankIdChanged="BankIdChanged"
+                        Disabled="@Working"/>
+                </div>
+                <div class="col-sm-12 col-lg-3 mt-2 mt-lg-0">
+                    <AccountsSelect
+                        Label="Account"
+                        Accounts="Accounts"
+                        @bind-SelectedAccountId="State.AccountId"
+                        Disabled="@Working"/>
+                </div>
+                <div class="col-sm-12 col-lg-3 mt-2 mt-lg-0">
+                    <MudSelect
+                        ReadOnly="@Working"
+                        Placeholder="Select"
+                        T="int"
+                        @bind-Value="@State.Month"
+                        Label="Month"
+                        Variant="@Constants.InputVariant"
+                        AnchorOrigin="@Origin.BottomCenter">
+                        @if (State.Months != null)
+                        {
+                            foreach (var month in State.Months)
+                            {
+                                <MudSelectItem T="int" Value="month">@TextUtils.GetMonthText(month)</MudSelectItem>
+                            }
+                        }
+                    </MudSelect>
+                </div>
+                <div class="col-sm-12 col-lg-3 mt-2 mt-lg-0 mb-3 mb-lg-0">
+                    <MudSelect
+                        ReadOnly="@Working"
+                        Placeholder="Select"
+                        T="int"
+                        @bind-Value="@State.Year"
+                        Label="Year"
+                        Variant="@Constants.InputVariant"
+                        AnchorOrigin="@Origin.BottomCenter">
+                        @if (State.Years != null)
+                        {
+                            foreach (var year in State.Years)
+                            {
+                                <MudSelectItem T="int" Value="year">@year</MudSelectItem>
+                            }
+                        }
+                    </MudSelect>
+                </div>
+            </ExpansionBody>
+        </ExpansionSection>
+    </div>
+
+    <div class="row">
+        <div class="col-lg-4 col-12 mt-2 mt-lg-4">
             <InvestmentsWidget/>
         </div>
         <div class="col-lg-4 col-12 mt-4">
@@ -57,59 +126,6 @@
         </div>
         <div class="col-lg-4 col-12 mt-4">
             <BillingWidget/>
-        </div>
-
-        <div class="row mt-3">
-            <div class="col-sm-12 col-lg-3">
-                <BanksSelect
-                    Banks="Banks"
-                    SelectedBankId="State.BankId"
-                    SelectedBankIdChanged="BankIdChanged"
-                    Disabled="@Working"/>
-            </div>
-            <div class="col-sm-12 col-lg-3">
-                <AccountsSelect
-                    Label="Account"
-                    Accounts="Accounts"
-                    @bind-SelectedAccountId="State.AccountId"
-                    Disabled="@Working"/>
-            </div>
-            <div class="col-sm-12 col-lg-3">
-                <MudSelect
-                    ReadOnly="@Working"
-                    Placeholder="Select"
-                    T="int"
-                    @bind-Value="@State.Month"
-                    Label="Month"
-                    Variant="@Constants.InputVariant"
-                    AnchorOrigin="@Origin.BottomCenter">
-                    @if (State.Months != null)
-                    {
-                        foreach (var month in State.Months)
-                        {
-                            <MudSelectItem T="int" Value="month">@TextUtils.GetMonthText(month)</MudSelectItem>
-                        }
-                    }
-                </MudSelect>
-            </div>
-            <div class="col-sm-12 col-lg-3">
-                <MudSelect
-                    ReadOnly="@Working"
-                    Placeholder="Select"
-                    T="int"
-                    @bind-Value="@State.Year"
-                    Label="Year"
-                    Variant="@Constants.InputVariant"
-                    AnchorOrigin="@Origin.BottomCenter">
-                    @if (State.Years != null)
-                    {
-                        foreach (var year in State.Years)
-                        {
-                            <MudSelectItem T="int" Value="year">@year</MudSelectItem>
-                        }
-                    }
-                </MudSelect>
-            </div>
         </div>
         <div class="col-lg-6 col-sm-12 mt-4">
             <Widget>
