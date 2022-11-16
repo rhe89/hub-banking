@@ -74,7 +74,10 @@ public class AccountService : IAccountService
 
         var accountInDb =  (await _accountProvider.GetAccounts(new AccountQuery
         { 
-            AccountId = updatedAccount.Id, 
+            AccountId = updatedAccount.Id,
+            IncludeDiscontinuedAccounts = true,
+            IncludeExternalAccounts = true,
+            IncludeSharedAccounts = true
         })).First();        
         
         accountInDb.BankId = updatedAccount.BankId;

@@ -85,7 +85,10 @@
         var accounts = await AccountProvider.GetAccounts(new AccountQuery
         {
             AccountId = AccountId, 
-            BalanceToDate = DateTimeUtils.LastDayOfMonth(State.Year, State.Month)
+            BalanceToDate = DateTimeUtils.LastDayOfMonth(State.Year, State.Month),
+            IncludeDiscontinuedAccounts = true,
+            IncludeExternalAccounts = true,
+            IncludeSharedAccounts = true
         });
 
         Account = accounts.Single();

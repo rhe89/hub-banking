@@ -11191,13 +11191,18 @@ html, body {
   background: #31313a;
 }
 
-.mud-dialog {
+.mud-dialog-container.mud-dialog-topcenter {
+  padding-top: 0;
+}
+.mud-dialog-container .mud-dialog {
   background-color: #33333d;
 }
-.mud-dialog .mud-dialog-title {
+.mud-dialog-container .mud-dialog .mud-dialog-title {
   color: white;
 }
-
+.mud-dialog-container .mud-dialog .mud-dialog-content {
+  padding: 0;
+}
 .mud-button-group-root .mud-button-root.mud-icon-button {
   padding: 0 6px;
 }
@@ -11268,13 +11273,13 @@ td {
     max-width: 1000px;
   }
 }
-.mud-dialog-container.mud-dialog-topcenter {
-  padding-top: 0;
-}
-
 @media (min-width: 600px) {
   .mud-dialog-container.mud-dialog-topcenter {
     padding-top: 32px;
+  }
+  .mud-dialog-container .mud-dialog .mud-dialog-content .mud-container {
+    padding-left: 16px;
+    padding-right: 16px;
   }
 }
 

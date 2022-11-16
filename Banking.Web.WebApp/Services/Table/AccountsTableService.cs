@@ -62,6 +62,14 @@ public class AccountsTableService : TableService<AccountQuery>
         Filter.Add(new Checkbox<AccountQuery>
         {
             FilterType = FilterType.Checkbox,
+            OnChanged = OnIncludeSharedAccountsChanged,
+            Value = query.IncludeSharedAccounts,
+            Label = "Include shared accounts",
+        });
+        
+        Filter.Add(new Checkbox<AccountQuery>
+        {
+            FilterType = FilterType.Checkbox,
             OnChanged = OnIncludeExternalAccountsChanged,
             Value = query.IncludeExternalAccounts,
             Label = "Include external accounts",
@@ -91,6 +99,16 @@ public class AccountsTableService : TableService<AccountQuery>
     private Task OnIncludeDiscontinuedAccountsChanged(Checkbox<AccountQuery> checkbox, bool value, AccountQuery query)
     {
         query.IncludeDiscontinuedAccounts = value;
+        checkbox.Value = value;
+        
+        State.QueryParametersChanged.Invoke(this, EventArgs.Empty);
+        
+        return Task.CompletedTask;
+    }
+    
+    private Task OnIncludeSharedAccountsChanged(Checkbox<AccountQuery> checkbox, bool value, AccountQuery query)
+    {
+        query.IncludeSharedAccounts = value;
         checkbox.Value = value;
         
         State.QueryParametersChanged.Invoke(this, EventArgs.Empty);

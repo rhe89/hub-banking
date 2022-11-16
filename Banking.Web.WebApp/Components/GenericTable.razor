@@ -17,10 +17,9 @@
     @bind-SelectedItems="@TableService.SelectedItems"
     Breakpoint="@Breakpoint.None"
     CustomHeader="true"
+    Striped="true"
+    Bordered="false"
     @ref="MudTable">
-    <ToolBarContent>
-
-    </ToolBarContent>
     <HeaderContent>
         @if (!string.IsNullOrWhiteSpace(TableHeader))
         {
@@ -61,63 +60,57 @@
                             </div>
                         </div>
                         <div class="row">
-                            <div class="col-12">
-                                @if (TableService.Filter.Any())
+                            @if (TableService.Filter.Any())
+                            {
+                                @foreach (var filterElement in TableService.Filter)
                                 {
-                                    @foreach (var filterElement in TableService.Filter)
-                                    {
-                                        if (filterElement is InputList<TQuery> {FilterType: FilterType.Select } selectList)
+                                    <div class="col-12 col-lg-3">
+                                        @if (filterElement is InputList<TQuery> {FilterType: FilterType.Select } selectList)
                                         {
-                                            <div class="me-2 d-inline-block">
-                                                <MudSelect
-                                                    T="string"
-                                                    Disabled="@(Working || !selectList.Enabled)"
-                                                    Value="@selectList.Value"
-                                                    ValueChanged="@(value => selectList.OnChanged(selectList, value, Query))"
-                                                    Label="@selectList.Label"
-                                                    Variant="@Constants.InputVariant"
-                                                    AnchorOrigin="@Origin.BottomCenter">
-                                                    @foreach (var selectListItem in selectList.Items)
-                                                    {
-                                                        <MudSelectItem Value="@selectListItem.Value">@selectListItem.Text</MudSelectItem>
-                                                    }
-                                                </MudSelect>
-                                            </div>
+                                            <MudSelect
+                                                T="string"
+                                                Disabled="@(Working || !selectList.Enabled)"
+                                                Value="@selectList.Value"
+                                                ValueChanged="@(value => selectList.OnChanged(selectList, value, Query))"
+                                                Label="@selectList.Label"
+                                                Variant="@Constants.InputVariant"
+                                                AnchorOrigin="@Origin.BottomCenter">
+                                                @foreach (var selectListItem in selectList.Items)
+                                                {
+                                                    <MudSelectItem Value="@selectListItem.Value">@selectListItem.Text</MudSelectItem>
+                                                }
+                                            </MudSelect>
                                         }
                                         else if (filterElement is InputList<TQuery> {FilterType: FilterType.Radio } radioList)
                                         {
-                                            <div class="me-2 d-inline-block">
-                                                <MudRadioGroup
-                                                    T="string"
-                                                    SelectedOption="@radioList.Value"
-                                                    SelectedOptionChanged="@(value => radioList.OnChanged(radioList, value, Query))">
-                                                    @foreach (var radioItem in radioList.Items)
-                                                    {
-                                                        <MudRadio
-                                                            Disabled="@(Working || !radioList.Enabled)"
-                                                            Option="@radioItem.Value"
-                                                            Color="@Color.Primary">
-                                                            @radioItem.Text
-                                                        </MudRadio>
-                                                    }
-                                                </MudRadioGroup>
-                                            </div>
+                                            <MudRadioGroup
+                                                T="string"
+                                                SelectedOption="@radioList.Value"
+                                                SelectedOptionChanged="@(value => radioList.OnChanged(radioList, value, Query))">
+                                                @foreach (var radioItem in radioList.Items)
+                                                {
+                                                    <MudRadio
+                                                        Disabled="@(Working || !radioList.Enabled)"
+                                                        Option="@radioItem.Value"
+                                                        Color="@Color.Primary">
+                                                        @radioItem.Text
+                                                    </MudRadio>
+                                                }
+                                            </MudRadioGroup>
                                         }
                                         else if (filterElement is Checkbox<TQuery> {FilterType: FilterType.Checkbox } checkbox)
                                         {
-                                            <div class="me-4 d-inline-block">
-                                                <MudCheckBox
-                                                    T="bool"
-                                                    Disabled="@(Working || !checkbox.Enabled)"
-                                                    Label="@checkbox.Label"
-                                                    Checked="@checkbox.Value"
-                                                    CheckedChanged="@(value => checkbox.OnChanged(checkbox, value, Query))">
-                                                </MudCheckBox>
-                                            </div>
+                                            <MudCheckBox
+                                                T="bool"
+                                                Disabled="@(Working || !checkbox.Enabled)"
+                                                Label="@checkbox.Label"
+                                                Checked="@checkbox.Value"
+                                                CheckedChanged="@(value => checkbox.OnChanged(checkbox, value, Query))">
+                                            </MudCheckBox>
                                         }
-                                    }
+                                    </div>
                                 }
-                            </div>
+                            }
                         </div>
                     }
                 </MudTh>
@@ -160,7 +153,7 @@
                         <MudIcon
                             Icon="@childElement.Icon"
                             Size="Size.Small"
-                            class="me-1 mb-1 d-inline-block"/>
+                            class="me-1 mb-1 d-none d-lg-inline-block"/>
                     }
                     <MudText
                         class="@(childElement.Icon != null ? $"{childElement.Class} d-inline-block" : childElement.Class)"
@@ -203,6 +196,7 @@
 
 
 @code {
+
     [Inject]
     public TableService<TQuery> TableService { get; set; }
 
@@ -211,7 +205,7 @@
 
     [CascadingParameter(Name = "UseState")]
     public bool UseState { get; set; } = true;
-    
+
     [Parameter]
     public bool HideFilter { get; set; }
 
@@ -242,7 +236,7 @@
         TableService.CreateHeaderRow();
 
         State.QueryParametersChanged += OnStateChanged;
-        
+
         base.OnInitialized();
     }
 
@@ -257,7 +251,7 @@
         TableService.Widget = Widget;
         TableService.HideFilter = HideFilter;
         TableService.UseStateForQuerying = UseState;
-        
+
         return base.OnParametersSetAsync();
     }
 

@@ -1,6 +1,6 @@
 @page "/"
 @page "/index"
-@using Hub.Shared.DataContracts.Banking.Constants
+
 @using Hub.Shared.DataContracts.Banking.Dto
 @using Hub.Shared.Storage.ServiceBus
 @using Hub.Shared.Storage.ServiceBus.MessageBody
@@ -18,38 +18,47 @@
 
 <main class="front-page container">
     <div class="row">
-        <div class="col-12">
-            <MudButtonGroup
+        <div class="col-12 col-lg-3 ms-2 ms-lg-0 mt-3 mt-lg-0">
+            <MudButton
+                class="w-100"
                 Variant="Variant.Filled"
-                Color="Color.Primary">
-                <MudButton
-                    @onclick="QueueImportTransactionsCsv"
-                    class="me-3">
-                    Import transactions
-                </MudButton>
-                <MudButton
-                    @onclick="QueueBankingTransactionsUpdated"
-                    class="me-3">
-                    Notify transactions updated
-                </MudButton>
-                <MudButton
-                    @onclick="QueueBankingAccountBalancesUpdated">
-                    Notify account balances updated
-                </MudButton>
-            </MudButtonGroup>
+                Color="Color.Primary"
+                @onclick="QueueImportTransactionsCsv">
+                Import transactions
+            </MudButton>
         </div>
+        <div class="col-12 col-lg-4 ms-2 ms-lg-0 mt-3 mt-lg-0">
+            <MudButton
+                class="w-100"
+                Variant="Variant.Filled"
+                Color="Color.Primary"
+                @onclick="QueueBankingTransactionsUpdated">
+                Notify transactions updated
+            </MudButton>
+        </div>
+        <div class="col-12 col-lg-4 ms-2 ms-lg-0 mt-3 mt-lg-0">
+            <MudButton
+                class="w-100"
+                Variant="Variant.Filled"
+                Color="Color.Primary"
+                @onclick="QueueBankingAccountBalancesUpdated">
+                Notify account balances updated
+            </MudButton>
+        </div>
+
+
     </div>
     <div class="row">
-        <div class="col-lg-4 col-6 mt-4">
+        <div class="col-lg-4 col-12 mt-4">
             <InvestmentsWidget/>
         </div>
-        <div class="col-lg-4 col-6 mt-4">
+        <div class="col-lg-4 col-12 mt-4">
             <SavingsWidget/>
         </div>
-        <div class="col-lg-4 col-6 mt-4">
+        <div class="col-lg-4 col-12 mt-4">
             <BillingWidget/>
         </div>
-        
+
         <div class="row mt-3">
             <div class="col-sm-12 col-lg-3">
                 <BanksSelect
@@ -140,32 +149,32 @@
     protected override async Task OnInitializedAsync()
     {
         Working = true;
-        
+
         State.Month = DateTime.Now.Month;
         State.Year = DateTime.Now.Year;
 
-        State.Months ??= new [] { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12};
-        State.Years ??= await TransactionProvider.GetTransactionYears();
+        State.Months ??= new[] { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12 };
+        State.Years = await TransactionProvider.GetTransactionYears();
 
         var latestYear = State.Years.Last();
-        
-        for (var year = latestYear; year < latestYear+2; year++)
+
+        for (var year = latestYear + 1; year < (latestYear + 2); year++)
         {
             State.Years.Add(year);
         }
 
         Banks = await BankProvider.GetBanks();
-        
-        Banks.Insert(0, new BankDto { Id = 0, Name = "All"});
+
+        Banks.Insert(0, new BankDto { Id = 0, Name = "All" });
 
         Accounts = await AccountProvider.GetAccounts();
-        
-        Accounts.Insert(0, new AccountDto { Id = 0, Name = "All"});
-        
+
+        Accounts.Insert(0, new AccountDto { Id = 0, Name = "All" });
+
         State.QueryParametersChanged += OnStateChanged;
 
         await InvokeAsync(StateHasChanged);
-        
+
         Working = false;
     }
 
@@ -202,7 +211,7 @@
 
         UiHelpers.ShowSnackbar("Queued message for notifying consumers that banking account balances has been updated for selected period", Severity.Success);
     }
-    
+
     public void Dispose()
     {
         State.QueryParametersChanged -= OnStateChanged;
@@ -218,10 +227,10 @@
         Working = true;
 
         State.BankId = bankId.Value;
-        
+
         Accounts = await AccountProvider.GetAccounts(new AccountQuery { BankId = bankId });
-        Accounts.Insert(0, new AccountDto { Id = 0, Name = "All"});
-        
+        Accounts.Insert(0, new AccountDto { Id = 0, Name = "All" });
+
         State.AccountId = Accounts.FirstOrDefault()?.Id ?? 0;
 
         Working = false;

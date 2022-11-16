@@ -113,11 +113,26 @@ html, body {
   }
 }
 
-.mud-dialog {
-  background-color: $card-bg;
+.mud-dialog-container {
+  &.mud-dialog-topcenter {
+    padding-top: 0;
+  }
+  
+  .mud-dialog {
+    background-color: $card-bg;
 
-  .mud-dialog-title {
-    color: $text;
+    .mud-dialog-title {
+      color: $text;
+    }
+
+    .mud-dialog-content {
+      padding: 0;
+      
+      .mud-container {
+        //padding-left: 0;
+        //padding-right: 0;
+      }
+    }
   }
 }
 
@@ -198,12 +213,23 @@ td {
   }
 }
 
-.mud-dialog-container.mud-dialog-topcenter {
-  padding-top: 0;
-}
-
 @media (min-width: 600px){
-  .mud-dialog-container.mud-dialog-topcenter {
-    padding-top: 32px;
+  .mud-dialog-container {
+
+    &.mud-dialog-topcenter {
+      padding-top: 32px;
+    }
+    
+    .mud-dialog {
+      .mud-dialog-content {
+        //padding: 8px 24px;
+
+        .mud-container {
+          padding-left: 16px;
+          padding-right: 16px;
+        }
+      }
+    }
   }
+  
 }

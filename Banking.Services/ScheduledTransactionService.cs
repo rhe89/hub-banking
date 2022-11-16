@@ -121,7 +121,13 @@ public class ScheduledTransactionService : IScheduledTransactionService
             updatedScheduledTransaction.Id);
 
         var scheduledTransactionInDb =
-            (await _scheduledTransactionProvider.GetScheduledTransactions(new ScheduledTransactionQuery { Id = updatedScheduledTransaction.Id })).Single();
+            (await _scheduledTransactionProvider.GetScheduledTransactions(
+                new ScheduledTransactionQuery
+                {
+                    Id = updatedScheduledTransaction.Id, 
+                    IncludeCompletedTransactions = true
+                }))
+            .Single();
 
         scheduledTransactionInDb.TransactionSubCategoryId = updatedScheduledTransaction.TransactionSubCategoryId;
         scheduledTransactionInDb.Description = updatedScheduledTransaction.Description;
