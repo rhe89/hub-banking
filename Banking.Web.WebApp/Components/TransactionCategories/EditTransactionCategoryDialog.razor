@@ -9,7 +9,7 @@
 
 @inherits BaseComponent
 
-<Dialog 
+<Dialog
     HeaderText="@TransactionCategory?.Name"
     HeaderIcon="@IconUtils.TransactionCategoryIcon">
 
@@ -40,7 +40,7 @@
                     </div>
                 }
             </ValidationSummary>
-            
+
             <SubmitActions>
                 <EditButtons
                     SaveAction="Save"
@@ -54,34 +54,42 @@
     @if (TransactionCategory != null)
     {
         <AdditionalData>
-            <TransactionsTable
-                TransactionCategoryId="@TransactionCategoryId"/>
+            <CascadingValue Name="Query" Value="TransactionQuery">
+                <TransactionsTable/>
+            </CascadingValue>
         </AdditionalData>
     }
 </Dialog>
 
 @code {
+
     [Parameter]
     public long TransactionCategoryId { get; set; }
 
     [Parameter]
     public Func<UIHelpers, long, Task> OnTransactionCategoryUpdated { get; set; }
-    
+
     [Parameter]
     public Func<UIHelpers, long, Task> OnTransactionCategoryDeleted { get; set; }
-    
-    [CascadingParameter] 
+
+    [CascadingParameter]
     public MudDialogInstance MudDialog { get; set; }
-    
+
     private TransactionCategoryModel TransactionCategory { get; set; } = new();
+    private TransactionQuery TransactionQuery { get; set; }
 
     protected override async Task OnInitializedAsync()
     {
+    //TODO Why are all entities returned from this query? Id is set.. 
         var transactionCategoryDto = (await TransactionCategoryProvider
-            .GetTransactionCategories(new TransactionCategoryQuery { Id = TransactionCategoryId }))
-            .Single();
+            .GetTransactionCategories(new TransactionCategoryQuery { Id = TransactionCategoryId }));
 
-        TransactionCategory = TransactionCategoryModel.CreateFromDto(transactionCategoryDto);
+        TransactionCategory = TransactionCategoryModel.CreateFromDto(transactionCategoryDto.Single(x => x.Id == TransactionCategoryId));
+
+        TransactionQuery = new TransactionQuery()
+        {
+            TransactionCategoryId = TransactionCategoryId
+        };
 
         Working = false;
     }
@@ -89,9 +97,9 @@
     private async Task Save()
     {
         Working = true;
-        
+
         TransactionCategory.Validate(out var isValid);
-        
+
         if (!isValid)
         {
             Working = false;
@@ -99,11 +107,11 @@
         }
 
         await TransactionCategoryService.UpdateTransactionCategory(TransactionCategory, true);
-        
+
         Working = false;
-        
+
         MudDialog.Close(DialogResult.Ok(true));
-        
+
         await OnTransactionCategoryUpdated.Invoke(UiHelpers, TransactionCategory.Id);
     }
 
@@ -112,11 +120,12 @@
         Working = true;
 
         await TransactionCategoryService.DeleteTransactionCategory(TransactionCategory.Id, true);
-        
+
         MudDialog.Close(DialogResult.Ok(true));
 
         Working = false;
-        
+
         await OnTransactionCategoryDeleted(UiHelpers, TransactionCategory.Id);
     }
+
 }
