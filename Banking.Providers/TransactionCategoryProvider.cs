@@ -46,26 +46,26 @@ public class TransactionCategoryProvider : ITransactionCategoryProvider
         return await _dbRepository.GetAsync<TransactionSubCategory, TransactionSubCategoryDto>(GetQueryable(transactionSubCategoryQuery));
     }
     
-    private static Hub.Shared.Storage.Repository.Core.Queryable<TransactionCategory> GetQueryable(TransactionCategoryQuery transactionCategoryQuery)
+    private static Queryable<TransactionCategory> GetQueryable(TransactionCategoryQuery transactionCategoryQuery)
     {
-        return new Hub.Shared.Storage.Repository.Core.Queryable<TransactionCategory>
+        return new Queryable<TransactionCategory>
         {
             Query = transactionCategoryQuery,
             Where = transactionCategory =>
-                (transactionCategoryQuery.Id == null || transactionCategoryQuery.Id == transactionCategory.Id) &&
+                (transactionCategoryQuery.Id == transactionCategory.Id) ||
                 (transactionCategoryQuery.Name == null || transactionCategoryQuery.Name == transactionCategory.Name),
             Include = transactionCategory => transactionCategory.TransactionSubCategories,
             OrderBy = x => x.Name
         };
     }
 
-    private static Hub.Shared.Storage.Repository.Core.Queryable<TransactionSubCategory> GetQueryable(TransactionSubCategoryQuery transactionSubCategoryQuery)
+    private static Queryable<TransactionSubCategory> GetQueryable(TransactionSubCategoryQuery transactionSubCategoryQuery)
     {
-        return new Hub.Shared.Storage.Repository.Core.Queryable<TransactionSubCategory>
+        return new Queryable<TransactionSubCategory>
         {
             Query = transactionSubCategoryQuery,
             Where = transactionSubCategory =>
-                (transactionSubCategoryQuery.Id == null || transactionSubCategoryQuery.Id == transactionSubCategory.Id) &&
+                (transactionSubCategoryQuery.Id == transactionSubCategory.Id) ||
                 (transactionSubCategoryQuery.Name == null || transactionSubCategoryQuery.Name == transactionSubCategory.Name) &&
                 (transactionSubCategoryQuery.TransactionCategoryId == null || transactionSubCategoryQuery.TransactionCategoryId == transactionSubCategory.TransactionCategoryId) &&
                 (transactionSubCategoryQuery.TransactionCategoryIds == null || transactionSubCategoryQuery.TransactionCategoryIds.Any(transactionCategoryId => transactionCategoryId == transactionSubCategory.TransactionCategoryId)) &&

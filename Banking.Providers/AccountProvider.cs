@@ -101,12 +101,11 @@ public class AccountProvider : IAccountProvider
         {
             Query = accountQuery,
             Where = account =>
+                (accountQuery.Id == null || accountQuery.Id == 0 || accountQuery.Id == account.Id) &&
                 (accountQuery.AccountNumber == null || accountQuery.AccountNumber == account.AccountNumber) &&
                 (accountQuery.AccountType == null || accountQuery.AccountType == account.AccountType) &&
                 (accountQuery.AccountName == null || accountQuery.AccountName == account.Name) &&
-                (accountQuery.AccountId == null || accountQuery.AccountId == account.Id) &&
                 (accountQuery.AccountIds == null || accountQuery.AccountIds.Any(accountId => accountId == account.Id)) &&
-                (accountQuery.BankId == null || accountQuery.BankId == 0 || accountQuery.BankId == account.BankId) &&
                 (accountQuery.BankId == null || accountQuery.BankId == 0 || accountQuery.BankId == account.BankId) &&
                 (accountQuery.IncludeExternalAccounts || account.Name != account.AccountNumber) && 
                 (accountQuery.IncludeSharedAccounts || !account.SharedAccount) &&

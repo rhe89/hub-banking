@@ -33,14 +33,14 @@ public class BankProvider : IBankProvider
         return await _dbRepository.GetAsync<Bank, BankDto>(GetQueryable(bankQuery));
     }
     
-    private static Hub.Shared.Storage.Repository.Core.Queryable<Bank> GetQueryable(BankQuery bankQuery)
+    private static Queryable<Bank> GetQueryable(BankQuery bankQuery)
     {
-        return new Hub.Shared.Storage.Repository.Core.Queryable<Bank>
+        return new Queryable<Bank>
         {
             Query = bankQuery,
             Where = bank =>
+                (bankQuery.Id == bank.Id) ||
                 (bankQuery.Name == null || bankQuery.Name == bank.Name) &&
-                (bankQuery.Id == null || bankQuery.Id == bank.Id) &&
                 (bankQuery.AccountNumberPrefix == null || bankQuery.AccountNumberPrefix == bank.AccountNumberPrefix),
             OrderBy = bank => bank.Name
         };

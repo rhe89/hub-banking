@@ -85,7 +85,7 @@ public class AccountBalanceProvider : IAccountBalanceProvider
         {
             Query = accountQuery,
             Where = accountBalance =>
-                (accountQuery.Id == null || accountQuery.Id == accountBalance.Id) &&
+                (accountQuery.Id == accountBalance.Id) ||
                 (accountQuery.AccountNumber == null || accountQuery.AccountNumber == accountBalance.Account.AccountNumber) &&
                 (accountQuery.AccountType == null || accountQuery.AccountType == accountBalance.Account.AccountType) &&
                 (accountQuery.AccountName == null || accountQuery.AccountName == accountBalance.Account.Name) &&

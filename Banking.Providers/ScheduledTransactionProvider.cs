@@ -39,7 +39,7 @@ public class ScheduledTransactionProvider : IScheduledTransactionProvider
         {
             Query = scheduledTransactionQuery,
             Where = scheduledTransaction =>
-                (scheduledTransactionQuery.Id == null || scheduledTransaction.Id == scheduledTransactionQuery.Id) &&
+                (scheduledTransaction.Id == scheduledTransactionQuery.Id) ||
                 (scheduledTransactionQuery.AmountRange == null || scheduledTransaction.Amount >= scheduledTransactionQuery.AmountRange[0] && scheduledTransaction.Amount <= scheduledTransactionQuery.AmountRange[1]) &&
                 (scheduledTransactionQuery.TransactionKey == null || scheduledTransaction.TransactionKey == scheduledTransactionQuery.TransactionKey) &&
                 (scheduledTransactionQuery.TransactionSubCategoryId == null || scheduledTransaction.TransactionSubCategoryId == scheduledTransactionQuery.TransactionSubCategoryId) &&

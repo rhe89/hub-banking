@@ -124,8 +124,7 @@ public class ScheduledTransactionService : IScheduledTransactionService
             (await _scheduledTransactionProvider.GetScheduledTransactions(
                 new ScheduledTransactionQuery
                 {
-                    Id = updatedScheduledTransaction.Id, 
-                    IncludeCompletedTransactions = true
+                    Id = updatedScheduledTransaction.Id
                 }))
             .Single();
 

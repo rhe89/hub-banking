@@ -78,7 +78,7 @@
         
         CurrentSavingsBalance = (await AccountProvider.GetAccounts(accountQuery)).Sum(x => x.Balance);
 
-        var transactionQuery = new ScheduledTransactionQuery
+        var scheduledTransactionQuery = new ScheduledTransactionQuery
         {
             AccountType = AccountTypes.Saving,
             NextTransactionFromDate = DateTimeUtils.FirstDayOfMonth(State.Year, State.Month),
@@ -86,7 +86,7 @@
             IncludeCompletedTransactions = true
         };
 
-        BudgetedInvested = (await ScheduledTransactionProvider.GetScheduledTransactions(transactionQuery)).Sum(x => x.Amount);
+        BudgetedInvested = (await ScheduledTransactionProvider.GetScheduledTransactions(scheduledTransactionQuery)).Sum(x => x.Amount);
 
         IsGain = CurrentSavingsBalance >= LastMonthSavingsBalance;
 

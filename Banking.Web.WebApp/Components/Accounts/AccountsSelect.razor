@@ -95,7 +95,7 @@
     
     protected async Task OnAccountAdded(UIHelpers uiHelpers, long accountId)
     {
-        var addedAccount = (await AccountProvider.GetAccounts(new AccountQuery { AccountId = accountId })).Single();
+        var addedAccount = (await AccountProvider.GetAccounts(new AccountQuery { Id = accountId })).Single();
         
         Accounts.Insert(0, addedAccount);
         
@@ -123,7 +123,7 @@
 
     protected async Task OnAccountUpdated(UIHelpers uiHelpers, long accountId)
     {
-        var updatedAccount = (await AccountProvider.GetAccounts(new AccountQuery { AccountId = accountId })).Single();
+        var updatedAccount = (await AccountProvider.GetAccounts(new AccountQuery { Id = accountId })).Single();
         
         var existingAccount = Accounts.FirstOrDefault(account => account.Id == updatedAccount.Id);
 

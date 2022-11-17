@@ -65,7 +65,7 @@ public class TransactionProvider : ITransactionProvider
         {
             Query = transactionQuery,
             Where = transaction =>
-                (transactionQuery.Id == null || transactionQuery.Id == transaction.Id) &&
+                (transactionQuery.Id == transaction.Id) ||
                 (transactionQuery.AccountId == null || transactionQuery.AccountId == 0 || transactionQuery.AccountId == transaction.AccountId) &&
                 (transactionQuery.AccountIds == null || transactionQuery.AccountIds.Any(accountId => transaction.AccountId == accountId)) &&
                 (transactionQuery.AccountType == null || transactionQuery.AccountType == transaction.Account.AccountType) &&

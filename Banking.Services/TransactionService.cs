@@ -222,9 +222,7 @@ public class TransactionService : ITransactionService
 
         var transactionInDb = (await _transactionProvider.GetTransactions(new TransactionQuery
         {
-            Id = transaction.Id,
-            IncludeExcludedTransactions = true,
-            IncludeTransactionsFromSharedAccounts = true
+            Id = transaction.Id
         })).Single();
 
         transactionInDb.AccountId = transaction.AccountId;

@@ -79,11 +79,8 @@ public class AccountService : IAccountService
 
         var accountInDb =  (await _accountProvider.GetAccounts(new AccountQuery
         { 
-            AccountId = updatedAccount.Id,
-            BalanceToDate = DateTime.Now,
-            IncludeDiscontinuedAccounts = true,
-            IncludeExternalAccounts = true,
-            IncludeSharedAccounts = true
+            Id = updatedAccount.Id,
+            BalanceToDate = DateTime.Now
         })).First();    
         
         accountInDb.BankId = updatedAccount.BankId;
@@ -140,8 +137,7 @@ public class AccountService : IAccountService
         var currentAccountBalance = (await _accountBalanceProvider.GetAccountBalances(new AccountQuery
         {
             AccountId = accountId,
-            BalanceToDate = balanceDate,
-            IncludeExternalAccounts = true
+            BalanceToDate = balanceDate
         })).FirstOrDefault();
 
         var newAccountBalance = new AccountBalanceDto
