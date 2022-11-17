@@ -64,6 +64,11 @@ public class AccountService : IAccountService
         _logger.LogInformation("Creating account {Name}", newAccount.Name);
 
         var addedAccount = await _dbRepository.AddAsync<Account, AccountDto>(newAccount);
+
+        if (newAccount.BalanceDate != null)
+        {
+            await UpdateAccountBalance(addedAccount.Id, newAccount.BalanceDate.Value, newAccount.Balance, saveChanges);
+        }
         
         return addedAccount;
     }
@@ -75,10 +80,11 @@ public class AccountService : IAccountService
         var accountInDb =  (await _accountProvider.GetAccounts(new AccountQuery
         { 
             AccountId = updatedAccount.Id,
+            BalanceToDate = DateTime.Now,
             IncludeDiscontinuedAccounts = true,
             IncludeExternalAccounts = true,
             IncludeSharedAccounts = true
-        })).First();        
+        })).First();    
         
         accountInDb.BankId = updatedAccount.BankId;
         accountInDb.Name = updatedAccount.Name;
@@ -88,6 +94,14 @@ public class AccountService : IAccountService
         accountInDb.DiscontinuedDate = updatedAccount.DiscontinuedDate;
 
         await _dbRepository.UpdateAsync<Account, AccountDto>(accountInDb);
+        
+        if (!accountInDb.BalanceIsAccumulated && 
+            accountInDb.Balance != updatedAccount.Balance &&
+            accountInDb.BalanceDate != updatedAccount.BalanceDate &&
+            updatedAccount.BalanceDate != null)
+        {
+            await UpdateAccountBalance(accountInDb.Id, updatedAccount.BalanceDate.Value, updatedAccount.Balance, saveChanges);
+        }
 
         return true;
     }
