@@ -132,7 +132,7 @@ public class AccountsTableService : TableService<AccountQuery>
         
         var accounts = await _accountProvider.GetAccounts(accountQuery);
 
-        return accounts.Where(x => !x.NoBalanceForGivenPeriod).Take(Widget ? 5 : accounts.Count).Select(account => new TableRow
+        return accounts.Take(Widget ? 5 : accounts.Count).Select(account => new TableRow
         {
             Id = account.Id,
             Columns = new List<Column>
