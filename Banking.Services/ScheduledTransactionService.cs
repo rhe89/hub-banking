@@ -15,6 +15,7 @@ public interface IScheduledTransactionService
     Task<ScheduledTransactionDto> AddScheduledTransaction(ScheduledTransactionDto newScheduledTransaction, bool saveChanges);
     Task SetScheduledTransactionCompleted(ScheduledTransactionDto updatedScheduledTransaction, bool completed, bool saveChanges);
     Task UpdateScheduledTransaction(ScheduledTransactionDto updatedScheduledTransaction, bool saveChanges);
+    Task AddOrUpdateScheduledTransaction(ScheduledTransactionDto scheduledTransaction, bool saveChanges);
     Task DeleteScheduledTransaction(ScheduledTransactionDto scheduledTransaction, bool saveChanges);
     Task SaveChanges();
 }
@@ -134,14 +135,10 @@ public class ScheduledTransactionService : IScheduledTransactionService
         scheduledTransactionInDb.Occurrence = updatedScheduledTransaction.Occurrence;
         scheduledTransactionInDb.Amount = updatedScheduledTransaction.Amount;
         scheduledTransactionInDb.Completed = updatedScheduledTransaction.Completed;
+        scheduledTransactionInDb.NextTransactionDate = updatedScheduledTransaction.NextTransactionDate;
 
-        if (scheduledTransactionInDb.NextTransactionDate != updatedScheduledTransaction.NextTransactionDate)
-        {
-            scheduledTransactionInDb.NextTransactionDate = updatedScheduledTransaction.NextTransactionDate;
-
-            await DeleteScheduledTransactions(scheduledTransactionInDb.TransactionKey, scheduledTransactionInDb.Id, saveChanges);
-            await FillScheduledTransactionForPeriod(scheduledTransactionInDb, DateTime.Now.AddYears(3), saveChanges);
-        }
+        await DeleteNewerScheduledTransactions(scheduledTransactionInDb.TransactionKey, scheduledTransactionInDb.Id, scheduledTransactionInDb.NextTransactionDate, saveChanges);
+        await FillScheduledTransactionForPeriod(scheduledTransactionInDb, DateTime.Now.AddYears(3), saveChanges);
 
         _dbRepository.QueueUpdate<ScheduledTransaction, ScheduledTransactionDto>(scheduledTransactionInDb);
 
@@ -151,14 +148,40 @@ public class ScheduledTransactionService : IScheduledTransactionService
         }
     }
 
-    private async Task DeleteScheduledTransactions(Guid transactionKey, long originalScheduledTransactionId, bool saveChanges)
+    public async Task AddOrUpdateScheduledTransaction(ScheduledTransactionDto scheduledTransaction, bool saveChanges)
+    {
+        var existingScheduledTransaction = (await _scheduledTransactionProvider.GetScheduledTransactions(new ScheduledTransactionQuery
+        {
+            Description = scheduledTransaction.Description
+        })).FirstOrDefault();
+
+        if (existingScheduledTransaction == null)
+        {
+            await AddScheduledTransaction(scheduledTransaction, saveChanges);
+        }
+        else
+        {
+            existingScheduledTransaction.Amount = scheduledTransaction.Amount;
+            existingScheduledTransaction.NextTransactionDate = scheduledTransaction.NextTransactionDate;
+            existingScheduledTransaction.AccountType = scheduledTransaction.AccountType;
+
+            await UpdateScheduledTransaction(existingScheduledTransaction, saveChanges);
+        }
+    }
+
+    private async Task DeleteNewerScheduledTransactions(
+        Guid transactionKey, 
+        long originalScheduledTransactionId, 
+        DateTime notBeforeDate,
+        bool saveChanges)
     {
         var scheduledTransactions = await _scheduledTransactionProvider.GetScheduledTransactions(new ScheduledTransactionQuery
         {
-            TransactionKey = transactionKey
+            TransactionKey = transactionKey,
         });
 
-        scheduledTransactions = scheduledTransactions.Where(x => x.Id != originalScheduledTransactionId).ToList();
+        scheduledTransactions = scheduledTransactions
+            .Where(x => x.Id != originalScheduledTransactionId && notBeforeDate < x.NextTransactionDate).ToList();
 
         foreach (var scheduledTransaction in scheduledTransactions)
         {

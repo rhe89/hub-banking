@@ -1,4 +1,5 @@
 using Banking.Data.Entities;
+using Hub.Shared.Settings;
 using Hub.Shared.Storage.Repository;
 using Microsoft.EntityFrameworkCore;
 
@@ -27,8 +28,8 @@ public class BankingDbContext : HubDbContext
         builder.Entity<Transaction>()
             .ToTable(schema: "dbo", name: "Transaction");
         
-        builder.Entity<Preference>()
-            .ToTable(schema: "dbo", name: "Preference");
+        builder.Entity<Setting>()
+            .ToTable(schema: "dbo", name: "Setting");
         
         builder.Entity<ScheduledTransaction>()
             .ToTable(schema: "dbo", name: "RecurringTransaction");

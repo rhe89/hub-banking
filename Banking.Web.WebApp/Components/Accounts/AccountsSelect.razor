@@ -32,7 +32,7 @@
             class="col-3 col-sm-2 d-widget-none d-front-page-none"
             Size="@Size.Small"
             DisableElevation="true"
-            OverrideStyles="@false">
+            OverrideStyles="false">
             <MudIconButton
                 Disabled="@(SelectedAccountId == 0)"
                 Color="@Color.Primary"
@@ -68,7 +68,12 @@
     {
         Working = true;
         
-        Accounts ??= await AccountProvider.GetAccounts();
+        Accounts ??= await AccountProvider.GetAccounts(new AccountQuery
+        {
+            IncludeDiscontinuedAccounts = true,
+            IncludeExternalAccounts = true,
+            IncludeSharedAccounts = true
+        });
         
         if (BankId != null)
         {

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Banking.Providers;
+using Banking.Shared;
 using Banking.Web.WebApp.Components.TransactionCategories;
 using Banking.Web.WebApp.Shared;
 using Hub.Shared.DataContracts.Banking.Query;
@@ -13,19 +14,22 @@ namespace Banking.Web.WebApp.Services.Table;
 public class TransactionCategoriesTableService : TableService<TransactionCategoryQuery>
 {
     private readonly ITransactionCategoryProvider _transactionCategoryProvider;
+    private readonly ITransactionProvider _transactionProvider;
     public override Func<UIHelpers, long, Task> OnRowClicked => OpenEditItemDialog;
 
     public TransactionCategoriesTableService(
         ITransactionCategoryProvider transactionCategoryProvider, 
+        ITransactionProvider transactionProvider,
         State state) : base(state)
     {
         _transactionCategoryProvider = transactionCategoryProvider;
+        _transactionProvider = transactionProvider;
     }
 
     public override void CreateHeaderRow()
     {
         HeaderRow.Add(new Column { ColumnText = new ColumnText { Text = "Name" } });
-        HeaderRow.Add(new Column { ColumnText = new ColumnText { Text = "Sub categories" } });
+        HeaderRow.Add(new Column { ColumnText = new ColumnText { Text = "Amount" } });
     }
 
     public override Task CreateFilters(TransactionCategoryQuery transactionCategoryQuery)
@@ -38,8 +42,17 @@ public class TransactionCategoriesTableService : TableService<TransactionCategor
         transactionCategoryQuery.Take = Widget ? 5 : null;
 
         var transactionCategories = await _transactionCategoryProvider.GetTransactionCategories(transactionCategoryQuery);
-        var transactionSubCategories = await _transactionCategoryProvider.GetTransactionSubCategories();
 
+        var transactionQuery = new TransactionQuery();
+
+        if (UseStateForQuerying)
+        {
+            transactionQuery.FromDate = DateTimeUtils.FirstDayOfMonth(State.Year, State.Month);
+            transactionQuery.ToDate = DateTimeUtils.LastDayOfMonth(State.Year, State.Month);
+        }
+        
+        var transactions = await _transactionProvider.GetTransactions(transactionQuery);
+        
         return transactionCategories.Select(transactionCategory => new TableRow
         {
             Id = transactionCategory.Id,
@@ -53,10 +66,9 @@ public class TransactionCategoriesTableService : TableService<TransactionCategor
                 {
                     ColumnText = new ColumnText
                     {
-                        Text = string.Join(", ", transactionSubCategories
-                                               .Where(transactionSubCategory =>
-                                                          transactionSubCategory.TransactionCategoryId == transactionCategory.Id)
-                                               .Select(x => x.Name))
+                        Text = transactions
+                            .Where(x => transactionCategory.TransactionSubCategories
+                                       .Any(tsc => tsc.Id == x.TransactionSubCategoryId)).Sum(x => x.Amount).ToString("N2")
                     }
                 }
             }

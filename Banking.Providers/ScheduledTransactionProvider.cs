@@ -3,7 +3,6 @@ using System.Threading.Tasks;
 using Banking.Data.Entities;
 using Hub.Shared.DataContracts.Banking.Dto;
 using Hub.Shared.DataContracts.Banking.Query;
-using Hub.Shared.Storage.Repository;
 using Hub.Shared.Storage.Repository.Core;
 
 namespace Banking.Providers;
@@ -33,13 +32,17 @@ public class ScheduledTransactionProvider : IScheduledTransactionProvider
         return await _dbRepository.GetAsync<ScheduledTransaction, ScheduledTransactionDto>(GetQueryable(scheduledTransactionQuery));
     }
     
-    private static Queryable<ScheduledTransaction> GetQueryable(ScheduledTransactionQuery scheduledTransactionQuery)
+    private Queryable<ScheduledTransaction> GetQueryable(ScheduledTransactionQuery scheduledTransactionQuery)
     {
+        if (scheduledTransactionQuery.Id != null)
+        {
+            scheduledTransactionQuery.IncludeCompletedTransactions = true;
+        }
+        
         return new Queryable<ScheduledTransaction>
         {
-            Query = scheduledTransactionQuery,
             Where = scheduledTransaction =>
-                (scheduledTransaction.Id == scheduledTransactionQuery.Id) ||
+                (scheduledTransactionQuery.Id == null || scheduledTransactionQuery.Id == scheduledTransaction.Id) &&
                 (scheduledTransactionQuery.AmountRange == null || scheduledTransaction.Amount >= scheduledTransactionQuery.AmountRange[0] && scheduledTransaction.Amount <= scheduledTransactionQuery.AmountRange[1]) &&
                 (scheduledTransactionQuery.TransactionKey == null || scheduledTransaction.TransactionKey == scheduledTransactionQuery.TransactionKey) &&
                 (scheduledTransactionQuery.TransactionSubCategoryId == null || scheduledTransaction.TransactionSubCategoryId == scheduledTransactionQuery.TransactionSubCategoryId) &&
@@ -48,7 +51,9 @@ public class ScheduledTransactionProvider : IScheduledTransactionProvider
                 (string.IsNullOrEmpty(scheduledTransactionQuery.Description) || scheduledTransaction.Text.Contains(scheduledTransactionQuery.Description)) &&
                 (string.IsNullOrEmpty(scheduledTransactionQuery.AccountType) || scheduledTransaction.AccountType == scheduledTransactionQuery.AccountType) &&
                 (scheduledTransactionQuery.IncludeCompletedTransactions || !scheduledTransaction.Completed),
-            OrderBy = scheduledTransaction => scheduledTransaction.NextTransactionDate
+            OrderBy = scheduledTransaction => scheduledTransaction.NextTransactionDate,
+            Take = scheduledTransactionQuery.Take,
+            Skip = scheduledTransactionQuery.Skip
         };
     }
 }

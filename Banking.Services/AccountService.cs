@@ -6,7 +6,6 @@ using Banking.Providers;
 using Hub.Shared.DataContracts.Banking.Dto;
 using Hub.Shared.DataContracts.Banking.Query;
 using Hub.Shared.Storage.Repository;
-using Hub.Shared.Storage.Repository.Core;
 using Hub.Shared.Storage.ServiceBus;
 using Microsoft.Extensions.Logging;
 
@@ -16,33 +15,32 @@ public interface IAccountService
 {
     Task<AccountDto> AddAccount(AccountDto newAccount, bool saveChanges);
     Task<bool> UpdateAccount(AccountDto updatedAccount, bool saveChanges);
+
     Task<AccountDto> GetOrAddAccount(
         string name,
         string accountType,
         string accountNumber);
-    Task<bool> UpdateAccountBalance(long accountId, DateTime balanceDate, decimal amount, bool saveChanges);
-    Task DeleteAccount(AccountDto account, bool saveChanges);
+
+    Task DeleteAccount(AccountDto account);
+    Task SaveChanges();
 }
 
 public class AccountService : IAccountService
 {
-    private readonly IHubDbRepository _dbRepository;
+    private readonly ICacheableHubDbRepository _dbRepository;
     private readonly IAccountProvider _accountProvider;
-    private readonly IAccountBalanceProvider _accountBalanceProvider;
     private readonly IBankService _bankService;
     private readonly IMessageSender _messageSender;
     private readonly ILogger<AccountService> _logger;
 
-    public AccountService(IHubDbRepository dbRepository, 
+    public AccountService(ICacheableHubDbRepository dbRepository, 
                           IAccountProvider accountProvider,
-                          IAccountBalanceProvider accountBalanceProvider,
                           IBankService bankService,
                           IMessageSender messageSender,
                           ILogger<AccountService> logger)
     {
         _dbRepository = dbRepository;
         _accountProvider = accountProvider;
-        _accountBalanceProvider = accountBalanceProvider;
         _bankService = bankService;
         _messageSender = messageSender;
         _logger = logger;
@@ -70,6 +68,8 @@ public class AccountService : IAccountService
             await UpdateAccountBalance(addedAccount.Id, newAccount.BalanceDate.Value, newAccount.Balance, saveChanges);
         }
         
+        await NotifyConsumers();
+
         return addedAccount;
     }
 
@@ -77,12 +77,12 @@ public class AccountService : IAccountService
     {
         _logger.LogInformation("Updating account {Name} (Id: {Id})", updatedAccount.Name, updatedAccount.Id);
 
-        var accountInDb =  (await _accountProvider.GetAccounts(new AccountQuery
-        { 
+        var accountInDb = (await _accountProvider.GetAccounts(new AccountQuery
+        {
             Id = updatedAccount.Id,
             BalanceToDate = DateTime.Now
-        })).First();    
-        
+        })).First();
+
         accountInDb.BankId = updatedAccount.BankId;
         accountInDb.Name = updatedAccount.Name;
         accountInDb.AccountNumber = updatedAccount.AccountNumber;
@@ -90,16 +90,24 @@ public class AccountService : IAccountService
         accountInDb.SharedAccount = updatedAccount.SharedAccount;
         accountInDb.DiscontinuedDate = updatedAccount.DiscontinuedDate;
 
-        await _dbRepository.UpdateAsync<Account, AccountDto>(accountInDb);
-        
         if (!accountInDb.BalanceIsAccumulated && 
-            accountInDb.Balance != updatedAccount.Balance &&
             accountInDb.BalanceDate != updatedAccount.BalanceDate &&
             updatedAccount.BalanceDate != null)
         {
             await UpdateAccountBalance(accountInDb.Id, updatedAccount.BalanceDate.Value, updatedAccount.Balance, saveChanges);
         }
 
+        if (saveChanges)
+        {
+            await _dbRepository.UpdateAsync<Account, AccountDto>(accountInDb);
+            await NotifyConsumers();
+        }
+        else
+        {
+            _dbRepository.QueueUpdate<Account, AccountDto>(accountInDb);
+        }
+
+        
         return true;
     }
     
@@ -132,43 +140,44 @@ public class AccountService : IAccountService
         return await AddAccount(newAccount, true);
     }
     
-    public async Task<bool> UpdateAccountBalance(long accountId, DateTime balanceDate, decimal amount, bool saveChanges)
+    private async Task UpdateAccountBalance(long accountId, DateTime balanceDate, decimal balance, bool saveChanges)
     {
-        var currentAccountBalance = (await _accountBalanceProvider.GetAccountBalances(new AccountQuery
-        {
-            AccountId = accountId,
-            BalanceToDate = balanceDate
-        })).FirstOrDefault();
-
         var newAccountBalance = new AccountBalanceDto
         {
             AccountId = accountId,
             BalanceDate = balanceDate,
-            Balance = (currentAccountBalance?.Balance ?? 0) + amount
+            Balance = balance
         };
+
+        if (saveChanges)
+        {
+            await _dbRepository.AddAsync<AccountBalance, AccountBalanceDto>(newAccountBalance);
+        }
+        else
+        {
+            _dbRepository.QueueAdd<AccountBalance, AccountBalanceDto>(newAccountBalance);
+        }
         
-        await _dbRepository.AddAsync<AccountBalance, AccountBalanceDto>(newAccountBalance);
-        
-        return true;
     }
 
-    public async Task DeleteAccount(AccountDto account, bool saveChanges)
+    public async Task DeleteAccount(AccountDto account)
     {
         _logger.LogInformation("Deleting account {Name} (Id: {Id})", account.Name, account.Id);
 
-        _dbRepository.QueueRemove<Account, AccountDto>(account);
-        
-        if (saveChanges)
-        {
-            await _dbRepository.ExecuteQueueAsync();
-        }
+        await _dbRepository.RemoveAsync<Account, AccountDto>(account);
     }
 
-    private async Task SaveChanges()
+    public async Task SaveChanges()
     {
         await _dbRepository.ExecuteQueueAsync();
 
+        await NotifyConsumers();
+    }
+
+    private async Task NotifyConsumers()
+    {
         await _messageSender.AddToQueue(QueueNames.BankingAccountsUpdated);
         await _messageSender.AddToQueue(QueueNames.BankingAccountBalanceHistoryUpdated);
+        await _messageSender.AddToQueue(QueueNames.CalculateCreditCardPayments);
     }
 }

@@ -58,20 +58,25 @@ public class TransactionProvider : ITransactionProvider
             .OrderBy(month => month)
             .ToList();
     }
-    
-    private static Queryable<Transaction> GetQueryable(TransactionQuery transactionQuery)
+
+    private Queryable<Transaction> GetQueryable(TransactionQuery transactionQuery)
     {
+        if (transactionQuery.Id != null)
+        {
+            transactionQuery.IncludeExcludedTransactions = true;
+            transactionQuery.IncludeTransactionsFromSharedAccounts = true;
+        }
+        
         return new Queryable<Transaction>
         {
-            Query = transactionQuery,
             Where = transaction =>
-                (transactionQuery.Id == transaction.Id) ||
+                (transactionQuery.Id == null || transactionQuery.Id == transaction.Id) &&
                 (transactionQuery.AccountId == null || transactionQuery.AccountId == 0 || transactionQuery.AccountId == transaction.AccountId) &&
                 (transactionQuery.AccountIds == null || transactionQuery.AccountIds.Any(accountId => transaction.AccountId == accountId)) &&
                 (transactionQuery.AccountType == null || transactionQuery.AccountType == transaction.Account.AccountType) &&
                 (transactionQuery.AccountName == null || transactionQuery.AccountName == transaction.Account.Name) &&
-                (transactionQuery.IncludeTransactionsFromSharedAccounts || !transaction.Account.SharedAccount) &&
-                (transactionQuery.IncludeExcludedTransactions || !transaction.Exclude) &&
+                (transactionQuery.IncludeTransactionsFromSharedAccounts == true || !transaction.Account.SharedAccount) &&
+                (transactionQuery.IncludeExcludedTransactions == true || !transaction.Exclude) &&
                 (transactionQuery.BankId == null || transactionQuery.BankId == 0 || transactionQuery.BankId == transaction.Account.BankId) &&
                 (transactionQuery.TransactionSubCategoryId == null || transactionQuery.TransactionSubCategoryId == transaction.TransactionSubCategoryId) &&
                 (transactionQuery.TransactionCategoryId == null || transactionQuery.TransactionCategoryId == transaction.TransactionSubCategory.TransactionCategoryId) &&
@@ -89,7 +94,9 @@ public class TransactionProvider : ITransactionProvider
                 transaction => transaction.TransactionSubCategory,
                 transaction => transaction.TransactionSubCategory.TransactionCategory
             },
-            OrderByDescending = x => x.TransactionDate
+            OrderByDescending = x => x.TransactionDate,
+            Take = transactionQuery.Take,
+            Skip = transactionQuery.Skip
         };
     }
 }

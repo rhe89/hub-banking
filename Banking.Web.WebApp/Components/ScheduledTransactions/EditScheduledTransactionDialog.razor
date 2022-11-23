@@ -76,13 +76,7 @@
         var scheduledTransactions = await ScheduledTransactionProvider
             .GetScheduledTransactions(new ScheduledTransactionQuery { Id = ScheduledTransactionId });
 
-        var scheduledTransaction = scheduledTransactions.FirstOrDefault();
-
-        if (scheduledTransaction == null)
-        {
-            Working = false;
-            return;
-        }
+        var scheduledTransaction = scheduledTransactions.Single();
 
         ScheduledTransaction = new ScheduledTransactionModel
         {

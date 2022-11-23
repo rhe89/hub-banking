@@ -30,22 +30,7 @@
                     SaveAction="Save"
                     DeleteAction="Delete"
                     Disabled="Working"
-                    DisableDelete="true">
-                    <AdditionalButtons>
-                        <MudButton
-                            class="ms-2"
-                            Color="@Color.Primary"
-                            DisableElevation="true"
-                            Variant="@Constants.FormButtonVariant"
-                            Disabled="Working"
-                            @onclick="UpdateAccountBalance">
-                            <MudIcon Icon="@Icons.Sharp.Money"/>
-                            <span class="ms-2 d-none d-md-block">
-                                Update account balance
-                            </span>
-                        </MudButton>
-                    </AdditionalButtons>
-                </EditButtons>
+                    DisableDelete="true"/>
             </SubmitActions>
         </AccountForm>
     }
@@ -79,6 +64,8 @@
 
     private AccountDto Account { get; set; }
     private TransactionQuery TransactionQuery { get; set; }
+    
+    private DateTime? OriginalBalanceDate { get; set; }
 
     protected override async Task OnInitializedAsync()
     {
@@ -89,6 +76,8 @@
         });
 
         Account = accounts.Single();
+
+        OriginalBalanceDate = Account.BalanceDate;
 
         TransactionQuery = new TransactionQuery
         {
@@ -101,37 +90,27 @@
         Working = false;
     }
     
-    private async Task UpdateAccountBalance()
-    {
-        Working = true;
-
-        await AccountService.UpdateAccountBalance(Account.Id, Account.BalanceDate ?? DateTime.Now, Account.Balance, saveChanges: true);
-        
-        await OnAccountUpdated.Invoke(UiHelpers, Account.Id);
-
-        Working = false;
-
-        MudDialog.Close(DialogResult.Ok(true));
-    }
-
     private async Task Save()
     {
         Working = true;
+
+        if (OriginalBalanceDate == Account.BalanceDate)
+        {
+            Account.BalanceDate = DateTime.Now;
+        }
 
         await AccountService.UpdateAccount(Account, saveChanges: true);
 
         await OnAccountUpdated.Invoke(UiHelpers, Account.Id);
 
         Working = false;
-
-        MudDialog.Close(DialogResult.Ok(true));
     }
 
     private async Task Delete()
     {
         Working = true;
 
-        await AccountService.DeleteAccount(Account, true);
+        await AccountService.DeleteAccount(Account);
 
         Working = false;
 

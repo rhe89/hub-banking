@@ -10,25 +10,25 @@
 @inherits BaseComponent
 
 <Dialog
-    HeaderText="@TransactionCategory?.Name"
+    HeaderText="@TransactionSubCategory?.Name"
     HeaderIcon="@IconUtils.TransactionCategoryIcon">
 
-    @if (TransactionCategory == null)
+    @if (TransactionSubCategory == null)
     {
         <LoadingIndicator/>
     }
     else
     {
-        <TransactionCategoryForm
-            TransactionCategory="@TransactionCategory"
+        <TransactionSubCategoryForm
+            TransactionSubCategory="@TransactionSubCategory"
             Working="@Working">
 
             <ValidationSummary>
-                @if (TransactionCategory.ValidationErrors.Any(x => !string.IsNullOrEmpty(x.Value)))
+                @if (TransactionSubCategory.ValidationErrors.Any(x => !string.IsNullOrEmpty(x.Value)))
                 {
                     <div class="row mt-3">
                         <div class="col-lg-8 col-sm-12">
-                            @foreach (var validationError in TransactionCategory.ValidationErrors.Where(x => !string.IsNullOrEmpty(x.Value)))
+                            @foreach (var validationError in TransactionSubCategory.ValidationErrors.Where(x => !string.IsNullOrEmpty(x.Value)))
                             {
                                 <div class="alert alert-danger" role="alert">
                                     <p>@validationError.Value</p>
@@ -47,15 +47,12 @@
                     Disabled="@Working"
                     DisableDelete="true"/>
             </SubmitActions>
-        </TransactionCategoryForm>
+        </TransactionSubCategoryForm>
     }
 
-    @if (TransactionCategory != null)
+    @if (TransactionSubCategory != null)
     {
         <AdditionalData>
-            <CascadingValue Name="Query" Value="TransactionSubCategoryQuery">
-                <TransactionSubCategoriesTable/>
-            </CascadingValue>
             <CascadingValue Name="Query" Value="TransactionQuery">
                 <TransactionsTable/>
             </CascadingValue>
@@ -66,37 +63,30 @@
 @code {
 
     [Parameter]
-    public long TransactionCategoryId { get; set; }
+    public long TransactionSubCategoryId { get; set; }
 
     [Parameter]
-    public Func<UIHelpers, long, Task> OnTransactionCategoryUpdated { get; set; }
+    public Func<UIHelpers, long, Task> OnTransactionSubCategoryUpdated { get; set; }
 
     [Parameter]
-    public Func<UIHelpers, long, Task> OnTransactionCategoryDeleted { get; set; }
+    public Func<UIHelpers, long, Task> OnTransactionSubCategoryDeleted { get; set; }
 
     [CascadingParameter]
     public MudDialogInstance MudDialog { get; set; }
 
-    private TransactionCategoryModel TransactionCategory { get; set; } = new();
+    private TransactionSubCategoryModel TransactionSubCategory { get; set; } = new();
     private TransactionQuery TransactionQuery { get; set; }
-    private TransactionSubCategoryQuery TransactionSubCategoryQuery { get; set; }
 
     protected override async Task OnInitializedAsync()
     {
-    //TODO Why are all entities returned from this query? Id is set.. 
-        var transactionCategoryDto = (await TransactionCategoryProvider
-            .GetTransactionCategories(new TransactionCategoryQuery { Id = TransactionCategoryId }));
+        var transactionSubCategoryDto = (await TransactionCategoryProvider
+            .GetTransactionSubCategories(new TransactionSubCategoryQuery { Id = TransactionSubCategoryId }));
 
-        TransactionCategory = TransactionCategoryModel.CreateFromDto(transactionCategoryDto.Single(x => x.Id == TransactionCategoryId));
+        TransactionSubCategory = TransactionSubCategoryModel.CreateFromDto(transactionSubCategoryDto.Single(x => x.Id == TransactionSubCategoryId));
 
         TransactionQuery = new TransactionQuery
         {
-            TransactionCategoryId = TransactionCategoryId
-        };
-
-        TransactionSubCategoryQuery = new TransactionSubCategoryQuery
-        {
-            TransactionCategoryId = TransactionCategoryId
+            TransactionSubCategoryId = TransactionSubCategoryId
         };
 
         Working = false;
@@ -106,7 +96,7 @@
     {
         Working = true;
 
-        TransactionCategory.Validate(out var isValid);
+        TransactionSubCategory.Validate(out var isValid);
 
         if (!isValid)
         {
@@ -114,26 +104,26 @@
             return;
         }
 
-        await TransactionCategoryService.UpdateTransactionCategory(TransactionCategory, true);
+        await TransactionCategoryService.UpdateTransactionSubCategory(TransactionSubCategory, true);
 
         Working = false;
 
         MudDialog.Close(DialogResult.Ok(true));
 
-        await OnTransactionCategoryUpdated.Invoke(UiHelpers, TransactionCategory.Id);
+        await OnTransactionSubCategoryUpdated.Invoke(UiHelpers, TransactionSubCategory.Id);
     }
 
     private async Task Delete()
     {
         Working = true;
 
-        await TransactionCategoryService.DeleteTransactionCategory(TransactionCategory.Id, true);
+        await TransactionCategoryService.DeleteTransactionSubCategory(TransactionSubCategory.Id, true);
 
         MudDialog.Close(DialogResult.Ok(true));
 
         Working = false;
 
-        await OnTransactionCategoryDeleted(UiHelpers, TransactionCategory.Id);
+        await OnTransactionSubCategoryDeleted(UiHelpers, TransactionSubCategory.Id);
     }
 
 }

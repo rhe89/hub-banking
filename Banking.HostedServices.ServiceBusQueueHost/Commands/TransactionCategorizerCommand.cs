@@ -7,14 +7,14 @@ using Microsoft.Extensions.Logging;
 
 namespace Banking.HostedServices.ServiceBusQueueHost.Commands;
 
-public class CategorizeTransactionsCommand : ServiceBusQueueCommand
+public class TransactionCategorizerCommand : ServiceBusQueueCommand
 {
     private readonly ITransactionService _transactionService;
-    private readonly ILogger<CategorizeTransactionsCommand> _logger;
+    private readonly ILogger<TransactionCategorizerCommand> _logger;
 
-    public CategorizeTransactionsCommand(
+    public TransactionCategorizerCommand(
         ITransactionService transactionService,
-        ILogger<CategorizeTransactionsCommand> logger)
+        ILogger<TransactionCategorizerCommand> logger)
     {
         _transactionService = transactionService;
         _logger = logger;

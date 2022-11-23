@@ -8,6 +8,8 @@
 
 @inherits BaseComponent
 
+@inject IAccountProvider AccountProvider
+
 <EditForm Model="@Transaction">
     <div class="row">
         <div class="@Constants.FormInputCol">
@@ -36,6 +38,7 @@
             <AccountsSelect 
                 Label="Account"
                 Disabled="Working"
+                Accounts="Accounts"
                 @bind-SelectedAccountId="Transaction.AccountId"/>
         </div>
     </div>
@@ -104,7 +107,7 @@
         <div class="row mt-3">
             <MudButtonGroup
                 class="col-lg-6 col-sm-12"
-                OverrideStyles="@false">
+                OverrideStyles="false">
                 @SubmitActions
             </MudButtonGroup>
         </div>
@@ -123,4 +126,20 @@
 
     [Parameter]
     public RenderFragment SubmitActions { get; set; }
+
+    public IList<AccountDto> Accounts { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (Transaction.AccountId != 0)
+        {
+            Accounts = await AccountProvider.GetAccounts(new AccountQuery
+            {
+                IncludeDiscontinuedAccounts = true,
+                IncludeExternalAccounts = true,
+                IncludeSharedAccounts = true
+            });
+        }
+    }
+
 }

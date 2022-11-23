@@ -7,11 +7,11 @@ using Microsoft.Extensions.Logging;
 
 namespace Banking.HostedServices.ServiceBusQueueHost.QueueListenerServices;
 
-public class CategorizeTransactionsQueueListener : ServiceBusHostedService
+public class TransactionCategorizer : ServiceBusHostedService
 {
-    public CategorizeTransactionsQueueListener(ILogger<CategorizeTransactionsQueueListener> logger, 
+    public TransactionCategorizer(ILogger<TransactionCategorizer> logger, 
         IConfiguration configuration,
-        CategorizeTransactionsCommand command, 
+        TransactionCategorizerCommand command, 
         IQueueProcessor queueProcessor,
         TelemetryClient telemetryClient) : base(logger, 
         configuration,

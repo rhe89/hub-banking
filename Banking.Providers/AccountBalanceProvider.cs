@@ -81,11 +81,17 @@ public class AccountBalanceProvider : IAccountBalanceProvider
 
     private static Queryable<AccountBalance> GetQueryable(AccountQuery accountQuery)
     {
+        if (accountQuery.Id != null || accountQuery.AccountId != null)
+        {
+            accountQuery.IncludeExternalAccounts = true;
+            accountQuery.IncludeSharedAccounts = true;
+            accountQuery.IncludeDiscontinuedAccounts = true;
+        }
+        
         return new Queryable<AccountBalance>
         {
-            Query = accountQuery,
             Where = accountBalance =>
-                (accountQuery.Id == accountBalance.Id) ||
+                (accountQuery.Id == null || accountQuery.Id == accountBalance.Id) &&
                 (accountQuery.AccountNumber == null || accountQuery.AccountNumber == accountBalance.Account.AccountNumber) &&
                 (accountQuery.AccountType == null || accountQuery.AccountType == accountBalance.Account.AccountType) &&
                 (accountQuery.AccountName == null || accountQuery.AccountName == accountBalance.Account.Name) &&
@@ -103,7 +109,9 @@ public class AccountBalanceProvider : IAccountBalanceProvider
                 accountBalance => accountBalance.Account.Bank
             },
             OrderByDescending = accountBalance => accountBalance.BalanceDate,
-            ThenOrderByDescending = accountBalance => accountBalance.CreatedDate
+            ThenOrderByDescending = accountBalance => accountBalance.CreatedDate,
+            Take = accountQuery.Take,
+            Skip = accountQuery.Skip
         };
     }
 

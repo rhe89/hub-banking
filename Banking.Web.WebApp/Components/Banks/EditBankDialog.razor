@@ -6,13 +6,14 @@
 @inherits BaseComponent
 
 @inject IBankProvider BankProvider
+@inject IAccountProvider AccountProvider
 @inject IBankService BankService
 @inject UIHelpers UiHelpers
 
 <Dialog
     HeaderText="@Bank?.Name"
     HeaderIcon="@IconUtils.BankIcon">
-    
+
     @if (Bank == null)
     {
         <LoadingIndicator/>
@@ -33,32 +34,42 @@
     }
 
     <AdditionalData>
-        <AccountsTable
-            BankId="@BankId"/>
+        <CascadingValue Name="Query" Value="AccountQuery">
+            <CascadingValue Name="UseState" Value="false">
+                <AccountsTable/>
+            </CascadingValue>
+        </CascadingValue>
     </AdditionalData>
 </Dialog>
 
 
 @code {
+
     [Parameter]
     public long BankId { get; set; }
-    
+
     [Parameter]
     public Func<UIHelpers, long, Task> OnBankUpdated { get; set; }
-    
+
     [Parameter]
     public Func<UIHelpers, long, Task> OnBankDeleted { get; set; }
-    
-    [CascadingParameter] 
+
+    [CascadingParameter]
     public MudDialogInstance MudDialog { get; set; }
-    
+
     private BankDto Bank { get; set; }
-    
+    public AccountQuery AccountQuery { get; set; }
+
     protected override async Task OnInitializedAsync()
     {
         Working = true;
-        
+
         Bank = (await BankProvider.GetBanks(new BankQuery { Id = BankId })).Single();
+
+        AccountQuery = new AccountQuery
+        {
+            BankId = BankId
+        };
 
         Working = false;
     }
@@ -70,24 +81,25 @@
         await BankService.UpdateBank(Bank, saveChanges: true);
 
         await OnBankUpdated.Invoke(UiHelpers, Bank.Id);
-        
+
         UiHelpers.ShowSnackbar("Account saved", Severity.Success);
 
         Working = false;
 
         MudDialog.Close(DialogResult.Ok(true));
     }
-    
+
     private async Task Delete()
     {
         Working = true;
-        
+
         await BankService.DeleteBank(Bank, true);
 
         Working = false;
 
         await OnBankDeleted.Invoke(UiHelpers, Bank.Id);
-        
+
         MudDialog.Close(DialogResult.Ok(true));
     }
+
 }

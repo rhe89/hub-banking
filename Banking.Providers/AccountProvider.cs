@@ -3,9 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Banking.Data.Entities;
-using Banking.Shared;
 using Hub.Shared.DataContracts.Banking.Dto;
 using Hub.Shared.DataContracts.Banking.Query;
+using Hub.Shared.Storage.Repository;
 using Hub.Shared.Storage.Repository.Core;
 
 namespace Banking.Providers;
@@ -14,18 +14,16 @@ public interface IAccountProvider
 {
     Task<IList<AccountDto>> GetAccounts();
     Task<IList<AccountDto>> GetAccounts(AccountQuery accountQuery);
-    Task<IList<AccountDto>> GetAccountBalancesForMonth(AccountQuery accountQuery, int? year, int? month);
-    Task<IList<AccountDto>> GetAccountBalancesForLastMonth(AccountQuery accountQuery, int? year, int? month);
 }
 
 public class AccountProvider : IAccountProvider
 {
     private readonly IAccountBalanceProvider _accountBalanceProvider;
-    private readonly IHubDbRepository _dbRepository;
+    private readonly ICacheableHubDbRepository _dbRepository;
 
     public AccountProvider(
         IAccountBalanceProvider accountBalanceProvider,
-        IHubDbRepository dbRepository)
+        ICacheableHubDbRepository dbRepository)
     {
         _accountBalanceProvider = accountBalanceProvider;
         _dbRepository = dbRepository;
@@ -43,16 +41,18 @@ public class AccountProvider : IAccountProvider
         if (accountQuery.BalanceFromDate != null ||
             accountQuery.BalanceToDate != null)
         {
+            accountQuery.AccountId = accountQuery.Id;
+            accountQuery.Id = null;
+
             var accountBalances = await _accountBalanceProvider.GetAccountBalances(accountQuery);
 
             foreach (var account in accounts)
             {
-                var accountBalance = accountBalances.Where(x => x.AccountId == account.Id).MaxBy(x => x.CreatedDate);
+                var accountBalance = accountBalances.Where(x => x.AccountId == account.Id).MaxBy(x => x.BalanceDate);
                 
-                var latestAccountBalance = accountBalances.Where(x => x.AccountId == account.Id).MaxBy(x => x.CreatedDate) ??
-                                           await _accountBalanceProvider.GetAccumulatedAccountBalance(account, accountQuery);
+                var latestAccountBalance = accountBalance ?? await _accountBalanceProvider.GetAccumulatedAccountBalance(account, accountQuery);
 
-                account.NoBalanceForGivenPeriod = latestAccountBalance == null && accountBalance == null;
+                account.NoBalanceForGivenPeriod = latestAccountBalance == null;
                 account.Balance = latestAccountBalance?.Balance ?? 0;
                 account.BalanceDate = latestAccountBalance?.BalanceDate ?? DateTime.Now;
             }
@@ -71,35 +71,17 @@ public class AccountProvider : IAccountProvider
             .ToList();
     }
     
-    public async Task<IList<AccountDto>> GetAccountBalancesForLastMonth(AccountQuery accountQuery, int? year, int? month)
-    {
-        year ??= DateTime.Now.Year;
-        month ??= DateTime.Now.Month;
-
-        var date = new DateTime(year.Value, month.Value, 1);
-
-        var lastMonth = date.AddMonths(-1);
-        
-        accountQuery.BalanceToDate = DateTimeUtils.LastDayOfMonth(lastMonth.Year, lastMonth.Month);
-
-        return await GetAccounts(accountQuery);
-    }
-    
-    public async Task<IList<AccountDto>> GetAccountBalancesForMonth(AccountQuery accountQuery, int? year, int? month)
-    {
-        month ??= DateTime.Now.Month;
-        year ??= DateTime.Now.Year;
-        
-        accountQuery.BalanceToDate = DateTimeUtils.LastDayOfMonth(year, month);
-
-        return await GetAccounts(accountQuery);
-    }
-
     private static Queryable<Account> GetQueryable(AccountQuery accountQuery)
     {
+        if (accountQuery.Id != null && accountQuery.Id != 0)
+        {
+            accountQuery.IncludeExternalAccounts = true;
+            accountQuery.IncludeSharedAccounts = true;
+            accountQuery.IncludeDiscontinuedAccounts = true;
+        }
+        
         return new Queryable<Account>
         {
-            Query = accountQuery,
             Where = account =>
                 (accountQuery.Id == null || accountQuery.Id == 0 || accountQuery.Id == account.Id) &&
                 (accountQuery.AccountNumber == null || accountQuery.AccountNumber == account.AccountNumber) &&
@@ -110,7 +92,10 @@ public class AccountProvider : IAccountProvider
                 (accountQuery.IncludeExternalAccounts || account.Name != account.AccountNumber) && 
                 (accountQuery.IncludeSharedAccounts || !account.SharedAccount) &&
                 (accountQuery.DiscontinuedDate == null || accountQuery.IncludeDiscontinuedAccounts || account.DiscontinuedDate == null || account.DiscontinuedDate > accountQuery.DiscontinuedDate),
-            OrderBy = account => account.UpdatedDate
+            OrderBy = account => account.UpdatedDate,
+            Include = account => account.Bank,
+            Take = accountQuery.Take,
+            Skip = accountQuery.Skip
         };
     }
 }

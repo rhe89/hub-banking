@@ -14,19 +14,19 @@ using Microsoft.Extensions.Logging;
 
 namespace Banking.HostedServices.ServiceBusQueueHost.Commands;
 
-public class ImportTransactionsCsvCommand : ServiceBusQueueCommand
+public class CsvTransactionsImporterCommand : ServiceBusQueueCommand
 {
     private readonly ICsvTransactionsImporter _csvTransactionsImporter;
     private readonly ITransactionService _transactionService;
     private readonly IConfiguration _configuration;
-    private readonly ILogger<ImportTransactionsCsvCommand> _logger;
+    private readonly ILogger<CsvTransactionsImporterCommand> _logger;
     private readonly IHubDbRepository _dbRepository;
 
-    public ImportTransactionsCsvCommand(
+    public CsvTransactionsImporterCommand(
         ICsvTransactionsImporter csvTransactionsImporter,
         ITransactionService transactionService,
         IConfiguration configuration,
-        ILogger<ImportTransactionsCsvCommand> logger,
+        ILogger<CsvTransactionsImporterCommand> logger,
         IHubDbRepository dbRepository)
     {
         _csvTransactionsImporter = csvTransactionsImporter;

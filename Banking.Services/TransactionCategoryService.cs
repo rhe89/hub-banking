@@ -6,7 +6,6 @@ using Banking.Providers;
 using Hub.Shared.DataContracts.Banking.Dto;
 using Hub.Shared.DataContracts.Banking.Query;
 using Hub.Shared.Storage.Repository;
-using Hub.Shared.Storage.Repository.Core;
 using Microsoft.Extensions.Logging;
 
 namespace Banking.Services;
@@ -19,17 +18,18 @@ public interface ITransactionCategoryService
     Task UpdateTransactionSubCategory(TransactionSubCategoryDto updatedTransactionSubCategory, bool saveChanges);
     Task<TransactionSubCategoryDto> GetOrAddTransactionSubCategory(string category, string subCategory);
     Task DeleteTransactionCategory(long transactionCategoryId, bool saveChanges);
+    Task DeleteTransactionSubCategory(long transactionSubCategoryId, bool saveChanges);
 }
 
 public class TransactionCategoryService : ITransactionCategoryService
 {
     private readonly ITransactionCategoryProvider _transactionCategoryProvider;
-    private readonly IHubDbRepository _dbRepository;
+    private readonly ICacheableHubDbRepository _dbRepository;
     private readonly ILogger<TransactionCategoryService> _logger;
 
     public TransactionCategoryService(
         ITransactionCategoryProvider transactionCategoryProvider,
-        IHubDbRepository dbRepository,
+        ICacheableHubDbRepository dbRepository,
         ILogger<TransactionCategoryService> logger)
     {
         _transactionCategoryProvider = transactionCategoryProvider;
@@ -121,25 +121,28 @@ public class TransactionCategoryService : ITransactionCategoryService
 
         _dbRepository.QueueUpdate<TransactionCategory, TransactionCategoryDto>(transactionCategoryInDb);
 
-        foreach (var subCategory in updatedTransactionCategory.TransactionSubCategories)
+        if (updatedTransactionCategory.TransactionSubCategories != null)
         {
-            if (subCategory.Id == 0)
+            foreach (var subCategory in updatedTransactionCategory.TransactionSubCategories)
             {
-                subCategory.TransactionCategoryId = transactionCategoryInDb.Id;
+                if (subCategory.Id == 0)
+                {
+                    subCategory.TransactionCategoryId = transactionCategoryInDb.Id;
                 
-                await AddTransactionSubCategory(subCategory, false);
+                    await AddTransactionSubCategory(subCategory, false);
+                }
+                else
+                {
+                    await UpdateTransactionSubCategory(subCategory, false);
+                }
             }
-            else
-            {
-                await UpdateTransactionSubCategory(subCategory, false);
-            }
-        }
 
-        foreach (var subCategory in transactionCategoryInDb.TransactionSubCategories)
-        {
-            if (updatedTransactionCategory.TransactionSubCategories.All(x => x.Id != subCategory.Id))
+            foreach (var subCategory in transactionCategoryInDb.TransactionSubCategories)
             {
-                await DeleteTransactionSubCategory(subCategory.Id, false);
+                if (updatedTransactionCategory.TransactionSubCategories.All(x => x.Id != subCategory.Id))
+                {
+                    await DeleteTransactionSubCategory(subCategory.Id, false);
+                }
             }
         }
         

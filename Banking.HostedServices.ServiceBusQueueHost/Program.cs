@@ -7,14 +7,16 @@ using Banking.HostedServices.ServiceBusQueueHost.QueueListenerServices;
 using Banking.Integration;
 using Banking.Providers;
 using Banking.Services;
+using Hub.Shared.Settings;
 using Hub.Shared.Storage.ServiceBus;
 using Microsoft.Extensions.DependencyInjection;
+using CsvTransactionsImporter = Banking.HostedServices.ServiceBusQueueHost.QueueListenerServices.CsvTransactionsImporter;
 
 ServiceBusHostBuilder
     .CreateHostBuilder<BankingDbContext>(args, "SQL_DB_BANKING")
     .ConfigureServices(serviceCollection =>
     {
-        serviceCollection.AddSingleton<ICsvTransactionsImporter, CsvTransactionsImporter>();
+        serviceCollection.AddSingleton<ICsvTransactionsImporter, Banking.Integration.CsvTransactionsImporter>();
         serviceCollection.AddSingleton<IScheduledTransactionService, ScheduledTransactionService>();
         serviceCollection.AddSingleton<IScheduledTransactionProvider, ScheduledTransactionProvider>();
         serviceCollection.AddSingleton<ITransactionService, TransactionService>();
@@ -27,12 +29,19 @@ ServiceBusHostBuilder
         serviceCollection.AddSingleton<ITransactionCategoryProvider, TransactionCategoryProvider>();
         serviceCollection.AddSingleton<ITransactionCategoryService, TransactionCategoryService>();
         serviceCollection.AddSingleton<IMessageSender, MessageSender>();
+        serviceCollection.AddSingleton<ISettingProvider, SettingProvider>();
 
-        serviceCollection.AddSingleton<ImportTransactionsCsvCommand>();
-        serviceCollection.AddHostedService<ImportTransactionsCsvQueueListener>();
+        serviceCollection.AddSingleton<CsvTransactionsImporterCommand>();
+        serviceCollection.AddHostedService<CsvTransactionsImporter>();
         
-        serviceCollection.AddSingleton<CategorizeTransactionsCommand>();
-        serviceCollection.AddHostedService<CategorizeTransactionsQueueListener>();
+        serviceCollection.AddSingleton<TransactionCategorizerCommand>();
+        serviceCollection.AddHostedService<TransactionCategorizer>();
+        
+        serviceCollection.AddSingleton<CreditCardPaymentCalculatorCommand>();
+        serviceCollection.AddHostedService<CreditCardPaymentCalculator>();
+        
+        serviceCollection.AddSingleton<UpdateAccountBalancesForNewMonthCommand>();
+        serviceCollection.AddHostedService<AccountBalancesForNewMonthUpdater>();
         
         serviceCollection.AddAutoMapper(c =>
         {

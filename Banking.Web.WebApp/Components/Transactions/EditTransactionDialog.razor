@@ -89,7 +89,7 @@
         
         var transactions = await TransactionProvider.GetTransactions(new TransactionQuery { Id = long.Parse(TransactionId) });
 
-        var transaction = transactions.FirstOrDefault();
+        var transaction = transactions.Single();
         
         if (transaction == null)
         {

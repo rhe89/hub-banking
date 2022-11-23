@@ -5,7 +5,6 @@ using Banking.Providers;
 using Hub.Shared.DataContracts.Banking.Dto;
 using Hub.Shared.DataContracts.Banking.Query;
 using Hub.Shared.Storage.Repository;
-using Hub.Shared.Storage.Repository.Core;
 using Microsoft.Extensions.Logging;
 
 namespace Banking.Services;
@@ -20,12 +19,12 @@ public interface IBankService
 
 public class BankService : IBankService
 {
-    private readonly IHubDbRepository _dbRepository;
+    private readonly ICacheableHubDbRepository _dbRepository;
     private readonly IBankProvider _bankProvider;
     private readonly ILogger<BankService> _logger;
 
     public BankService(
-        IHubDbRepository dbRepository,
+        ICacheableHubDbRepository dbRepository,
         IBankProvider bankProvider,
         ILogger<BankService> logger)
     {

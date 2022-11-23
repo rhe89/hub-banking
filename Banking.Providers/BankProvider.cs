@@ -16,9 +16,9 @@ public interface IBankProvider
     
 public class BankProvider : IBankProvider
 {
-    private readonly IHubDbRepository _dbRepository;
+    private readonly ICacheableHubDbRepository _dbRepository;
 
-    public BankProvider(IHubDbRepository dbRepository)
+    public BankProvider(ICacheableHubDbRepository dbRepository)
     {
         _dbRepository = dbRepository;
     }
@@ -37,12 +37,13 @@ public class BankProvider : IBankProvider
     {
         return new Queryable<Bank>
         {
-            Query = bankQuery,
             Where = bank =>
-                (bankQuery.Id == bank.Id) ||
+                (bankQuery.Id == null || bankQuery.Id == bank.Id) &&
                 (bankQuery.Name == null || bankQuery.Name == bank.Name) &&
                 (bankQuery.AccountNumberPrefix == null || bankQuery.AccountNumberPrefix == bank.AccountNumberPrefix),
-            OrderBy = bank => bank.Name
+            OrderBy = bank => bank.Name,
+            Take = bankQuery.Take,
+            Skip = bankQuery.Skip
         };
     }
 }

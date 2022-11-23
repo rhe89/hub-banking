@@ -14,116 +14,7 @@
                 @bind-Value="@TransactionCategory.Name"/>
         </div>
     </div>
-
-    <div class="row mt-3">
-        <div class="col-12">
-            <MudExpansionPanel
-                IsInitiallyExpanded="ExpandDetails"
-                Dense="true"
-                DisableGutters="true"
-                Elevation="0">
-                <TitleContent>
-                    <h2 class="fs-4">
-                        Sub categories
-                    </h2>
-                </TitleContent>
-                <ChildContent>
-                    <div class="col-12">
-                        <MudButton
-                            class="d-inline-block"
-                            Color="@Color.Primary"
-                            @onclick="AddSubCategory">
-                            Add sub category
-                        </MudButton>
-                    </div>
-
-                    @for (var i = 0; i < TransactionCategory.TransactionSubCategories.Count; i++)
-                    {
-                        var subCategoryIndex = i;
-                        var subCategory = TransactionCategory.TransactionSubCategories[subCategoryIndex];
-
-                        <div class="bg-opacity-50 bg-body p-3 mt-3">
-                            <div class="row mb-3">
-                                <div class="col-lg-3 col-sm-12">
-                                    <MudTextField
-                                        Label="Name"
-                                        Variant="@Constants.InputVariant"
-                                        Disabled="@Working"
-                                        @bind-Value="@subCategory.Name"/>
-
-                                    <MudButtonGroup
-                                        Size="@Size.Small"
-                                        OverrideStyles="@false">
-                                        @if (TransactionCategory.TransactionSubCategories.Count > 1)
-                                        {
-                                            <MudButton
-                                                Disabled="@Working"
-                                                Color="@Color.Warning"
-                                                @onclick="() => RemoveSubCategory(subCategory)">
-                                                Remove sub category
-                                            </MudButton>
-                                        }
-                                        <MudButton
-                                            Disabled="@Working"
-                                            Color="@Color.Primary"
-                                            @onclick="() => AddSubCategoryKeyword(subCategory)">
-                                            Add keyword
-                                        </MudButton>
-                                    </MudButtonGroup>
-                                </div>
-                            </div>
-
-                            <div class="row">
-                                <div class="col-lg-3 col-sm-12">
-                                    <MudTextField
-                                        Label="Keyword"
-                                        Variant="@Constants.InputVariant"
-                                        Disabled="@Working"
-                                        @bind-Value="@subCategory.KeywordList[0].Value"/>
-                                    <MudButtonGroup
-                                        Size="@Size.Small"
-                                        OverrideStyles="@false"
-                                        VerticalAlign="true">
-                                        @if (subCategory.KeywordList.Count > 1)
-                                        {
-                                            <MudButton
-                                                Disabled="@Working"
-                                                Color="@Color.Warning"
-                                                @onclick="() => RemoveSubCategoryKeyword(subCategory, subCategory.KeywordList[0])">
-                                                Remove keyword
-                                            </MudButton>
-                                        }
-                                    </MudButtonGroup>
-                                </div>
-                                @for (var j = 1; j < subCategory.KeywordList.Count; j++)
-                                {
-                                    var subCategoryKeywordIndex = j;
-                                    var subCategoryKeyword = subCategory.KeywordList[subCategoryKeywordIndex];
-
-                                    <div class="col-lg-3 col-sm-12">
-                                        <MudTextField
-                                            Label="Keyword"
-                                            Variant="@Constants.InputVariant"
-                                            Disabled="@Working"
-                                            @bind-Value="@subCategoryKeyword.Value"/>
-
-                                        <MudButton
-                                            Disabled="@Working"
-                                            Color="@Color.Warning"
-                                            @onclick="() => RemoveSubCategoryKeyword(subCategory, subCategory.KeywordList[0])">
-                                            Remove keyword
-                                        </MudButton>
-                                    </div>
-                                }
-                            </div>
-
-                        </div>
-                    }
-                </ChildContent>
-            </MudExpansionPanel>
-        </div>
-    </div>
-
+    
     @if (ValidationSummary != null)
     {
         @ValidationSummary
@@ -134,7 +25,7 @@
         <div class="row mt-3">
             <MudButtonGroup
                 class="col-lg-6 col-sm-12"
-                OverrideStyles="@false">
+                OverrideStyles="false">
                 @SubmitActions
             </MudButtonGroup>
         </div>
@@ -155,28 +46,4 @@
 
     [Parameter]
     public RenderFragment SubmitActions { get; set; }
-
-    [Parameter]
-    public bool ExpandDetails { get; set; } = true;
-
-    private void AddSubCategory()
-    {
-        TransactionCategory.CreateNewTransactionSubCategory();
-    }
-
-    private void RemoveSubCategory(TransactionSubCategoryDto subCategory)
-    {
-        TransactionCategory.TransactionSubCategories.Remove(subCategory);
-    }
-
-    private void AddSubCategoryKeyword(TransactionSubCategoryDto subCategory)
-    {
-        subCategory.KeywordList.Add(new Keyword());
-    }
-
-    private static void RemoveSubCategoryKeyword(TransactionSubCategoryDto subCategory, Keyword keyword)
-    {
-        subCategory.KeywordList.Remove(keyword);
-    }
-
 }

@@ -19,9 +19,9 @@ public interface ITransactionCategoryProvider
 
 public class TransactionCategoryProvider : ITransactionCategoryProvider
 {
-    private readonly IHubDbRepository _dbRepository;
+    private readonly ICacheableHubDbRepository _dbRepository;
 
-    public TransactionCategoryProvider(IHubDbRepository dbRepository)
+    public TransactionCategoryProvider(ICacheableHubDbRepository dbRepository)
     {
         _dbRepository = dbRepository;
     }
@@ -50,12 +50,13 @@ public class TransactionCategoryProvider : ITransactionCategoryProvider
     {
         return new Queryable<TransactionCategory>
         {
-            Query = transactionCategoryQuery,
             Where = transactionCategory =>
-                (transactionCategoryQuery.Id == transactionCategory.Id) ||
+                (transactionCategoryQuery.Id == null || transactionCategoryQuery.Id == transactionCategory.Id) &&
                 (transactionCategoryQuery.Name == null || transactionCategoryQuery.Name == transactionCategory.Name),
             Include = transactionCategory => transactionCategory.TransactionSubCategories,
-            OrderBy = x => x.Name
+            OrderBy = x => x.Name,
+            Take = transactionCategoryQuery.Take,
+            Skip = transactionCategoryQuery.Skip
         };
     }
 
@@ -63,14 +64,15 @@ public class TransactionCategoryProvider : ITransactionCategoryProvider
     {
         return new Queryable<TransactionSubCategory>
         {
-            Query = transactionSubCategoryQuery,
             Where = transactionSubCategory =>
-                (transactionSubCategoryQuery.Id == transactionSubCategory.Id) ||
+                (transactionSubCategoryQuery.Id == null || transactionSubCategoryQuery.Id == transactionSubCategory.Id) &&
                 (transactionSubCategoryQuery.Name == null || transactionSubCategoryQuery.Name == transactionSubCategory.Name) &&
                 (transactionSubCategoryQuery.TransactionCategoryId == null || transactionSubCategoryQuery.TransactionCategoryId == transactionSubCategory.TransactionCategoryId) &&
                 (transactionSubCategoryQuery.TransactionCategoryIds == null || transactionSubCategoryQuery.TransactionCategoryIds.Any(transactionCategoryId => transactionCategoryId == transactionSubCategory.TransactionCategoryId)) &&
                 (transactionSubCategoryQuery.TransactionCategoryName == null || transactionSubCategoryQuery.TransactionCategoryName == transactionSubCategory.TransactionCategory.Name),
-            OrderByDescending = x => x.UpdatedDate
+            OrderByDescending = x => x.UpdatedDate,
+            Take = transactionSubCategoryQuery.Take,
+            Skip = transactionSubCategoryQuery.Skip
         };
     }
 }
