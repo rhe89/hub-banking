@@ -60,7 +60,7 @@ public class TransactionCategoriesTableService : TableService<TransactionCategor
             {
                 new Column
                 {
-                    ColumnText = new ColumnText { Text = transactionCategory.Name }
+                    ColumnText = new ColumnText { Text = transactionCategory.Name.FirstCharToUpper() }
                 },
                 new Column
                 {

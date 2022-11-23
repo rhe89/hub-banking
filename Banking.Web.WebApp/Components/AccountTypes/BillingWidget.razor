@@ -22,11 +22,11 @@
     {
         <section>
             <MudText class="fs-3">kr @((-UpcomingBillsAmount).ToString("N2"))</MudText>
-            <MudText class="">
-                kr @((-PaidBillsAmount).ToString("N2")) paid
-            </MudText>
             <MudText class="" Color="@(BillingAccountsBalance >= (-UpcomingBillsAmount) ? Color.Success : Color.Error)">
                 kr @(BillingAccountsBalance.ToString("N2")) available
+            </MudText>
+            <MudText class="">
+                kr @((-PaidBillsAmount).ToString("N2")) paid
             </MudText>
         </section>
     }

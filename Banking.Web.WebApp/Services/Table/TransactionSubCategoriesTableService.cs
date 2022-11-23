@@ -61,7 +61,7 @@ public class TransactionSubCategoriesTableService : TableService<TransactionSubC
             {
                 new Column
                 {
-                    ColumnText = new ColumnText { Text = transactionSubCategory.Name }
+                    ColumnText = new ColumnText { Text = transactionSubCategory.Name.FirstCharToUpper() }
                 },
                 new Column
                 {
