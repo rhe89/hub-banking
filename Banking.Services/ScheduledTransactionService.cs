@@ -217,7 +217,9 @@ public class ScheduledTransactionService : IScheduledTransactionService
             "Deleting scheduled transaction {Description} (Id: {Id})", 
             scheduledTransaction.Description,
             scheduledTransaction.Id);
-        
+
+        await DeleteNewerScheduledTransactions(scheduledTransaction.TransactionKey, scheduledTransaction.Id, scheduledTransaction.NextTransactionDate, saveChanges);
+
         _dbRepository.QueueRemove<ScheduledTransaction, ScheduledTransactionDto>(scheduledTransaction);
         
         if (saveChanges)
