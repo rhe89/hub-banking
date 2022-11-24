@@ -109,7 +109,9 @@ public class TransactionService : ITransactionService
 
             foreach (var transactionToImport in transactionsChunck)
             {
-                if (transactionToImport.Text == "Betaling")
+                if (
+                    transactionToImport.Text == "Betaling" &&
+                    transactionToImport.TransactionDate.Date >= DateTime.Now.AddDays(-3).Date)
                 {
                     continue;
                 }
