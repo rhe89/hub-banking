@@ -84,7 +84,12 @@ public class TransactionService : ITransactionService
         var dateOfNewestTransactionToImport = transactionsFromNewestToOldest.Last().TransactionDate;
 
         var existingTransactionsOlderThanOldestTransactionToImport = await _transactionProvider
-            .GetTransactions(new TransactionQuery { FromDate = dateOfOldestTransactionToImport });
+            .GetTransactions(new TransactionQuery
+            {
+                FromDate = dateOfOldestTransactionToImport,
+                IncludeExcludedTransactions = true,
+                IncludeTransactionsFromSharedAccounts = true
+            });
 
         _logger.LogWarning(
             "Starting import of {Count} transactions from file {FileName} from {From} to {To}",
@@ -104,6 +109,11 @@ public class TransactionService : ITransactionService
 
             foreach (var transactionToImport in transactionsChunck)
             {
+                if (transactionToImport.Text == "Betaling")
+                {
+                    continue;
+                }
+                
                 if (transactionToImport.AmountIn > 0 && !string.IsNullOrEmpty(transactionToImport.ToAccountNumber))
                 {
                     await AddTransaction(
