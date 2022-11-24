@@ -5,6 +5,11 @@
 @inherits TableBaseComponent<Banking.Web.WebApp.Services.Table.AccountTypesQuery> 
 
 <Dialog HeaderText="Savings">
+    
+    <section class="row">
+        <MonthYearSelect SelectWrapperClass="col-sm-12 col-lg-3"/>
+    </section>
+    
     <GenericTable
         TQuery="AccountTypesQuery"
         Query="Query"

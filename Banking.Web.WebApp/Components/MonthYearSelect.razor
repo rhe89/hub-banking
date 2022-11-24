@@ -1,0 +1,45 @@
+@inherits BaseComponent
+
+<div class="@SelectWrapperClass">
+    <MudSelect
+        ReadOnly="@Working"
+        Placeholder="Select"
+        T="int"
+        @bind-Value="@State.Month"
+        Label="Month"
+        Variant="@Constants.InputVariant"
+        AnchorOrigin="@Origin.BottomCenter">
+        @if (State.Months != null)
+        {
+            foreach (var month in State.Months)
+            {
+                <MudSelectItem T="int" Value="month">@TextUtils.GetMonthText(month)</MudSelectItem>
+            }
+        }
+    </MudSelect>
+</div>
+<div class="@SelectWrapperClass">
+    <MudSelect
+        ReadOnly="@Working"
+        Placeholder="Select"
+        T="int"
+        @bind-Value="@State.Year"
+        Label="Year"
+        Variant="@Constants.InputVariant"
+        AnchorOrigin="@Origin.BottomCenter">
+        @if (State.Years != null)
+        {
+            foreach (var year in State.Years)
+            {
+                <MudSelectItem T="int" Value="year">@year</MudSelectItem>
+            }
+        }
+    </MudSelect>
+</div>
+
+@code {
+
+    [Parameter]
+    public string SelectWrapperClass { get; set; }
+
+}

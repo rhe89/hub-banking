@@ -49,16 +49,7 @@ public class TransactionsTableService : TableService<TransactionQuery>
                 Icon = Icons.Sharp.DateRange
             }
         });
-        
-        HeaderRow.Add(new Column
-        {
-            ColumnText = new ColumnText
-            {
-                Text = "Amount",
-                Icon = Icons.Sharp.Money
-            }
-        });
-        
+
         HeaderRow.Add(new Column
         {
             ColumnText = new ColumnText
@@ -68,6 +59,15 @@ public class TransactionsTableService : TableService<TransactionQuery>
             }
         });
         
+        HeaderRow.Add(new Column
+        {
+            ColumnText = new ColumnText
+            {
+                Text = "Amount",
+                Icon = Icons.Sharp.Money
+            }
+        });
+
         HeaderRow.Add(new Column
         {
             ColumnText = new ColumnText { Text = "Account" },
@@ -172,15 +172,8 @@ public class TransactionsTableService : TableService<TransactionQuery>
                     {
                         Text = transaction.TransactionDate.ToNorwegianDateString(),
                         Icon = Widget ? Icons.Sharp.DateRange : null
-                    }
-                },
-                new Column
-                {
-                    ColumnText = new ColumnText
-                    {
-                        Text = transaction.Amount.ToString(CultureInfo.InvariantCulture),
-                        Icon = Widget ? Icons.Sharp.Money : null
-                    }
+                    },
+                    TdClass = Widget ? "td-width-20" : "td-md-width-5 td-width-20"
                 },
                 new Column
                 {
@@ -189,7 +182,17 @@ public class TransactionsTableService : TableService<TransactionQuery>
                         Class = "d-inline-block",
                         Icon = Widget ? IconUtils.TransactionDescription : null,
                         Text = transaction.Description
-                    }
+                    },
+                    TdClass = Widget ? "td-width-50" : "td-md-width-20 td-width-50"
+                },
+                new Column
+                {
+                    ColumnText = new ColumnText
+                    {
+                        Text = transaction.Amount.ToString(CultureInfo.InvariantCulture),
+                        Icon = Widget ? Icons.Sharp.Money : null
+                    },
+                    TdClass = Widget ? "td-width-30" : "td-md-width-5 td-width-30"
                 },
                 new Column
                 {
@@ -198,7 +201,7 @@ public class TransactionsTableService : TableService<TransactionQuery>
                         Text = transaction.Account?.Name,
                         Icon = IconUtils.GetAccountTypeIcon(transaction.Account?.AccountType)
                     },
-                    TdClass = "d-none d-md-table-cell d-widget-none"
+                    TdClass = "d-none d-md-table-cell d-widget-none td-md-width-10"
                 },
                 new Column
                 {
@@ -207,7 +210,7 @@ public class TransactionsTableService : TableService<TransactionQuery>
                         Text = transaction.TransactionSubCategory?.TransactionCategory.Name ?? "N/A",
                         Icon = Widget ? IconUtils.TransactionCategoryIcon : null
                     },
-                    TdClass = "d-none d-md-table-cell d-widget-none"
+                    TdClass = "d-none d-md-table-cell d-widget-none td-md-width-10"
                 },
                 new Column
                 {
@@ -216,7 +219,7 @@ public class TransactionsTableService : TableService<TransactionQuery>
                         Text = transaction.TransactionSubCategory?.Name ?? "N/A",
                         Icon = Widget ? IconUtils.TransactionCategoryIcon : null
                     },
-                    TdClass = "d-none d-md-table-cell d-widget-none"
+                    TdClass = "d-none d-md-table-cell d-widget-none td-md-width-10"
                 },
             }
         }).ToList();

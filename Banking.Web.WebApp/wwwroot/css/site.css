@@ -11194,6 +11194,66 @@ html, body {
 .mud-table .mud-table-root .mud-table-body tr .mud-table-cell {
   border-bottom: none;
 }
+.mud-table .mud-table-root .mud-table-body tr .mud-table-cell.td-width-5 {
+  width: 5%;
+}
+.mud-table .mud-table-root .mud-table-body tr .mud-table-cell.td-width-10 {
+  width: 10%;
+}
+.mud-table .mud-table-root .mud-table-body tr .mud-table-cell.td-width-15 {
+  width: 15%;
+}
+.mud-table .mud-table-root .mud-table-body tr .mud-table-cell.td-width-20 {
+  width: 20%;
+}
+.mud-table .mud-table-root .mud-table-body tr .mud-table-cell.td-width-25 {
+  width: 25%;
+}
+.mud-table .mud-table-root .mud-table-body tr .mud-table-cell.td-width-30 {
+  width: 30%;
+}
+.mud-table .mud-table-root .mud-table-body tr .mud-table-cell.td-width-35 {
+  width: 35%;
+}
+.mud-table .mud-table-root .mud-table-body tr .mud-table-cell.td-width-40 {
+  width: 40%;
+}
+.mud-table .mud-table-root .mud-table-body tr .mud-table-cell.td-width-45 {
+  width: 45%;
+}
+.mud-table .mud-table-root .mud-table-body tr .mud-table-cell.td-width-50 {
+  width: 50%;
+}
+.mud-table .mud-table-root .mud-table-body tr .mud-table-cell.td-width-55 {
+  width: 55%;
+}
+.mud-table .mud-table-root .mud-table-body tr .mud-table-cell.td-width-60 {
+  width: 60%;
+}
+.mud-table .mud-table-root .mud-table-body tr .mud-table-cell.td-width-65 {
+  width: 65%;
+}
+.mud-table .mud-table-root .mud-table-body tr .mud-table-cell.td-width-70 {
+  width: 70%;
+}
+.mud-table .mud-table-root .mud-table-body tr .mud-table-cell.td-width-75 {
+  width: 75%;
+}
+.mud-table .mud-table-root .mud-table-body tr .mud-table-cell.td-width-80 {
+  width: 80%;
+}
+.mud-table .mud-table-root .mud-table-body tr .mud-table-cell.td-width-85 {
+  width: 85%;
+}
+.mud-table .mud-table-root .mud-table-body tr .mud-table-cell.td-width-90 {
+  width: 90%;
+}
+.mud-table .mud-table-root .mud-table-body tr .mud-table-cell.td-width-95 {
+  width: 80%;
+}
+.mud-table .mud-table-root .mud-table-body tr .mud-table-cell.td-width-100 {
+  width: 100%;
+}
 .mud-table .mud-table-root .mud-table-foot .mud-table-cell {
   border-bottom: none;
 }
@@ -11282,15 +11342,137 @@ td {
   cursor: pointer;
 }
 
-@media (min-width: 1400px) {
-  .container-xxl, .container-xl, .container-lg, .container-md, .container-sm, .container {
-    max-width: 1000px;
-  }
-}
 @media (min-width: 600px) {
+  .mud-table .mud-table-root tr .mud-table-cell.td-md-width-5 {
+    width: 5%;
+  }
+  .mud-table .mud-table-root tr .mud-table-cell.td-md-width-10 {
+    width: 10%;
+  }
+  .mud-table .mud-table-root tr .mud-table-cell.td-md-width-15 {
+    width: 15%;
+  }
+  .mud-table .mud-table-root tr .mud-table-cell.td-md-width-20 {
+    width: 20%;
+  }
+  .mud-table .mud-table-root tr .mud-table-cell.td-md-width-25 {
+    width: 25%;
+  }
+  .mud-table .mud-table-root tr .mud-table-cell.td-md-width-30 {
+    width: 30%;
+  }
+  .mud-table .mud-table-root tr .mud-table-cell.td-md-width-35 {
+    width: 35%;
+  }
+  .mud-table .mud-table-root tr .mud-table-cell.td-md-width-40 {
+    width: 40%;
+  }
+  .mud-table .mud-table-root tr .mud-table-cell.td-md-width-45 {
+    width: 45%;
+  }
+  .mud-table .mud-table-root tr .mud-table-cell.td-md-width-50 {
+    width: 50%;
+  }
+  .mud-table .mud-table-root tr .mud-table-cell.td-md-width-55 {
+    width: 55%;
+  }
+  .mud-table .mud-table-root tr .mud-table-cell.td-md-width-60 {
+    width: 60%;
+  }
+  .mud-table .mud-table-root tr .mud-table-cell.td-md-width-65 {
+    width: 65%;
+  }
+  .mud-table .mud-table-root tr .mud-table-cell.td-md-width-70 {
+    width: 70%;
+  }
+  .mud-table .mud-table-root tr .mud-table-cell.td-md-width-75 {
+    width: 75%;
+  }
+  .mud-table .mud-table-root tr .mud-table-cell.td-md-width-80 {
+    width: 80%;
+  }
+  .mud-table .mud-table-root tr .mud-table-cell.td-md-width-85 {
+    width: 85%;
+  }
+  .mud-table .mud-table-root tr .mud-table-cell.td-md-width-90 {
+    width: 90%;
+  }
+  .mud-table .mud-table-root tr .mud-table-cell.td-md-width-95 {
+    width: 80%;
+  }
+  .mud-table .mud-table-root tr .mud-table-cell.td-md-width-100 {
+    width: 100%;
+  }
+
   .mud-dialog-container .mud-dialog .mud-dialog-content .mud-container {
     padding-left: 16px;
     padding-right: 16px;
+  }
+}
+@media (min-width: 1400px) {
+  .mud-table .mud-table-root tr .mud-table-cell.td-lg-width-5 {
+    width: 5%;
+  }
+  .mud-table .mud-table-root tr .mud-table-cell.td-lg-width-10 {
+    width: 10%;
+  }
+  .mud-table .mud-table-root tr .mud-table-cell.td-lg-width-15 {
+    width: 15%;
+  }
+  .mud-table .mud-table-root tr .mud-table-cell.td-lg-width-20 {
+    width: 20%;
+  }
+  .mud-table .mud-table-root tr .mud-table-cell.td-lg-width-25 {
+    width: 25%;
+  }
+  .mud-table .mud-table-root tr .mud-table-cell.td-lg-width-30 {
+    width: 30%;
+  }
+  .mud-table .mud-table-root tr .mud-table-cell.td-lg-width-35 {
+    width: 35%;
+  }
+  .mud-table .mud-table-root tr .mud-table-cell.td-lg-width-40 {
+    width: 40%;
+  }
+  .mud-table .mud-table-root tr .mud-table-cell.td-lg-width-45 {
+    width: 45%;
+  }
+  .mud-table .mud-table-root tr .mud-table-cell.td-lg-width-50 {
+    width: 50%;
+  }
+  .mud-table .mud-table-root tr .mud-table-cell.td-lg-width-55 {
+    width: 55%;
+  }
+  .mud-table .mud-table-root tr .mud-table-cell.td-lg-width-60 {
+    width: 60%;
+  }
+  .mud-table .mud-table-root tr .mud-table-cell.td-lg-width-65 {
+    width: 65%;
+  }
+  .mud-table .mud-table-root tr .mud-table-cell.td-lg-width-70 {
+    width: 70%;
+  }
+  .mud-table .mud-table-root tr .mud-table-cell.td-lg-width-75 {
+    width: 75%;
+  }
+  .mud-table .mud-table-root tr .mud-table-cell.td-lg-width-80 {
+    width: 80%;
+  }
+  .mud-table .mud-table-root tr .mud-table-cell.td-lg-width-85 {
+    width: 85%;
+  }
+  .mud-table .mud-table-root tr .mud-table-cell.td-lg-width-90 {
+    width: 90%;
+  }
+  .mud-table .mud-table-root tr .mud-table-cell.td-lg-width-95 {
+    width: 80%;
+  }
+  .mud-table .mud-table-root tr .mud-table-cell.td-lg-width-100 {
+    width: 100%;
+  }
+
+  .container-xxl, .container-xl, .container-lg, .container-md, .container-sm, .container {
+    max-width: 1000px;
   }
 }
 

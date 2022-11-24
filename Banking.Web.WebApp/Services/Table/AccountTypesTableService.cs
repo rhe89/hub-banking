@@ -26,14 +26,19 @@ public class AccountTypesTableService : TableService<AccountTypesQuery>
 
     public override void CreateHeaderRow()
     {
-        HeaderRow.Add(new Column { ColumnText = new ColumnText { Text = "Account" } });
+        HeaderRow.Add(new Column
+        {
+            ColumnText = new ColumnText { Text = "Account" },
+            TdClass = Widget ? "td-width-50" : "td-width-50 td-md-width-50"
+        });
         HeaderRow.Add(new Column
         {
             ColumnText = new ColumnText
             {
                 Text = "Balance",
                 Icon = Icons.Sharp.Money
-            }
+            },
+            TdClass = Widget ? "td-width-50" : "td-width-50 td-md-width-50 td-lg-width-15"
         });
     }
 
@@ -78,7 +83,8 @@ public class AccountTypesTableService : TableService<AccountTypesQuery>
                         {
                             Text = $"{account.Name} ({account.Bank.Name})",
                             Icon = IconUtils.GetAccountTypeIcon(account.AccountType)
-                        }
+                        },
+                        TdClass = Widget ? "td-width-40" : "td-width-40 td-md-width-50"
                     },
                     new Column
                     {
@@ -96,7 +102,8 @@ public class AccountTypesTableService : TableService<AccountTypesQuery>
                                 Color = isGain ? Color.Success : Color.Error,
                                 Class = "align-top fs-small d-inline-block ms-1"
                             }
-                        }
+                        },
+                        TdClass = Widget ? "td-width-60" : "td-width-60 td-md-width-50"
                     }
                 }
             });

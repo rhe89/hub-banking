@@ -1,5 +1,6 @@
 using System;
 using System.Threading.Tasks;
+using Banking.Web.WebApp.Extensions;
 using Microsoft.AspNetCore.Components;
 using MudBlazor;
 using MudBlazor.Services;
@@ -59,8 +60,6 @@ public sealed class UIHelpers : ComponentBase
 
     public async Task<bool> IsDesktop()
     {
-        var windowSize = await _resizeService.GetBrowserWindowSize();
-
-        return windowSize.Width > 600;
+        return await _resizeService.IsDesktop();
     }
 }

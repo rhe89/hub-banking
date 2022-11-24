@@ -10,203 +10,219 @@
 @typeparam TQuery where TQuery : Hub.Shared.Storage.Repository.Core.Query, new()
 
 <div class="row">
-    <div class="col-12">
-        <MudTable
-            T="TableRow"
-            class="@Class"
-            ServerData="@(new Func<TableState, Task<TableData<TableRow>>>(ServerReload))"
-            OnRowClick="OnRowClicked"
-            @bind-SelectedItems="@TableService.SelectedItems"
-            Breakpoint="@Breakpoint.None"
-            CustomHeader="true"
-            Outlined="false"
-            Striped="true"
-            Bordered="false"
-            @ref="MudTable">
-            <HeaderContent>
-                @if (!string.IsNullOrWhiteSpace(TableHeader))
+<div class="col-12">
+<MudTable
+    T="TableRow"
+    class="@Class"
+    ServerData="@(new Func<TableState, Task<TableData<TableRow>>>(ServerReload))"
+    OnRowClick="OnRowClicked"
+    @bind-SelectedItems="@TableService.SelectedItems"
+    Breakpoint="@Breakpoint.None"
+    CustomHeader="true"
+    Outlined="false"
+    Striped="true"
+    Bordered="false"
+    @ref="MudTable">
+<HeaderContent>
+    @if (!string.IsNullOrWhiteSpace(TableHeader))
+    {
+        <MudTHeadRow IgnoreCheckbox="true" Class="header-centered">
+            <MudTh
+                colspan="@(Widget ? TableService.WidgetColumnsCount : TableService.FullSizeColumns)"
+                class="@(Widget ? "p-0 px-1" : "")">
+                @if (Widget)
                 {
-                    <MudTHeadRow IgnoreCheckbox="true" Class="header-centered">
-                        <MudTh
-                            colspan="@(Widget ? TableService.WidgetColumnsCount : TableService.FullSizeColumns)"
-                            class="@(Widget ? "p-0 px-1" : "")">
-                            @if (Widget)
-                            {
-                                <header
-                                    class="float-start p-2 clickable"
-                                    @onclick="() => TableService.OpenFullVersionDialog(UiHelpers, Query)">
-                                    <MudIcon class="me-2 mb-2" Icon="@TableHeaderIcon" Color="@(TableHeaderIconColor ?? Color.Default)"/>
-                                    <h2 class="d-inline-block fs-5">@TableHeader</h2>
-                                </header>
-                                <MudIconButton
-                                    class="float-end p-1 mt-1"
-                                    Icon="@Icons.Filled.Add"
-                                    @onclick="() => TableService.OpenAddItemDialog(UiHelpers)"/>
-                            }
-                            else
-                            {
-                                <header class="float-start mt-2">
-                                    <MudIcon
-                                        class="me-2 mb-1"
-                                        Size="Size.Large"
-                                        Icon="@TableHeaderIcon"
-                                        Color="@(TableHeaderIconColor ?? Color.Default)"/>
-                                    <h2 class="d-inline-block fs-4 ">@TableHeader</h2>
-                                </header>
-                                <MudIconButton
-                                    class="float-end"
-                                    Icon="@Icons.Filled.Add"
-                                    Size="@Size.Large"
-                                    @onclick="() => TableService.OpenAddItemDialog(UiHelpers)"/>
-                            }
-                        </MudTh>
-                    </MudTHeadRow>
+                    <header
+                        class="float-start p-2 clickable"
+                        @onclick="() => TableService.OpenFullVersionDialog(UiHelpers, Query)">
+                        <MudIcon class="me-2 mb-2" Icon="@TableHeaderIcon" Color="@(TableHeaderIconColor ?? Color.Default)"/>
+                        <h2 class="d-inline-block fs-5">@TableHeader</h2>
+                    </header>
+                    <MudIconButton
+                        class="float-end p-1 mt-1"
+                        Icon="@Icons.Filled.Add"
+                        @onclick="() => TableService.OpenAddItemDialog(UiHelpers)"/>
                 }
-                @if (!Widget && TableService.Filter.Any())
+                else
                 {
-                    <MudTHeadRow IgnoreCheckbox="true" Class="header-centered">
-                        <MudTh colspan="@TableService.FullSizeColumns">
-                            <ExpansionSection>
-                                <TitleContent>
-                                    <h2 class="fs-4">
-                                        Filters
-                                    </h2>
-                                </TitleContent>
-                                <ExpansionBody>
-                                    <div class="row">
-                                        @foreach (var filterElement in TableService.Filter)
-                                        {
-                                            <div class="col-12 col-lg-3">
-                                                @if (filterElement is InputList<TQuery> {FilterType: FilterType.Select } selectList)
-                                                {
-                                                    <MudSelect
-                                                        T="string"
-                                                        Disabled="@(Working || !selectList.Enabled)"
-                                                        Value="@selectList.Value"
-                                                        ValueChanged="@(value => selectList.OnChanged(selectList, value, Query))"
-                                                        Label="@selectList.Label"
-                                                        Variant="@Constants.InputVariant"
-                                                        AnchorOrigin="@Origin.BottomCenter">
-                                                        @foreach (var selectListItem in selectList.Items)
-                                                        {
-                                                            <MudSelectItem Value="@selectListItem.Value">@selectListItem.Text</MudSelectItem>
-                                                        }
-                                                    </MudSelect>
-                                                }
-                                                else if (filterElement is InputList<TQuery> {FilterType: FilterType.Radio } radioList)
-                                                {
-                                                    <MudRadioGroup
-                                                        T="string"
-                                                        SelectedOption="@radioList.Value"
-                                                        SelectedOptionChanged="@(value => radioList.OnChanged(radioList, value, Query))">
-                                                        @foreach (var radioItem in radioList.Items)
-                                                        {
-                                                            <MudRadio
-                                                                Disabled="@(Working || !radioList.Enabled)"
-                                                                Option="@radioItem.Value"
-                                                                Color="@Color.Primary">
-                                                                @radioItem.Text
-                                                            </MudRadio>
-                                                        }
-                                                    </MudRadioGroup>
-                                                }
-                                                else if (filterElement is Checkbox<TQuery> {FilterType: FilterType.Checkbox } checkbox)
-                                                {
-                                                    <MudCheckBox
-                                                        T="bool"
-                                                        Disabled="@(Working || !checkbox.Enabled)"
-                                                        Label="@checkbox.Label"
-                                                        Checked="@checkbox.Value"
-                                                        CheckedChanged="@(value => checkbox.OnChanged(checkbox, value, Query))">
-                                                    </MudCheckBox>
-                                                }
-                                            </div>
-                                        }
-                                    </div>
-                                </ExpansionBody>
-                            </ExpansionSection>
-                        </MudTh>
-                    </MudTHeadRow>
+                    <header class="float-start mt-2">
+                        <MudIcon
+                            class="me-2 mb-1"
+                            Size="Size.Large"
+                            Icon="@TableHeaderIcon"
+                            Color="@(TableHeaderIconColor ?? Color.Default)"/>
+                        <h2 class="d-inline-block fs-4 ">@TableHeader</h2>
+                    </header>
+                    <MudIconButton
+                        class="float-end"
+                        Icon="@Icons.Filled.Add"
+                        Size="@Size.Large"
+                        @onclick="() => TableService.OpenAddItemDialog(UiHelpers)"/>
                 }
-                @if (!Widget)
-                {
-                    <MudTHeadRow>
-                        @foreach (var th in TableService.HeaderRow)
-                        {
-                            <MudTh Class="@th.TdClass">
-                                @foreach (var childElement in th.ChildElements)
-                                {
-                                    if (childElement.Icon != null)
-                                    {
-                                        <MudIcon
-                                            Icon="@childElement.Icon"
-                                            Size="Size.Small"
-                                            class="me-1 mb-1 d-inline-block"/>
-                                    }
-                                    <MudText
-                                        class="@(childElement.Icon != null ? $"{childElement.Class} d-none d-lg-inline-block" : childElement.Class)"
-                                        Color="@(childElement.Color)">
-                                        @childElement.Text
-                                    </MudText>
-                                }
-                            </MudTh>
-                        }
-                    </MudTHeadRow>
-                }
-            </HeaderContent>
-            <RowTemplate>
-                @foreach (var td in context.Columns)
-                {
-                    <MudTd class="@td.TdClass">
-                        @foreach (var childElement in td.ChildElements)
-                        {
-                            if (childElement.Icon != null)
-                            {
-                                <MudIcon
-                                    Icon="@childElement.Icon"
-                                    Size="Size.Small"
-                                    class="me-1 mb-1 d-none d-lg-inline-block"/>
-                            }
-                            <MudText
-                                class="@(childElement.Icon != null ? $"{childElement.Class} d-inline-block" : childElement.Class)"
-                                Color="@(childElement.Color)">
-                                @childElement.Text
-                                @if (!string.IsNullOrEmpty(childElement.SmallText))
-                                {
-                                    <MudText class="ms-1 fs-small align-top d-inline-block">@childElement.SmallText</MudText>
-                                }
-                            </MudText>
-                        }
-                    </MudTd>
-                }
-            </RowTemplate>
-            <FooterContent>
-                @if (TableService.Footer != null)
-                {
-                    <MudTd Class="mud-table-cell-custom-group mud-table-cell-custom-group-footer" colspan="@(Widget ? TableService.WidgetColumnsCount : TableService.FullSizeColumns)">
-                        @TableService.Footer.ColumnText.Text
-                    </MudTd>
-                }
-            </FooterContent>
-            <NoRecordsContent>
-                <EmptyResultIndicator/>
-            </NoRecordsContent>
-            <LoadingContent>
-                <MudSkeleton Height="40px" Animation="Animation.Pulse"/>
-                <MudSkeleton Height="40px" Animation="Animation.Pulse"/>
-                <MudSkeleton Height="40px" Animation="Animation.Pulse"/>
-                <MudSkeleton Height="40px" Animation="Animation.Pulse"/>
-                <MudSkeleton Height="40px" Animation="Animation.Pulse"/>
-            </LoadingContent>
-            <PagerContent>
-                @if (!Widget)
-                {
-                    <MudTablePager/>
-                }
-            </PagerContent>
-        </MudTable>
+            </MudTh>
+        </MudTHeadRow>
+    }
+    @if (!Widget && TableService.Filter.Any())
+    {
+        <MudTHeadRow IgnoreCheckbox="true" Class="header-centered">
+            <MudTh colspan="@TableService.FullSizeColumns">
+                <ExpansionSection>
+                    <TitleContent>
+                        <h2 class="fs-4">
+                            Filters
+                        </h2>
+                    </TitleContent>
+                    <ExpansionBody>
+                        <div class="row">
 
-    </div>
+                            @foreach (var filterElement in TableService.Filter.Where(x => x.FilterType == FilterType.Select))
+                            {
+                                <div class="col-12 col-lg-3">
+                                    @if (filterElement is InputList<TQuery> {FilterType: FilterType.Select } selectList)
+                                    {
+                                        <MudSelect
+                                            T="string"
+                                            Disabled="@(Working || !selectList.Enabled)"
+                                            Value="@selectList.Value"
+                                            ValueChanged="@(value => selectList.OnChanged(selectList, value, Query))"
+                                            Label="@selectList.Label"
+                                            Variant="@Constants.InputVariant"
+                                            AnchorOrigin="@Origin.BottomCenter">
+                                            @foreach (var selectListItem in selectList.Items)
+                                            {
+                                                <MudSelectItem Value="@selectListItem.Value">@selectListItem.Text</MudSelectItem>
+                                            }
+                                        </MudSelect>
+                                    }
+                                </div>
+                            }
+                        </div>
+                        <div class="row">
+                            @foreach (var filterElement in TableService.Filter.Where(x => x.FilterType == FilterType.Radio))
+                            {
+                                <div class="col-12 col-lg-3 mt-2">
+                                    @if (filterElement is InputList<TQuery> {FilterType: FilterType.Radio } radioList)
+                                    {
+                                        <MudRadioGroup
+                                            T="string"
+                                            SelectedOption="@radioList.Value"
+                                            SelectedOptionChanged="@(value => radioList.OnChanged(radioList, value, Query))">
+                                            @foreach (var radioItem in radioList.Items)
+                                            {
+                                                <MudRadio
+                                                    Disabled="@(Working || !radioList.Enabled)"
+                                                    Option="@radioItem.Value"
+                                                    Color="@Color.Primary">
+                                                    @radioItem.Text
+                                                </MudRadio>
+                                            }
+                                        </MudRadioGroup>
+                                    }
+                                </div>
+                            }
+                        </div>
+                        <div class="row">
+
+                            @foreach (var filterElement in TableService.Filter.Where(x => x.FilterType == FilterType.Checkbox))
+                            {
+                                <div class="col-12 col-lg-3 mt-2">
+                                    @if (filterElement is Checkbox<TQuery> {FilterType: FilterType.Checkbox } checkbox)
+                                    {
+                                        <MudCheckBox
+                                            T="bool"
+                                            Disabled="@(Working || !checkbox.Enabled)"
+                                            Label="@checkbox.Label"
+                                            Checked="@checkbox.Value"
+                                            CheckedChanged="@(value => checkbox.OnChanged(checkbox, value, Query))">
+                                        </MudCheckBox>
+                                    }
+                                </div>
+                            }
+                        </div>
+                    </ExpansionBody>
+                </ExpansionSection>
+            </MudTh>
+        </MudTHeadRow>
+    }
+    @if (!Widget)
+    {
+        <MudTHeadRow>
+            @foreach (var th in TableService.HeaderRow)
+            {
+                <MudTh Class="@th.TdClass">
+                    @foreach (var childElement in th.ChildElements)
+                    {
+                        if (childElement.Icon != null)
+                        {
+                            <MudIcon
+                                Icon="@childElement.Icon"
+                                Size="Size.Small"
+                                class="me-1 mb-1 d-inline-block"/>
+                        }
+                        <MudText
+                            class="@(childElement.Icon != null ? $"{childElement.Class} d-none d-lg-inline-block" : childElement.Class)"
+                            Color="@(childElement.Color)">
+                            @childElement.Text
+                        </MudText>
+                    }
+                </MudTh>
+            }
+        </MudTHeadRow>
+    }
+</HeaderContent>
+<RowTemplate>
+    @foreach (var td in context.Columns)
+    {
+        <MudTd class="@td.TdClass">
+            @foreach (var childElement in td.ChildElements)
+            {
+                if (childElement.Icon != null)
+                {
+                    <MudIcon
+                        Icon="@childElement.Icon"
+                        Size="Size.Small"
+                        class="me-1 mb-1 d-none d-lg-inline-block"/>
+                }
+                <MudText
+                    class="@(childElement.Icon != null ? $"{childElement.Class} d-inline-block" : childElement.Class)"
+                    Color="@(childElement.Color)">
+                    @childElement.Text
+                    @if (!string.IsNullOrEmpty(childElement.SmallText))
+                    {
+                        <MudText class="ms-1 fs-small align-top d-inline-block">@childElement.SmallText</MudText>
+                    }
+                </MudText>
+            }
+        </MudTd>
+    }
+</RowTemplate>
+<FooterContent>
+    @if (TableService.Footer != null)
+    {
+        <MudTd Class="mud-table-cell-custom-group mud-table-cell-custom-group-footer" colspan="@(Widget ? TableService.WidgetColumnsCount : TableService.FullSizeColumns)">
+            @TableService.Footer.ColumnText.Text
+        </MudTd>
+    }
+</FooterContent>
+<NoRecordsContent>
+    <EmptyResultIndicator/>
+</NoRecordsContent>
+<LoadingContent>
+    <MudSkeleton Height="40px" Animation="Animation.Pulse"/>
+    <MudSkeleton Height="40px" Animation="Animation.Pulse"/>
+    <MudSkeleton Height="40px" Animation="Animation.Pulse"/>
+    <MudSkeleton Height="40px" Animation="Animation.Pulse"/>
+    <MudSkeleton Height="40px" Animation="Animation.Pulse"/>
+</LoadingContent>
+<PagerContent>
+    @if (!Widget)
+    {
+        <MudTablePager/>
+    }
+</PagerContent>
+</MudTable>
+
+</div>
 </div>
 
 

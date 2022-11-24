@@ -15,6 +15,10 @@
             <MudText>Remaining: kr @AmountRemaining.ToString("N2")</MudText>
         </div>
     </section>
+    
+    <section class="row">
+        <MonthYearSelect SelectWrapperClass="col-sm-12 col-lg-3 mt-2 mt-lg-0"/>
+    </section>
 
     <CascadingValue Name="UseState" Value="false">
         @if (!MonthHasPassed)

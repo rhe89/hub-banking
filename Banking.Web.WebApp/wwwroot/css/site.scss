@@ -31,15 +31,15 @@ html, body {
   z-index: -1;
   box-shadow: 3px 3px #045d563b;
   border-radius: 3px;
-  
+
   .d-widget-none {
-    display: none!important;
+    display: none !important;
   }
-  
+
   .widget-col-12 {
     @extend .col-12;
   }
-  
+
   &.clickable {
     &:hover {
       cursor: pointer;
@@ -63,6 +63,7 @@ html, body {
         padding-left: 0;
       }
     }
+
     .mud-table-toolbar {
       padding: 0;
     }
@@ -77,26 +78,26 @@ html, body {
 
 .mud-table {
   background: none;
-  box-shadow: var(--mud-elevation-0)!important;
+  box-shadow: var(--mud-elevation-0) !important;
 
   .mud-table-pagination-toolbar,
   .mud-table-toolbar,
   .mud-table-container {
     background: $card-bg;
   }
-  
+
   .mud-table-toolbar {
     padding: 20px 10px;
     margin-bottom: 10px;
     height: auto;
     width: 100%;
     display: inline-block;
-    
+
     &:empty {
       display: none;
     }
   }
-  
+
   .mud-table-root {
     .mud-table-head {
       .header-centered {
@@ -105,16 +106,96 @@ html, body {
         }
       }
     }
-    
+
     .mud-table-body {
       tr {
         &:hover {
           cursor: pointer;
           background: darken($card-bg, 1);
         }
-        
+
         .mud-table-cell {
           border-bottom: none;
+
+          &.td-width-5 {
+            width: 5%;
+          }
+
+          &.td-width-10 {
+            width: 10%;
+          }
+
+          &.td-width-15 {
+            width: 15%;
+          }
+
+          &.td-width-20 {
+            width: 20%;
+          }
+
+          &.td-width-25 {
+            width: 25%;
+          }
+
+          &.td-width-30 {
+            width: 30%;
+          }
+
+          &.td-width-35 {
+            width: 35%;
+          }
+
+          &.td-width-40 {
+            width: 40%;
+          }
+
+          &.td-width-45 {
+            width: 45%;
+          }
+
+          &.td-width-50 {
+            width: 50%;
+          }
+
+          &.td-width-55 {
+            width: 55%;
+          }
+
+          &.td-width-60 {
+            width: 60%;
+          }
+
+          &.td-width-65 {
+            width: 65%;
+          }
+
+          &.td-width-70 {
+            width: 70%;
+          }
+
+          &.td-width-75 {
+            width: 75%;
+          }
+
+          &.td-width-80 {
+            width: 80%;
+          }
+
+          &.td-width-85 {
+            width: 85%;
+          }
+
+          &.td-width-90 {
+            width: 90%;
+          }
+
+          &.td-width-95 {
+            width: 80%;
+          }
+
+          &.td-width-100 {
+            width: 100%;
+          }
         }
       }
     }
@@ -125,7 +206,7 @@ html, body {
       }
     }
   }
-  
+
   .mud-table-pagination-toolbar {
     margin-top: 10px;
   }
@@ -135,22 +216,22 @@ html, body {
   &.mud-dialog-topcenter {
     padding-top: 0;
   }
-  
+
   .mud-dialog {
     background-color: $card-bg;
-    
+
     &.mud-dialog-width-full {
       width: 100%;
       height: 100vh;
     }
-    
+
     .mud-dialog-title {
       color: $text;
     }
 
     .mud-dialog-content {
       padding: 0;
-      
+
       .mud-container {
         //padding-left: 0;
         //padding-right: 0;
@@ -169,8 +250,8 @@ html, body {
 
 .mud-expand-panel {
   background: transparent;
-  border-bottom: none!important;
-  
+  border-bottom: none !important;
+
   .mud-expand-panel-header {
     padding: 0;
     border-bottom: none;
@@ -222,7 +303,7 @@ td {
 }
 
 .table-hover > tbody > tr:hover,
-.table-hover > tbody > tr:hover > *{
+.table-hover > tbody > tr:hover > * {
   color: $text;
 }
 
@@ -230,15 +311,96 @@ td {
   cursor: pointer;
 }
 
-@media (min-width: 1400px){
-  .container-xxl, .container-xl, .container-lg, .container-md, .container-sm, .container {
-    max-width: 1000px;
-  }
-}
 
-@media (min-width: 600px){
+@media (min-width: 600px) {
+  .mud-table {
+    .mud-table-root {
+      tr {
+        .mud-table-cell {
+          &.td-md-width-5 {
+            width: 5%;
+          }
+
+          &.td-md-width-10 {
+            width: 10%;
+          }
+
+          &.td-md-width-15 {
+            width: 15%;
+          }
+
+          &.td-md-width-20 {
+            width: 20%;
+          }
+
+          &.td-md-width-25 {
+            width: 25%;
+          }
+
+          &.td-md-width-30 {
+            width: 30%;
+          }
+
+          &.td-md-width-35 {
+            width: 35%;
+          }
+
+          &.td-md-width-40 {
+            width: 40%;
+          }
+
+          &.td-md-width-45 {
+            width: 45%;
+          }
+
+          &.td-md-width-50 {
+            width: 50%;
+          }
+
+          &.td-md-width-55 {
+            width: 55%;
+          }
+
+          &.td-md-width-60 {
+            width: 60%;
+          }
+
+          &.td-md-width-65 {
+            width: 65%;
+          }
+
+          &.td-md-width-70 {
+            width: 70%;
+          }
+
+          &.td-md-width-75 {
+            width: 75%;
+          }
+
+          &.td-md-width-80 {
+            width: 80%;
+          }
+
+          &.td-md-width-85 {
+            width: 85%;
+          }
+
+          &.td-md-width-90 {
+            width: 90%;
+          }
+
+          &.td-md-width-95 {
+            width: 80%;
+          }
+
+          &.td-md-width-100 {
+            width: 100%;
+          }
+        }
+      }
+    }
+  }
   .mud-dialog-container {
-    
     .mud-dialog {
       .mud-dialog-content {
         //padding: 8px 24px;
@@ -250,5 +412,97 @@ td {
       }
     }
   }
-  
+}
+
+@media (min-width: 1400px) {
+  .mud-table {
+    .mud-table-root {
+      tr {
+        .mud-table-cell {
+          &.td-lg-width-5 {
+            width: 5%;
+          }
+
+          &.td-lg-width-10 {
+            width: 10%;
+          }
+
+          &.td-lg-width-15 {
+            width: 15%;
+          }
+
+          &.td-lg-width-20 {
+            width: 20%;
+          }
+
+          &.td-lg-width-25 {
+            width: 25%;
+          }
+
+          &.td-lg-width-30 {
+            width: 30%;
+          }
+
+          &.td-lg-width-35 {
+            width: 35%;
+          }
+
+          &.td-lg-width-40 {
+            width: 40%;
+          }
+
+          &.td-lg-width-45 {
+            width: 45%;
+          }
+
+          &.td-lg-width-50 {
+            width: 50%;
+          }
+
+          &.td-lg-width-55 {
+            width: 55%;
+          }
+
+          &.td-lg-width-60 {
+            width: 60%;
+          }
+
+          &.td-lg-width-65 {
+            width: 65%;
+          }
+
+          &.td-lg-width-70 {
+            width: 70%;
+          }
+
+          &.td-lg-width-75 {
+            width: 75%;
+          }
+
+          &.td-lg-width-80 {
+            width: 80%;
+          }
+
+          &.td-lg-width-85 {
+            width: 85%;
+          }
+
+          &.td-lg-width-90 {
+            width: 90%;
+          }
+
+          &.td-lg-width-95 {
+            width: 80%;
+          }
+
+          &.td-lg-width-100 {
+            width: 100%;
+          }
+        }
+      }
+    }
+  }
+  .container-xxl, .container-xl, .container-lg, .container-md, .container-sm, .container {
+    max-width: 1000px;
+  }
 }

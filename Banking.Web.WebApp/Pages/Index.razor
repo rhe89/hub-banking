@@ -77,42 +77,7 @@
                         @bind-SelectedAccountId="State.AccountId"
                         Disabled="@Working"/>
                 </div>
-                <div class="col-sm-12 col-lg-3 mt-2 mt-lg-0">
-                    <MudSelect
-                        ReadOnly="@Working"
-                        Placeholder="Select"
-                        T="int"
-                        @bind-Value="@State.Month"
-                        Label="Month"
-                        Variant="@Constants.InputVariant"
-                        AnchorOrigin="@Origin.BottomCenter">
-                        @if (State.Months != null)
-                        {
-                            foreach (var month in State.Months)
-                            {
-                                <MudSelectItem T="int" Value="month">@TextUtils.GetMonthText(month)</MudSelectItem>
-                            }
-                        }
-                    </MudSelect>
-                </div>
-                <div class="col-sm-12 col-lg-3 mt-2 mt-lg-0 mb-3 mb-lg-0">
-                    <MudSelect
-                        ReadOnly="@Working"
-                        Placeholder="Select"
-                        T="int"
-                        @bind-Value="@State.Year"
-                        Label="Year"
-                        Variant="@Constants.InputVariant"
-                        AnchorOrigin="@Origin.BottomCenter">
-                        @if (State.Years != null)
-                        {
-                            foreach (var year in State.Years)
-                            {
-                                <MudSelectItem T="int" Value="year">@year</MudSelectItem>
-                            }
-                        }
-                    </MudSelect>
-                </div>
+                <MonthYearSelect SelectWrapperClass="col-sm-12 col-lg-3 mt-2 mt-lg-0"/>
             </ExpansionBody>
         </ExpansionSection>
     </div>

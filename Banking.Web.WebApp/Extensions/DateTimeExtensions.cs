@@ -6,6 +6,6 @@ public static class DateTimeExtensions
 {
     public static string ToNorwegianDateString(this DateTime dateTime)
     {
-        return dateTime.ToString("dd.MM.yyyy");
+        return dateTime.ToString("dd.MM");
     }
 }

@@ -45,25 +45,24 @@ public class ScheduledTransactionsTableService : TableService<ScheduledTransacti
         {
             ColumnText = new ColumnText
             {
+                Text = "Description",
+                Icon = IconUtils.TransactionDescription
+            }
+        });
+
+        HeaderRow.Add(new Column
+        {
+            ColumnText = new ColumnText
+            {
                 Text = "Amount",
                 Icon = Icons.Sharp.Money
             },
-            TdClass = "d-widget-none"
         });
         
         HeaderRow.Add(new Column
         {
             ColumnText = new ColumnText { Text = "Occurence" },
             TdClass = "d-none d-md-table-cell d-widget-none"
-        });
-        
-        HeaderRow.Add(new Column
-        {
-            ColumnText = new ColumnText
-            {
-                Text = "Description",
-                Icon = IconUtils.TransactionDescription
-            }
         });
         
         HeaderRow.Add(new Column
@@ -153,7 +152,17 @@ public class ScheduledTransactionsTableService : TableService<ScheduledTransacti
                     {
                         Icon = Widget ? Icons.Sharp.DateRange : null,
                         Text = scheduledTransaction.NextTransactionDate.ToNorwegianDateString()
-                    }
+                    },
+                    TdClass = Widget ? "td-width-20" : "td-md-width-5 td-width-20"
+                },
+                new Column
+                {
+                    ColumnText = new ColumnText
+                    {
+                        Icon = Widget ? IconUtils.TransactionDescription : null,
+                        Text = scheduledTransaction.Description
+                    },
+                    TdClass = Widget ? "td-width-50" : "td-md-width-20 td-width-50"
                 },
                 new Column
                 {
@@ -162,30 +171,22 @@ public class ScheduledTransactionsTableService : TableService<ScheduledTransacti
                         Icon = Widget ? Icons.Sharp.Money : null,
                         Text = scheduledTransaction.Amount.ToString(CultureInfo.InvariantCulture)
                     },
-                    TdClass = "d-widget-none"
+                    TdClass = Widget ? "td-width-30" : "td-md-width-5 td-width-30"
                 },
                 new Column
                 {
                     ColumnText = new ColumnText { Text = scheduledTransaction.Occurrence.GetEnumDisplayName() },
-                    TdClass = "d-none d-md-table-cell d-widget-none"
+                    TdClass = "d-none d-md-table-cell d-widget-none td-md-width-10"
                 },
                 new Column
                 {
-                    ColumnText = new ColumnText
-                    {
-                        Icon = Widget ? IconUtils.TransactionDescription : null,
-                        Text = scheduledTransaction.Description
-                    }
+                    ColumnText = new ColumnText { Text = scheduledTransaction.TransactionSubCategory?.TransactionCategory?.Name.FirstCharToUpper() ?? "N/A" },
+                    TdClass = "d-none d-md-table-cell d-widget-none td-md-width-10"
                 },
                 new Column
                 {
-                    ColumnText = new ColumnText { Text = scheduledTransaction.TransactionSubCategory?.TransactionCategory?.Name ?? "N/A" },
-                    TdClass = "d-none d-lg-table-cell d-widget-none"
-                },
-                new Column
-                {
-                    ColumnText = new ColumnText { Text = scheduledTransaction.TransactionSubCategory?.Name ?? "N/A" },
-                    TdClass = "d-none d-lg-table-cell d-widget-none"
+                    ColumnText = new ColumnText { Text = scheduledTransaction.TransactionSubCategory?.Name.FirstCharToUpper() ?? "N/A" },
+                    TdClass = "d-none d-md-table-cell d-widget-none td-md-width-10"
                 }
             }
         }).ToList();

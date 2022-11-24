@@ -34,6 +34,7 @@ public abstract class TableService<TQuery> where TQuery : Query, new()
     {
         State = state;
     }
+    
     protected async Task ReloadServerData()
     {
         if (MudTableRef != null)
