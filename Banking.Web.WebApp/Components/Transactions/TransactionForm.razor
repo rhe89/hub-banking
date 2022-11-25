@@ -38,7 +38,6 @@
             <AccountsSelect 
                 Label="Account"
                 Disabled="Working"
-                Accounts="Accounts"
                 @bind-SelectedAccountId="Transaction.AccountId"/>
         </div>
     </div>
@@ -126,20 +125,4 @@
 
     [Parameter]
     public RenderFragment SubmitActions { get; set; }
-
-    public IList<AccountDto> Accounts { get; set; }
-
-    protected override async Task OnInitializedAsync()
-    {
-        if (Transaction.AccountId != 0)
-        {
-            Accounts = await AccountProvider.GetAccounts(new AccountQuery
-            {
-                IncludeDiscontinuedAccounts = true,
-                IncludeExternalAccounts = true,
-                IncludeSharedAccounts = true
-            });
-        }
-    }
-
 }

@@ -83,11 +83,6 @@
         Working = false;
     }
 
-    protected override async Task OnParametersSetAsync()
-    {
-        await InvokeAsync(StateHasChanged);
-    }
-    
     protected async Task OpenAddAccountDialog(UIHelpers uiHelpers)
     {
         var parameters = new DialogParameters
