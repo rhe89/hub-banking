@@ -1,4 +1,5 @@
 @using Banking.Providers
+@using Banking.Shared
 @using Hub.Shared.DataContracts.Banking.Dto
 @using Hub.Shared.DataContracts.Banking.Query
 @using JetBrains.Annotations
@@ -18,7 +19,7 @@
                        AnchorOrigin="@Origin.BottomCenter">
                 @foreach (var transactionCategory in TransactionCategories)
                 {
-                    <MudSelectItem T="long?" Value="@transactionCategory.Id">@transactionCategory.Name</MudSelectItem>
+                    <MudSelectItem T="long?" Value="@transactionCategory.Id">@transactionCategory.Name.FirstCharToUpper()</MudSelectItem>
                 }
             </MudSelect>
         
@@ -33,7 +34,7 @@
                            AnchorOrigin="@Origin.BottomCenter">
                     @foreach (var subCategory in SelectedTransactionCategory.TransactionSubCategories)
                     {
-                        <MudSelectItem T="long?" Value="@subCategory.Id">@subCategory.Name</MudSelectItem>
+                        <MudSelectItem T="long?" Value="@subCategory.Id">@subCategory.Name.FirstCharToUpper()</MudSelectItem>
                     }
                 </MudSelect>
             }

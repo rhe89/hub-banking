@@ -153,7 +153,7 @@ public class ScheduledTransactionsTableService : TableService<ScheduledTransacti
                         Icon = Widget ? Icons.Sharp.DateRange : null,
                         Text = scheduledTransaction.NextTransactionDate.ToNorwegianDateString()
                     },
-                    TdClass = Widget ? "td-width-20" : "td-md-width-5 td-width-20"
+                    TdClass = Widget ? "td-width-20 td-md-width-25" : "td-md-width-5 td-width-20"
                 },
                 new Column
                 {
@@ -162,7 +162,7 @@ public class ScheduledTransactionsTableService : TableService<ScheduledTransacti
                         Icon = Widget ? IconUtils.TransactionDescription : null,
                         Text = scheduledTransaction.Description
                     },
-                    TdClass = Widget ? "td-width-50" : "td-md-width-20 td-width-50"
+                    TdClass = Widget ? "td-width-50 td-md-width-45" : "td-md-width-25 td-width-50"
                 },
                 new Column
                 {
@@ -171,22 +171,22 @@ public class ScheduledTransactionsTableService : TableService<ScheduledTransacti
                         Icon = Widget ? Icons.Sharp.Money : null,
                         Text = scheduledTransaction.Amount.ToString(CultureInfo.InvariantCulture)
                     },
-                    TdClass = Widget ? "td-width-30" : "td-md-width-5 td-width-30"
+                    TdClass = Widget ? "td-width-30" : "td-md-width-10 td-width-30"
                 },
                 new Column
                 {
                     ColumnText = new ColumnText { Text = scheduledTransaction.Occurrence.GetEnumDisplayName() },
-                    TdClass = "d-none d-md-table-cell d-widget-none td-md-width-10"
+                    TdClass = "d-none d-md-table-cell d-widget-none td-md-width-20"
                 },
                 new Column
                 {
                     ColumnText = new ColumnText { Text = scheduledTransaction.TransactionSubCategory?.TransactionCategory?.Name.FirstCharToUpper() ?? "N/A" },
-                    TdClass = "d-none d-md-table-cell d-widget-none td-md-width-10"
+                    TdClass = "d-none d-md-table-cell d-widget-none td-md-width-20"
                 },
                 new Column
                 {
                     ColumnText = new ColumnText { Text = scheduledTransaction.TransactionSubCategory?.Name.FirstCharToUpper() ?? "N/A" },
-                    TdClass = "d-none d-md-table-cell d-widget-none td-md-width-10"
+                    TdClass = "d-none d-md-table-cell d-widget-none td-md-width-20"
                 }
             }
         }).ToList();

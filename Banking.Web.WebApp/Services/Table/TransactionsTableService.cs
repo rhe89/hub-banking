@@ -4,6 +4,7 @@ using System.Globalization;
 using System.Linq;
 using System.Threading.Tasks;
 using Banking.Providers;
+using Banking.Shared;
 using Banking.Web.WebApp.Components.Transactions;
 using Banking.Web.WebApp.Extensions;
 using Banking.Web.WebApp.Shared;
@@ -173,7 +174,7 @@ public class TransactionsTableService : TableService<TransactionQuery>
                         Text = transaction.TransactionDate.ToNorwegianDateString(),
                         Icon = Widget ? Icons.Sharp.DateRange : null
                     },
-                    TdClass = Widget ? "td-width-20" : "td-md-width-5 td-width-20"
+                    TdClass = Widget ? "td-width-20 td-md-width-25" : "td-md-width-5 td-width-20"
                 },
                 new Column
                 {
@@ -183,7 +184,7 @@ public class TransactionsTableService : TableService<TransactionQuery>
                         Icon = Widget ? IconUtils.TransactionDescription : null,
                         Text = transaction.Description
                     },
-                    TdClass = Widget ? "td-width-50" : "td-md-width-20 td-width-50"
+                    TdClass = Widget ? "td-width-50 td-md-width-45" : "td-md-width-25 td-width-50"
                 },
                 new Column
                 {
@@ -192,7 +193,7 @@ public class TransactionsTableService : TableService<TransactionQuery>
                         Text = transaction.Amount.ToString(CultureInfo.InvariantCulture),
                         Icon = Widget ? Icons.Sharp.Money : null
                     },
-                    TdClass = Widget ? "td-width-30" : "td-md-width-5 td-width-30"
+                    TdClass = Widget ? "td-width-30" : "td-md-width-10 td-width-30"
                 },
                 new Column
                 {
@@ -201,25 +202,25 @@ public class TransactionsTableService : TableService<TransactionQuery>
                         Text = transaction.Account?.Name,
                         Icon = IconUtils.GetAccountTypeIcon(transaction.Account?.AccountType)
                     },
-                    TdClass = "d-none d-md-table-cell d-widget-none td-md-width-10"
+                    TdClass = "d-none d-md-table-cell d-widget-none td-md-width-20"
                 },
                 new Column
                 {
                     ColumnText = new ColumnText
                     {
-                        Text = transaction.TransactionSubCategory?.TransactionCategory.Name ?? "N/A",
+                        Text = transaction.TransactionSubCategory?.TransactionCategory.Name.FirstCharToUpper() ?? "N/A",
                         Icon = Widget ? IconUtils.TransactionCategoryIcon : null
                     },
-                    TdClass = "d-none d-md-table-cell d-widget-none td-md-width-10"
+                    TdClass = "d-none d-md-table-cell d-widget-none td-md-width-20"
                 },
                 new Column
                 {
                     ColumnText = new ColumnText
                     {
-                        Text = transaction.TransactionSubCategory?.Name ?? "N/A",
+                        Text = transaction.TransactionSubCategory?.Name.FirstCharToUpper() ?? "N/A",
                         Icon = Widget ? IconUtils.TransactionCategoryIcon : null
                     },
-                    TdClass = "d-none d-md-table-cell d-widget-none td-md-width-10"
+                    TdClass = "d-none d-md-table-cell d-widget-none td-md-width-20"
                 },
             }
         }).ToList();
