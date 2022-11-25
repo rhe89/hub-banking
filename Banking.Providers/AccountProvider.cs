@@ -61,13 +61,15 @@ public class AccountProvider : IAccountProvider
         if (accountQuery.Take != null)
         {
             return accounts
-                .OrderByDescending(x => x.UpdatedDate)
                 .Take(accountQuery.Take.Value)
+                .OrderByDescending(x => x.BalanceDate)
+                .ThenByDescending(x => x.UpdatedDate)
                 .ToList();
         }
 
         return accounts
-            .OrderByDescending(x => x.UpdatedDate)
+            .OrderByDescending(x => x.BalanceDate)
+            .ThenByDescending(x => x.UpdatedDate)
             .ToList();
     }
     
@@ -94,7 +96,6 @@ public class AccountProvider : IAccountProvider
                 (accountQuery.DiscontinuedDate == null || accountQuery.IncludeDiscontinuedAccounts || account.DiscontinuedDate == null || account.DiscontinuedDate > accountQuery.DiscontinuedDate),
             OrderBy = account => account.UpdatedDate,
             Include = account => account.Bank,
-            Take = accountQuery.Take,
             Skip = accountQuery.Skip
         };
     }

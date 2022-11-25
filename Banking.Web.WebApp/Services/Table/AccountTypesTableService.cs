@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Banking.Providers;
 using Banking.Shared;
+using Banking.Web.WebApp.Components;
 using Banking.Web.WebApp.Components.Accounts;
 using Banking.Web.WebApp.Shared;
 using Banking.Web.WebApp.Utils;
@@ -44,6 +45,14 @@ public class AccountTypesTableService : TableService<AccountTypesQuery>
 
     public override Task CreateFilters(AccountTypesQuery accountTypesQuery)
     {
+        Filter.Clear();
+
+        Filter.Add(new Input
+        {
+            FilterType = FilterType.Component,
+            Name = nameof(MonthYearSelect)
+        });
+        
         return Task.CompletedTask;
     }
 

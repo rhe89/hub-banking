@@ -59,7 +59,7 @@ public class TransactionProvider : ITransactionProvider
             .ToList();
     }
 
-    private Queryable<Transaction> GetQueryable(TransactionQuery transactionQuery)
+    private static Queryable<Transaction> GetQueryable(TransactionQuery transactionQuery)
     {
         if (transactionQuery.Id != null)
         {

@@ -4,7 +4,9 @@ using System.Linq;
 using System.Threading.Tasks;
 using Banking.Providers;
 using Banking.Shared;
+using Banking.Web.WebApp.Components;
 using Banking.Web.WebApp.Components.Accounts;
+using Banking.Web.WebApp.Components.Banks;
 using Banking.Web.WebApp.Shared;
 using Banking.Web.WebApp.Utils;
 using Hub.Shared.DataContracts.Banking.Query;
@@ -18,8 +20,6 @@ public class AccountsTableService : TableService<AccountQuery>
     public override Func<UIHelpers, long, Task> OnRowClicked => OpenEditItemDialog;
     
     public bool IncludeAccountsWithNoBalanceForGivenPeriod { get; set; }
-    private InputList<AccountQuery> YearSelectList { get; set; }
-    private InputList<AccountQuery> MonthSelectList { get; set; }
     
     public AccountsTableService(IAccountProvider accountProvider, State state) : base(state)
     {
@@ -57,30 +57,24 @@ public class AccountsTableService : TableService<AccountQuery>
     {
         Filter.Clear();
         
-        YearSelectList = new InputList<AccountQuery>
+        Filter.Add(new Input
         {
-            FilterType = FilterType.Select,
-            Label = "Year",
-            OnChanged = OnYearChanged
-        };
-        
-        Filter.Add(YearSelectList);
+            FilterType = FilterType.Component,
+            Name = nameof(BanksSelect)
+        });
 
-        MonthSelectList = new InputList<AccountQuery>
+        Filter.Add(new Input
         {
-            FilterType = FilterType.Select,
-            Label = "Month",
-            OnChanged = OnMonthChanged
-        };
+            FilterType = FilterType.Component,
+            Name = nameof(MonthYearSelect)
+        });
         
-        Filter.Add(MonthSelectList);
-
         Filter.Add(new Checkbox<AccountQuery>
         {
             FilterType = FilterType.Checkbox,
             OnChanged = OnIncludeSharedAccountsChanged,
             Value = accountQuery.IncludeSharedAccounts,
-            Label = "Include shared accounts",
+            Name = "Include shared accounts",
         });
         
         Filter.Add(new Checkbox<AccountQuery>
@@ -88,7 +82,7 @@ public class AccountsTableService : TableService<AccountQuery>
             FilterType = FilterType.Checkbox,
             OnChanged = OnIncludeExternalAccountsChanged,
             Value = accountQuery.IncludeExternalAccounts,
-            Label = "Include external accounts",
+            Name = "Include external accounts",
         });
         
         Filter.Add(new Checkbox<AccountQuery>
@@ -96,7 +90,7 @@ public class AccountsTableService : TableService<AccountQuery>
             FilterType = FilterType.Checkbox,
             OnChanged = OnIncludeDiscontinuedAccountsChanged,
             Value = accountQuery.IncludeDiscontinuedAccounts,
-            Label = "Include discontinued accounts",
+            Name = "Include discontinued accounts",
         });
         
         Filter.Add(new Checkbox<AccountQuery>
@@ -104,87 +98,10 @@ public class AccountsTableService : TableService<AccountQuery>
             FilterType = FilterType.Checkbox,
             OnChanged = OnIncludeAccountsWithNoBalanceForGivenPeriodChanged,
             Value = IncludeAccountsWithNoBalanceForGivenPeriod,
-            Label = "Include accounts with no balance",
+            Name = "Include accounts with no balance",
         });
         
-        InitYearSelectList(accountQuery);
-        InitMonthSelectList(accountQuery);
-
         return Task.CompletedTask;
-    }
-
-    private void InitYearSelectList(AccountQuery accountQuery)
-    {
-        YearSelectList.Items = State.Years.Select(year => new InputValue
-        {
-            Text = year.ToString(),
-            Value = year.ToString()
-        }).ToList();
-        
-        SetSelectedYear(UseStateForQuerying ? State.Year.ToString() : accountQuery.BalanceToDate?.Year.ToString());
-    }
-    
-    private void InitMonthSelectList(AccountQuery accountQuery)
-    {
-        MonthSelectList.Items = State.Months.Select(month => new InputValue
-        {
-            Text = new DateTime(int.Parse(YearSelectList.Value), month, 1).ToString("MMMM"),
-            Value = month.ToString()
-        }).ToList();
-        
-        SetSelectedMonth(UseStateForQuerying ? State.Month.ToString() : accountQuery.BalanceToDate?.Month.ToString());
-    }
-    
-    private Task OnYearChanged(
-        InputList<AccountQuery> input,
-        string value,
-        AccountQuery accountQuery)
-    {
-        if (!UseStateForQuerying && int.TryParse(value, out var year) && int.TryParse(MonthSelectList.Value, out var month))
-        {
-            accountQuery.BalanceToDate = DateTimeUtils.FirstDayOfMonth(year, month);
-            State.QueryParametersChanged.Invoke(this, EventArgs.Empty);
-        }
-        
-        SetSelectedYear(value);
-        
-        return Task.CompletedTask;
-    }
-
-    private Task OnMonthChanged(
-        InputList<AccountQuery> input,
-        string value,
-        AccountQuery accountQuery)
-    {
-        if (!UseStateForQuerying && int.TryParse(value, out var month) && int.TryParse(YearSelectList.Value, out var year))
-        {
-            accountQuery.BalanceToDate = DateTimeUtils.FirstDayOfMonth(year, month);
-            State.QueryParametersChanged.Invoke(this, EventArgs.Empty);
-        }
-        
-        SetSelectedMonth(value);
-        
-        return Task.CompletedTask;
-    }
-    
-    private void SetSelectedYear(string year)
-    {
-        YearSelectList.Value = year;
-        
-        if (UseStateForQuerying)
-        {
-            State.Year = int.Parse(year);
-        }
-    }
-    
-    private void SetSelectedMonth(string month)
-    {
-        MonthSelectList.Value = month;
-        
-        if (UseStateForQuerying)
-        {
-            State.Month = int.Parse(month);
-        }
     }
 
     private Task OnIncludeExternalAccountsChanged(Checkbox<AccountQuery> checkbox, bool value, AccountQuery query)

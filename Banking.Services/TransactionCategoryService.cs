@@ -83,8 +83,6 @@ public class TransactionCategoryService : ITransactionCategoryService
     
     public async Task<TransactionSubCategoryDto> AddTransactionSubCategory(TransactionSubCategoryDto newTransactionSubCategory, bool saveChanges)
     {
-        _logger.LogInformation("Creating transaction sub category {Name}", newTransactionSubCategory.Name);
-
         var transactionCategoriesWithSameName = await _transactionCategoryProvider.GetTransactionSubCategories(new TransactionSubCategoryQuery
         {
             Name = newTransactionSubCategory.Name
@@ -95,6 +93,8 @@ public class TransactionCategoryService : ITransactionCategoryService
             return transactionCategoriesWithSameName.First();
         }
         
+        _logger.LogInformation("Creating transaction sub category {Name}", newTransactionSubCategory.Name);
+
         if (saveChanges)
         {
             return _dbRepository.Add<TransactionSubCategory, TransactionSubCategoryDto>(newTransactionSubCategory);

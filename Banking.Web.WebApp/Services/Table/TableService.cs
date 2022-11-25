@@ -103,7 +103,7 @@ public class Input
 {
     public bool Enabled { get; set; } = true;
     public FilterType FilterType { get; init; } = FilterType.TextField;
-    public string Label { get; init; }
+    public string Name { get; init; }
 }
 
 public class Checkbox<TQuery> : Input where TQuery : Query, new()
@@ -130,5 +130,6 @@ public enum FilterType
     TextField,
     Select,
     Checkbox,
-    Radio
+    Radio,
+    Component
 } 

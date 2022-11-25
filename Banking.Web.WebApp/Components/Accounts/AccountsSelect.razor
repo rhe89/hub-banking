@@ -1,6 +1,7 @@
 @using Hub.Shared.DataContracts.Banking.Dto
 @using Banking.Providers
 @using Banking.Services
+@using Banking.Shared
 @using Hub.Shared.DataContracts.Banking.Query
 @using JetBrains.Annotations
 
@@ -22,7 +23,7 @@
                 {
                     foreach (var account in Accounts)
                     {
-                        <MudSelectItem T="long" Value="@account.Id">@account.Name @(!string.IsNullOrEmpty(account.Bank?.Name) ? $" ({account.Bank.Name})" : "")</MudSelectItem>
+                        <MudSelectItem T="long" Value="@account.Id">@account.Name @(!string.IsNullOrEmpty(account.Bank?.Name) && State.BankId == 0 ? $" ({account.Bank.Name})" : "")</MudSelectItem>
                     }
                 }
             </MudSelect>
@@ -70,7 +71,7 @@
         
         Accounts ??= await AccountProvider.GetAccounts(new AccountQuery
         {
-            IncludeDiscontinuedAccounts = true,
+            DiscontinuedDate = DateTimeUtils.LastDayOfMonth(State.Year, State.Month),
             IncludeExternalAccounts = true,
             IncludeSharedAccounts = true
         });

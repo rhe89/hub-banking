@@ -75,6 +75,32 @@
                     <ExpansionBody>
                         <div class="row">
 
+                            @foreach (var filterElement in TableService.Filter.Where(x => x.FilterType == FilterType.Component))
+                            {
+                                @if (filterElement.Name == nameof(BanksSelect))
+                                {
+                                    <div class="col-12 col-lg-3">
+                                        <BanksSelect
+                                            Disabled="Working"
+                                            @bind-SelectedBankId="State.NullableBankId"/>
+                                    </div>
+                                }
+                                else if (filterElement.Name == nameof(AccountsSelect))
+                                {
+                                    <div class="col-12 col-lg-3">
+                                        <AccountsSelect
+                                            Label="Accounts"
+                                            Disabled="Working"
+                                            @bind-SelectedAccountId="State.AccountId"/>
+                                    </div>
+                                }
+                                else if (filterElement.Name == nameof(MonthYearSelect))
+                                {
+                                    <MonthYearSelect
+                                        SelectWrapperClass="col-12 col-lg-3"/>
+                                }
+                            }
+
                             @foreach (var filterElement in TableService.Filter.Where(x => x.FilterType == FilterType.Select))
                             {
                                 <div class="col-12 col-lg-3">
@@ -85,7 +111,7 @@
                                             Disabled="@(Working || !selectList.Enabled)"
                                             Value="@selectList.Value"
                                             ValueChanged="@(value => selectList.OnChanged(selectList, value, Query))"
-                                            Label="@selectList.Label"
+                                            Label="@selectList.Name"
                                             Variant="@Constants.InputVariant"
                                             AnchorOrigin="@Origin.BottomCenter">
                                             @foreach (var selectListItem in selectList.Items)
@@ -131,7 +157,7 @@
                                         <MudCheckBox
                                             T="bool"
                                             Disabled="@(Working || !checkbox.Enabled)"
-                                            Label="@checkbox.Label"
+                                            Label="@checkbox.Name"
                                             Checked="@checkbox.Value"
                                             CheckedChanged="@(value => checkbox.OnChanged(checkbox, value, Query))">
                                         </MudCheckBox>

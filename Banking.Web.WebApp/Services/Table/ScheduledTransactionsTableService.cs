@@ -5,6 +5,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Banking.Providers;
 using Banking.Shared;
+using Banking.Web.WebApp.Components;
 using Banking.Web.WebApp.Components.ScheduledTransactions;
 using Banking.Web.WebApp.Extensions;
 using Banking.Web.WebApp.Shared;
@@ -20,9 +21,6 @@ public class ScheduledTransactionsTableService : TableService<ScheduledTransacti
     private readonly IScheduledTransactionProvider _scheduledTransactionProvider;
     public override Func<UIHelpers, long, Task> OnRowClicked => OpenEditItemDialog;
     
-    private InputList<ScheduledTransactionQuery> YearSelectList { get; set; }
-    private InputList<ScheduledTransactionQuery> MonthSelectList { get; set; }
-
     public ScheduledTransactionsTableService(
         IScheduledTransactionProvider scheduledTransactionProvider, 
         State state) : base(state)
@@ -81,35 +79,20 @@ public class ScheduledTransactionsTableService : TableService<ScheduledTransacti
     public override Task CreateFilters(ScheduledTransactionQuery scheduledTransactionQuery)
     {
         Filter.Clear();
-        
-        YearSelectList = new InputList<ScheduledTransactionQuery>
-        {
-            FilterType = FilterType.Select,
-            Label = "Year",
-            OnChanged = OnYearChanged
-        };
-        
-        Filter.Add(YearSelectList);
 
-        MonthSelectList = new InputList<ScheduledTransactionQuery>
+        Filter.Add(new Input
         {
-            FilterType = FilterType.Select,
-            Label = "Month",
-            OnChanged = OnMonthChanged
-        };
-        
-        Filter.Add(MonthSelectList);
+            FilterType = FilterType.Component,
+            Name = nameof(MonthYearSelect)
+        });
         
         Filter.Add(new Checkbox<ScheduledTransactionQuery>
         {
             FilterType = FilterType.Checkbox,
             OnChanged = OnIncludeCompletedChanged,
             Value = scheduledTransactionQuery.IncludeCompletedTransactions,
-            Label = "Include completed transactions"
+            Name = "Include completed transactions"
         });
-        
-        InitYearSelectList(scheduledTransactionQuery);
-        InitMonthSelectList(scheduledTransactionQuery);
         
         return Task.CompletedTask;
     }
@@ -221,81 +204,5 @@ public class ScheduledTransactionsTableService : TableService<ScheduledTransacti
         };
 
         await uiHelpers.ShowDialog<EditScheduledTransactionDialog>(parameters);
-    }
-    
-    private Task OnYearChanged(
-        InputList<ScheduledTransactionQuery> input,
-        string value,
-        ScheduledTransactionQuery scheduledTransactionQuery)
-    {
-        if (!UseStateForQuerying && int.TryParse(value, out var year) && int.TryParse(MonthSelectList.Value, out var month))
-        {
-            scheduledTransactionQuery.NextTransactionFromDate = DateTimeUtils.FirstDayOfMonth(year, month);
-            scheduledTransactionQuery.NextTransactionToDate = DateTimeUtils.LastDayOfMonth(year, month);
-            State.QueryParametersChanged.Invoke(this, EventArgs.Empty);
-        }
-        
-        SetSelectedYear(value);
-        
-        return Task.CompletedTask;
-    }
-
-    private Task OnMonthChanged(
-        InputList<ScheduledTransactionQuery> input,
-        string value,
-        ScheduledTransactionQuery scheduledTransactionQuery)
-    {
-        if (!UseStateForQuerying && int.TryParse(value, out var month) && int.TryParse(YearSelectList.Value, out var year))
-        {
-            scheduledTransactionQuery.NextTransactionFromDate = DateTimeUtils.FirstDayOfMonth(year, month);
-            scheduledTransactionQuery.NextTransactionToDate = DateTimeUtils.LastDayOfMonth(year, month);
-            State.QueryParametersChanged.Invoke(this, EventArgs.Empty);
-        }
-        
-        SetSelectedMonth(value);
-        
-        return Task.CompletedTask;
-    }
-    
-    private void InitYearSelectList(ScheduledTransactionQuery scheduledTransactionQuery)
-    {
-        YearSelectList.Items = State.Years.Select(year => new InputValue
-        {
-            Text = year.ToString(),
-            Value = year.ToString()
-        }).ToList();
-        
-        SetSelectedYear(UseStateForQuerying ? State.Year.ToString() : scheduledTransactionQuery.NextTransactionFromDate?.Year.ToString());
-    }
-    
-    private void InitMonthSelectList(ScheduledTransactionQuery scheduledTransactionQuery)
-    {
-        MonthSelectList.Items = State.Months.Select(month => new InputValue
-        {
-            Text = new DateTime(int.Parse(YearSelectList.Value), month, 1).ToString("MMMM"),
-            Value = month.ToString()
-        }).ToList();
-        
-        SetSelectedMonth(UseStateForQuerying ? State.Month.ToString() : scheduledTransactionQuery.NextTransactionFromDate?.Month.ToString());
-    }
-    
-    private void SetSelectedYear(string year)
-    {
-        YearSelectList.Value = year;
-        
-        if (UseStateForQuerying)
-        {
-            State.Year = int.Parse(year);
-        }
-    }
-    
-    private void SetSelectedMonth(string month)
-    {
-        MonthSelectList.Value = month;
-        
-        if (UseStateForQuerying)
-        {
-            State.Month = int.Parse(month);
-        }
     }
 }

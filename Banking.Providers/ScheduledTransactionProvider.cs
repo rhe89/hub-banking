@@ -32,7 +32,7 @@ public class ScheduledTransactionProvider : IScheduledTransactionProvider
         return await _dbRepository.GetAsync<ScheduledTransaction, ScheduledTransactionDto>(GetQueryable(scheduledTransactionQuery));
     }
     
-    private Queryable<ScheduledTransaction> GetQueryable(ScheduledTransactionQuery scheduledTransactionQuery)
+    private static Queryable<ScheduledTransaction> GetQueryable(ScheduledTransactionQuery scheduledTransactionQuery)
     {
         if (scheduledTransactionQuery.Id != null)
         {

@@ -37,7 +37,8 @@ public class CreditCardPaymentCalculatorCommand : ServiceBusQueueCommand
         var thisMonthsCreditCardBalances = await _accountProvider.GetAccounts(new AccountQuery
         {
             BalanceToDate = DateTime.Now,
-            AccountType = AccountTypes.CreditCard
+            AccountType = AccountTypes.CreditCard,
+            DiscontinuedDate = DateTime.Now
         });
 
         var creditLimitSetting = await _settingProvider.GetSetting("CreditCardLimit");

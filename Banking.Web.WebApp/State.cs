@@ -26,6 +26,20 @@ public class State
             QueryParametersChanged?.Invoke(this, EventArgs.Empty);
         }
     }
+    
+    public long? NullableBankId
+    {
+        get => _bankId;
+        set
+        {
+            if (_bankId == value || value == null)
+            {
+                return;
+            }
+
+            BankId = value.Value;
+        }
+    }
 
     public long AccountId
     {
