@@ -9,6 +9,7 @@ using Banking.Providers;
 using Banking.Services;
 using Hub.Shared.Settings;
 using Hub.Shared.Storage.ServiceBus;
+using Hub.Shared.Web.Http;
 using Microsoft.Extensions.DependencyInjection;
 using CsvTransactionsImporter = Banking.HostedServices.ServiceBusQueueHost.QueueListenerServices.CsvTransactionsImporter;
 
@@ -30,6 +31,7 @@ ServiceBusHostBuilder
         serviceCollection.AddSingleton<ITransactionCategoryService, TransactionCategoryService>();
         serviceCollection.AddSingleton<IMessageSender, MessageSender>();
         serviceCollection.AddSingleton<ISettingProvider, SettingProvider>();
+        serviceCollection.AddHubHttpClient<ISbankenConnector, SbankenConnector>();
 
         serviceCollection.AddSingleton<CsvTransactionsImporterCommand>();
         serviceCollection.AddHostedService<CsvTransactionsImporter>();
@@ -40,8 +42,11 @@ ServiceBusHostBuilder
         serviceCollection.AddSingleton<CreditCardPaymentCalculatorCommand>();
         serviceCollection.AddHostedService<CreditCardPaymentCalculator>();
         
-        serviceCollection.AddSingleton<UpdateAccountBalancesForNewMonthCommand>();
+        serviceCollection.AddSingleton<AccountBalancesForNewMonthUpdaterCommand>();
         serviceCollection.AddHostedService<AccountBalancesForNewMonthUpdater>();
+        
+        serviceCollection.AddSingleton<SbankenTransactionsUpdaterCommand>();
+        serviceCollection.AddHostedService<SbankenTransactionsUpdater>();
         
         serviceCollection.AddAutoMapper(c =>
         {

@@ -11,11 +11,11 @@ public class AccountBalancesForNewMonthUpdater : ServiceBusHostedService
 {
     public AccountBalancesForNewMonthUpdater(ILogger<AccountBalancesForNewMonthUpdater> logger, 
                                       IConfiguration configuration,
-                                      UpdateAccountBalancesForNewMonthCommand command, 
+                                      AccountBalancesForNewMonthUpdaterCommand updaterCommand, 
                                       IQueueProcessor queueProcessor,
                                       TelemetryClient telemetryClient) : base(logger, 
                                                                               configuration,
-                                                                              command, 
+                                                                              updaterCommand, 
                                                                               queueProcessor,
                                                                               telemetryClient)
     {

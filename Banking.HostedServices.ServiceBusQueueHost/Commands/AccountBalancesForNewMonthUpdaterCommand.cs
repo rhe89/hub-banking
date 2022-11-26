@@ -11,12 +11,12 @@ using Hub.Shared.Storage.ServiceBus;
 
 namespace Banking.HostedServices.ServiceBusQueueHost.Commands;
 
-public class UpdateAccountBalancesForNewMonthCommand : ServiceBusQueueCommand
+public class AccountBalancesForNewMonthUpdaterCommand : ServiceBusQueueCommand
 {
     private readonly IAccountProvider _accountProvider;
     private readonly IAccountService _accountService;
 
-    public UpdateAccountBalancesForNewMonthCommand(
+    public AccountBalancesForNewMonthUpdaterCommand(
         IAccountProvider accountProvider,
         IAccountService accountService)
     {
