@@ -43,7 +43,9 @@
     </TransactionForm>
 
     <AdditionalData>
-        <TransactionsTable/>
+        <CascadingValue Name="Query" Value="TransactionQuery">
+            <TransactionsTable/>
+        </CascadingValue>
     </AdditionalData>
 </Dialog>
 
@@ -54,43 +56,34 @@
     [CascadingParameter] 
     public MudDialogInstance MudDialog { get; set; }
     
-    private TransactionModel Transaction { get; set; } = new()
-    {
-        TransactionDirection = TransactionDirection.Out,
-        Source = "ManuallyCreated",
-        Exclude = true,
-    };
+    [Parameter]
+    public TransactionModel Transaction { get; set; }
+    
+    private TransactionQuery TransactionQuery { get; set; }
     
     protected override void OnInitialized()
     {
         Working = true;
-        
-        Transaction.AccountId = State.AccountId;
-        Transaction.Amount = 0;
-        Transaction.TransactionDate = DateTime.Now;
-        Transaction.TransactionType = 0;
 
+        Transaction ??= new()
+        {
+            TransactionDirection = TransactionDirection.Out,
+            Source = "ManuallyCreated",
+            Exclude = true,
+            AccountId = State.AccountId,
+            Amount = 0,
+            TransactionDate = DateTime.Now,
+            TransactionType = 0,
+        };
+
+        TransactionQuery = new TransactionQuery
+        {
+            AccountId = Transaction.AccountId,
+            Month = Transaction.TransactionDate?.Month,
+            Year = Transaction.TransactionDate?.Year
+        };
+        
         Working = false;
-    }
-
-    private async Task UseTransactionDetails(UIHelpers uiHelpers, long transactionId)
-    {
-        var transaction = (await TransactionProvider.GetTransactions(new TransactionQuery { Id = transactionId })).Single();
-        
-        Transaction.Amount = transaction.Amount;
-        Transaction.AccountId = transaction.AccountId;
-        Transaction.Description = transaction.Description;
-        Transaction.TransactionType = transaction.TransactionType;
-        Transaction.TransactionSubCategoryId = transaction.TransactionSubCategoryId;
-        Transaction.TransactionDate = transaction.TransactionDate.AddMonths(1);
-        Transaction.Exclude = transaction.Exclude;
-        Transaction.TransactionDirection = transaction.Amount > 0 ?
-            TransactionDirection.In :
-            TransactionDirection.Out;
-        
-        Transaction.Validate(out _);
-
-        await InvokeAsync(StateHasChanged);
     }
     
     private async Task SaveAndAddNew()
@@ -138,7 +131,10 @@
         
         await TransactionService.AddTransaction(Transaction, saveChanges: true);
 
-        await OnTransactionAdded.Invoke(UiHelpers, Transaction.Id);
+        if (OnTransactionAdded != null)
+        {
+            await OnTransactionAdded.Invoke(UiHelpers, Transaction.Id);
+        }
         
         Working = false;
 

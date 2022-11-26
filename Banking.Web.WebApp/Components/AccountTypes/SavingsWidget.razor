@@ -3,11 +3,8 @@
 @using Hub.Shared.DataContracts.Banking.Constants
 @using Hub.Shared.DataContracts.Banking.Query
 
-@inherits BaseComponent
-@implements IDisposable
+@inherits SavingsBaseComponent
 
-@inject IAccountProvider AccountProvider
-@inject IScheduledTransactionProvider ScheduledTransactionProvider  
 @inject UIHelpers UiHelpers
 
 <Widget OnClick="OpenSavingsOverview">
@@ -20,11 +17,11 @@
     {
         <section>
             <MudText class="fs-3">kr @CurrentSavingsBalance.ToString("N2")</MudText>
-            <MudText Color="@(IsGain ? Color.Success : Color.Error)">
-                @(IsGain ? "+" : "-")kr @Diff.ToString("N2") (@(IsGain ? "+" : "-")@DiffInPercentage.ToString("N2")%)
+            <MudText Color="@(IsGainComparedToPreviousMonth ? Color.Success : Color.Error)">
+                @(IsGainComparedToPreviousMonth ? "+" : "-")kr @SavingsBalanceComparedToPreviousMonth.ToString("N2") (@(IsGainComparedToPreviousMonth ? "+" : "-")@SavingsBalanceDiffInPercentageComparedToPreviousMonth.ToString("N2")%)
             </MudText>
-            <MudText class="" Color="@(CurrentSavingsBalance >= (-BudgetedInvested) ? Color.Success : Color.Error)">
-                kr @(BudgetedInvested.ToString("N2")) budgeted
+            <MudText class="" Color="@((BudgetedDeposits-BudgetedWithdrawals > 0) ? Color.Success : Color.Error)">
+                kr @((BudgetedDeposits-(-BudgetedWithdrawals)).ToString("N2")) budgeted
             </MudText>
         </section>
     }
@@ -35,103 +32,8 @@
     [Parameter]
     public string HeaderText { get; set; }
     
-    private decimal CurrentSavingsBalance { get; set; }
-    private decimal BudgetedInvested { get; set; }
-    private decimal LastMonthSavingsBalance { get; set; }
-    private decimal DiffInPercentage { get; set; }
-    private decimal Diff { get; set; }
-    private bool IsGain { get; set; }
-    
-    protected override async Task OnInitializedAsync()
-    {
-        Working = true;
-        
-        await Search();
-
-        State.QueryParametersChanged += OnStateOnStateChanged;
-
-        Working = false;
-    }
-
-    private async void OnStateOnStateChanged(object sender, EventArgs args)
-    {
-        await Search();
-
-        await InvokeAsync(StateHasChanged);
-    }
-
-    private async Task Search()
-    {
-        var accountQuery = new AccountQuery
-        {
-            AccountType = AccountTypes.Saving,
-            BalanceToDate = DateTimeUtils.LastDayOfMonth(State.Year, State.Month).AddMonths(-1),
-            DiscontinuedDate = DateTimeUtils.LastDayOfMonth(State.Year, State.Month).AddMonths(-1)
-        };
-
-        var lastMonthsAccountBalances = await AccountProvider.GetAccounts(accountQuery);
-
-        LastMonthSavingsBalance = lastMonthsAccountBalances.Sum(x => x.Balance);
-        
-        accountQuery.BalanceToDate = DateTimeUtils.LastDayOfMonth(State.Year, State.Month);
-        accountQuery.DiscontinuedDate = DateTimeUtils.LastDayOfMonth(State.Year, State.Month);
-        
-        CurrentSavingsBalance = (await AccountProvider.GetAccounts(accountQuery)).Sum(x => x.Balance);
-
-        var scheduledTransactionQuery = new ScheduledTransactionQuery
-        {
-            AccountType = AccountTypes.Saving,
-            NextTransactionFromDate = DateTimeUtils.FirstDayOfMonth(State.Year, State.Month),
-            NextTransactionToDate = DateTimeUtils.LastDayOfMonth(State.Year, State.Month),
-            IncludeCompletedTransactions = true
-        };
-
-        BudgetedInvested = (await ScheduledTransactionProvider.GetScheduledTransactions(scheduledTransactionQuery)).Sum(x => x.Amount);
-
-        IsGain = CurrentSavingsBalance >= LastMonthSavingsBalance;
-
-        if (CurrentSavingsBalance == 0)
-        {
-            Working = false;
-            DiffInPercentage = LastMonthSavingsBalance > 0 ? 100 : 0;
-            IsGain = LastMonthSavingsBalance == 0;
-            Diff = CurrentSavingsBalance - LastMonthSavingsBalance;
-            return;
-        }
-
-        if (LastMonthSavingsBalance == 0)
-        {
-            Working = false;
-            DiffInPercentage = 100;
-            IsGain = true;
-            Diff = CurrentSavingsBalance;
-            return;
-        }
-        
-        if (IsGain)
-        {
-            DiffInPercentage = 100 - (LastMonthSavingsBalance / CurrentSavingsBalance * 100);
-            Diff = CurrentSavingsBalance - LastMonthSavingsBalance;
-        }
-        else
-        {
-            DiffInPercentage = 100 - (CurrentSavingsBalance / LastMonthSavingsBalance * 100);
-            Diff = LastMonthSavingsBalance - CurrentSavingsBalance;
-        }
-    }
-
     private async Task OpenSavingsOverview()
     {
-        var parameters = new DialogParameters
-        {
-            { nameof(SavingsOverviewDialog.Widget), false },
-        };
-
-        await UiHelpers.ShowDialog<SavingsOverviewDialog>(parameters);
-    }
-    
-    public void Dispose()
-    {
-        State.QueryParametersChanged -= OnStateOnStateChanged;
+        await UiHelpers.ShowDialog<SavingsOverviewDialog>();
     }
 }

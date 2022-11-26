@@ -130,8 +130,8 @@ public class TransactionsTableService : TableService<TransactionQuery>
         {
             transactionQuery.BankId = State.BankId;
             transactionQuery.AccountId = State.AccountId;
-            transactionQuery.Month = State.Month;
-            transactionQuery.Year = State.Year;
+            transactionQuery.FromDate = DateTimeUtils.FirstDayOfMonth(State.Year, State.Month);
+            transactionQuery.ToDate = DateTimeUtils.LastDayOfMonth(State.Year, State.Month);
         }
 
         transactionQuery.Take = Widget ? 5 : null;

@@ -42,4 +42,14 @@
     [Parameter]
     public string SelectWrapperClass { get; set; }
 
+    protected override void OnInitialized()
+    {
+        State.QueryParametersChanged += QueryParametersChanged;
+    }
+
+    private async void QueryParametersChanged(object sender, EventArgs e)
+    {
+        await InvokeAsync(StateHasChanged);
+    }
+
 }

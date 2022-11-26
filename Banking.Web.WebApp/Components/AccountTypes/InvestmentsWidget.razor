@@ -5,137 +5,39 @@
 @using Hub.Shared.DataContracts.Banking.Dto
 @using Hub.Shared.DataContracts.Banking.Query
 
-@inherits BaseComponent
-@implements IDisposable
+@inherits InvestmentsBaseComponent
 
-@inject IAccountProvider AccountProvider
-@inject IScheduledTransactionProvider ScheduledTransactionProvider  
 @inject UIHelpers UiHelpers
 
 <Widget OnClick="OpenInvestmentsOverview">
     <MudText class="fs-5">Investments</MudText>
     @if (Working)
     {
-        <MudSkeleton />
+        <MudSkeleton/>
     }
     else
     {
         <section>
-            <MudText class="fs-3">kr @CurrentInvestmentBalance.ToString("N2")</MudText>
-            <MudText Color="@(IsGain ? Color.Success : Color.Error)">
-                @(IsGain ? "+" : "-")kr @Diff.ToString("N2") (@(IsGain ? "+" : "-")@DiffInPercentage.ToString("N2")%)
+            <MudText class="fs-3">kr @CurrentInvestmentsBalance.ToString("N2")</MudText>
+            <MudText Color="@(IsGainComparedToPreviousMonth ? Color.Success : Color.Error)">
+                @(IsGainComparedToPreviousMonth ? "+" : "-")kr @InvestmentsBalanceComparedToPreviousMonth.ToString("N2") (@(IsGainComparedToPreviousMonth ? "+" : "-")@InvestmentsBalanceDiffInPercentageComparedToPreviousMonth.ToString("N2")%)
             </MudText>
-            <MudText class="" Color="@(CurrentInvestmentBalance >= (-BudgetedInvested) ? Color.Success : Color.Error)">
-                kr @(BudgetedInvested.ToString("N2")) budgeted
+            <MudText class="" Color="@((BudgetedDeposits - BudgetedWithdrawals > 0) ? Color.Success : Color.Error)">
+                kr @((BudgetedDeposits - (-BudgetedWithdrawals)).ToString("N2")) budgeted
             </MudText>
         </section>
     }
-    
+
 </Widget>
 
 @code {
+
     [Parameter]
     public string HeaderText { get; set; }
-    
-    private decimal CurrentInvestmentBalance { get; set; }
-    private decimal BudgetedInvested { get; set; }
-    private decimal LastMonthInvestmentBalance { get; set; }
-    private decimal DiffInPercentage { get; set; }
-    private decimal Diff { get; set; }
-    private bool IsGain { get; set; }
-
-    private bool Loading { get; set; } = true;
-
-    protected override async Task OnInitializedAsync()
-    {
-        Working = true;
-        
-        await Search();
-
-        State.QueryParametersChanged += OnStateOnStateChanged;
-
-        Working = false;
-    }
-
-    private async void OnStateOnStateChanged(object sender, EventArgs args)
-    {
-        await Search();
-
-        await InvokeAsync(StateHasChanged);
-    }
-
-    private async Task Search()
-    {
-        var accountQuery = new AccountQuery
-        {
-            AccountType = AccountTypes.Investment,
-            BalanceToDate = DateTimeUtils.LastDayOfMonth(State.Year, State.Month).AddMonths(-1),
-            DiscontinuedDate = DateTimeUtils.LastDayOfMonth(State.Year, State.Month).AddMonths(-1)
-        };
-
-        var lastMonthsAccountBalances = await AccountProvider.GetAccounts(accountQuery);
-
-        LastMonthInvestmentBalance = lastMonthsAccountBalances.Sum(x => x.Balance);
-        
-        accountQuery.BalanceToDate = DateTimeUtils.LastDayOfMonth(State.Year, State.Month);
-        accountQuery.DiscontinuedDate = DateTimeUtils.LastDayOfMonth(State.Year, State.Month);
-        
-        CurrentInvestmentBalance = (await AccountProvider.GetAccounts(accountQuery)).Sum(x => x.Balance);
-
-        var scheduledTransactionQuery = new ScheduledTransactionQuery
-        {
-            AccountType = AccountTypes.Investment,
-            NextTransactionFromDate = DateTimeUtils.FirstDayOfMonth(State.Year, State.Month),
-            NextTransactionToDate = DateTimeUtils.LastDayOfMonth(State.Year, State.Month),
-            IncludeCompletedTransactions = true
-        };
-
-        BudgetedInvested = (await ScheduledTransactionProvider.GetScheduledTransactions(scheduledTransactionQuery)).Sum(x => x.Amount);
-
-        IsGain = CurrentInvestmentBalance >= LastMonthInvestmentBalance;
-
-        if (CurrentInvestmentBalance == 0)
-        {
-            Working = false;
-            DiffInPercentage = LastMonthInvestmentBalance > 0 ? 100 : 0;
-            IsGain = LastMonthInvestmentBalance == 0;
-            Diff = CurrentInvestmentBalance - LastMonthInvestmentBalance;
-            return;
-        }
-
-        if (LastMonthInvestmentBalance == 0)
-        {
-            Working = false;
-            DiffInPercentage = 100;
-            IsGain = true;
-            Diff = CurrentInvestmentBalance;
-            return;
-        }
-        
-        if (IsGain)
-        {
-            DiffInPercentage = 100 - (LastMonthInvestmentBalance / CurrentInvestmentBalance * 100);
-            Diff = CurrentInvestmentBalance - LastMonthInvestmentBalance;
-        }
-        else
-        {
-            DiffInPercentage = 100 - (CurrentInvestmentBalance / LastMonthInvestmentBalance * 100);
-            Diff = LastMonthInvestmentBalance - CurrentInvestmentBalance;
-        }
-    }
 
     private async Task OpenInvestmentsOverview()
     {
-        var parameters = new DialogParameters
-        {
-            { nameof(InvestmentsOverviewDialog.Widget), false },
-        };
+        await UiHelpers.ShowDialog<InvestmentsOverviewDialog>();
+    }
 
-        await UiHelpers.ShowDialog<InvestmentsOverviewDialog>(parameters);
-    }
-    
-    public void Dispose()
-    {
-        State.QueryParametersChanged -= OnStateOnStateChanged;
-    }
 }

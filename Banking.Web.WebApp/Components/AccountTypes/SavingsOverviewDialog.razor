@@ -1,32 +1,58 @@
 @using Banking.Web.WebApp.Services.Table
-@using Banking.Shared
-@using Hub.Shared.DataContracts.Banking.Constants
+@using Hub.Shared.DataContracts.Banking.Query
 
-@inherits TableBaseComponent<Banking.Web.WebApp.Services.Table.AccountTypesQuery> 
+@inherits SavingsBaseComponent
 
 <Dialog HeaderText="Savings">
-    
-    <section class="row">
-        <MonthYearSelect SelectWrapperClass="col-sm-12 col-lg-3"/>
-    </section>
-    
-    <GenericTable
-        TQuery="AccountTypesQuery"
-        Query="Query"
-        @ref="TableRef"/>
+    @if (Working)
+    {
+        <MudSkeleton/>
+    }
+    else
+    {
+        <section class="row">
+            <div class="col-12">
+                <MudText class="d-block d-lg-inline-block fs-3">kr @CurrentSavingsBalance.ToString("N2")</MudText>
+                <MudText class="d-block d-lg-inline-block" Color="@(IsGainComparedToPreviousMonth ? Color.Success : Color.Error)">
+                    @(IsGainComparedToPreviousMonth ? "+" : "-")kr @SavingsBalanceComparedToPreviousMonth.ToString("N2") (@(IsGainComparedToPreviousMonth ? "+" : "-")@SavingsBalanceDiffInPercentageComparedToPreviousMonth.ToString("N2")%)
+                </MudText>
+            </div>
+            <div class="col-12 mt-2">
+                <MudText class="" Color="@((BudgetedDeposits - (-BudgetedWithdrawals) > 0) ? Color.Success : Color.Error)">
+                    Budgeted saved: kr @((BudgetedDeposits - (-BudgetedWithdrawals)).ToString("N2"))
+                </MudText>
+                <MudText class="" Color="Color.Success">
+                    Budgeted deposits: kr @(BudgetedDeposits.ToString("N2"))
+                </MudText>
+                <MudText class="" Color="Color.Success">
+                    Actual deposits: kr @(ActualDeposits.ToString("N2"))
+                </MudText>
+                <MudText class="" Color="Color.Error">
+                    Budgeted withdrawals: kr @(BudgetedWithdrawals.ToString("N2"))
+                </MudText>
+                <MudText class="" Color="Color.Error">
+                    Actual withdrawals: kr @(ActualWithdrawals.ToString("N2"))
+                </MudText>
+            </div>
+        </section>
+
+        <section class="row mt-3">
+            <MonthYearSelect SelectWrapperClass="col-sm-12 col-lg-3"/>
+        </section>
+
+        <GenericTable
+            TQuery="AccountTypesQuery"
+            Query="AccountTypesQuery"
+            @ref="AccountTypesTableRef"/>
+
+        <GenericTable
+            TQuery="TransactionQuery"
+            Query="TransactionQuery"
+            @ref="TransactionTableRef"/>
+    }
 </Dialog>
 
 @code {
-    protected async override Task OnParametersSetAsync()
-    {
-        Working = true;
-
-        Query.AccountType = AccountTypes.Saving;
-        Query.DiscontinuedDate = DateTimeUtils.LastDayOfMonth(State.Year, State.Month);
-        Query.BalanceToDate = DateTimeUtils.LastDayOfMonth(State.Year, State.Month);
-
-        await base.OnParametersSetAsync();
-        
-        Working = false;
-    }
+    public GenericTable<TransactionQuery> TransactionTableRef { get; set; }
+    public GenericTable<AccountTypesQuery> AccountTypesTableRef { get; set; }
 }

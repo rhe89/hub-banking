@@ -1,26 +1,33 @@
-@using Banking.Shared
 @using Hub.Shared.DataContracts.Banking.Query
 
-@inherits BaseComponent
+@inherits BillingBaseComponent
 
 <Dialog HeaderText="Bills">
-    <section class="row">
-        <div class="col-12 ps-4 col-lg-2 ps-lg-0">
-            <MudText>Available: kr @BillingAccountsBalance.ToString("N2")</MudText>
-        </div>
-        <div class="col-12 ps-4 col-lg-2 ps-lg-0">
-            <MudText>Paid: kr @AmountPaid.ToString("N2")</MudText>
-        </div>
-        <div class="col-12 ps-4 col-lg-2 ps-lg-0">
-            <MudText>Remaining: kr @AmountRemaining.ToString("N2")</MudText>
-        </div>
-    </section>
-    
-    <section class="row">
-        <MonthYearSelect SelectWrapperClass="col-sm-12 col-lg-3 mt-2 mt-lg-0"/>
-    </section>
+    @if (Working)
+    {
+        <MudSkeleton/>
+    }
+    else
+    {
+        <section class="row">
+            <div class="col-12">
+                <MudText class="fs-3">kr @UpcomingBillsAmount.ToString("N2") remaining</MudText>
+            </div>
+            <div class="col-12 mt-2">
+                <MudText class="" Color="@(BillingAccountsBalance >= (-UpcomingBillsAmount) ? Color.Success : Color.Error)">
+                    kr @(BillingAccountsBalance.ToString("N2")) available
+                </MudText>
+            </div>
 
-    <CascadingValue Name="UseState" Value="false">
+            <div class="col-12">
+                <MudText>kr @PaidBillsAmount.ToString("N2") paid</MudText>
+            </div>
+        </section>
+
+        <section class="row mt-3">
+            <MonthYearSelect SelectWrapperClass="col-sm-12 col-lg-3 mt-2 mt-lg-0"/>
+        </section>
+
         @if (!MonthHasPassed)
         {
             <GenericTable
@@ -31,7 +38,7 @@
                 Query="UpcomingBillsQuery"
                 @ref="UpcomingBillsTableRef"/>
         }
-        
+
         <GenericTable
             HideFilter="true"
             TableHeader="Completed payments"
@@ -39,45 +46,11 @@
             TQuery="TransactionQuery"
             Query="PaidBillsQuery"
             @ref="PaidBillsTableRef"/>
-    </CascadingValue>
+    }
+    
 </Dialog>
 
-
 @code {
-
-    [Parameter]
-    public bool Widget { get; set; }
-
-    [Parameter]
-    public ScheduledTransactionQuery UpcomingBillsQuery { get; set; }
-
-    [Parameter]
-    public TransactionQuery PaidBillsQuery { get; set; }
-
-    [Parameter]
-    public decimal BillingAccountsBalance { get; set; }
-
-    [Parameter]
-    public decimal AmountPaid { get; set; }
-
-    [Parameter]
-    public decimal AmountRemaining { get; set; }
-    
     private GenericTable<ScheduledTransactionQuery> UpcomingBillsTableRef { get; set; }
     private GenericTable<TransactionQuery> PaidBillsTableRef { get; set; }
-
-    private bool MonthHasPassed { get; set; } = true;
-
-    protected override void OnInitialized()
-    {
-        Working = true;
-
-        if (State.Month != 0 && State.Year != 0)
-        {
-            MonthHasPassed = DateTime.Now > DateTimeUtils.LastDayOfMonth(State.Year, State.Month);
-        }
-
-        Working = false;
-    }
-
 }

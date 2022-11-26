@@ -299,8 +299,7 @@
 
     private async void OnStateChanged(object sender, EventArgs eventArgs)
     {
-        await InvokeAsync(StateHasChanged);
-        await Refresh();
+        await InvokeAsync(Refresh);
     }
 
     protected override Task OnParametersSetAsync()

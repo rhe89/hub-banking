@@ -61,6 +61,7 @@ public class AccountTypesTableService : TableService<AccountTypesQuery>
         if (UseStateForQuerying)
         {
             accountTypesQuery.BalanceToDate = DateTimeUtils.LastDayOfMonth(State.Year, State.Month);
+            accountTypesQuery.DiscontinuedDate = DateTimeUtils.LastDayOfMonth(State.Year, State.Month);
         }
         
         var thisMonthsAccountBalances = await _accountProvider.GetAccounts(accountTypesQuery);

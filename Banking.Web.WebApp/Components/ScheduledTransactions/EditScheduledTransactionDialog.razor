@@ -6,6 +6,7 @@
 
 @inject IScheduledTransactionProvider ScheduledTransactionProvider
 @inject IScheduledTransactionService ScheduledTransactionService
+@inject IAccountProvider AccountProvider
 @inject UIHelpers UiHelpers
 
 @inherits BaseComponent
@@ -13,7 +14,7 @@
 <Dialog
     HeaderText="@ScheduledTransaction?.Description"
     HeaderIcon="@IconUtils.ScheduledTransactionIcon">
-    
+
     @if (ScheduledTransaction == null)
     {
         <LoadingIndicator/>
@@ -41,6 +42,7 @@
                 }
             </ValidationSummary>
 
+
             <SubmitActions>
                 <EditButtons
                     SaveAction="Save"
@@ -48,31 +50,41 @@
                     Disabled="@Working"/>
             </SubmitActions>
         </ScheduledTransactionForm>
+
+        <MudButton
+            class="mt-2"
+            Color="@Color.Primary"
+            DisableElevation="true"
+            Variant="@Constants.FormButtonVariant"
+            OnClick="CompleteAndCreateTransaction">
+            Complete and create transaction
+        </MudButton>
     }
 </Dialog>
 
 @code {
+
     [Parameter]
     public long ScheduledTransactionId { get; set; }
-    
+
     [Parameter]
     public Func<UIHelpers, long, Task> OnScheduledTransactionUpdated { get; set; }
-    
+
     [Parameter]
     public Func<UIHelpers, long, Task> OnScheduledTransactionDeleted { get; set; }
-    
-    [CascadingParameter] 
+
+    [CascadingParameter]
     public MudDialogInstance MudDialog { get; set; }
-    
+
     private ScheduledTransactionModel ScheduledTransaction { get; set; } = new()
     {
         Occurrence = Occurrence.Monthly
     };
-    
+
     protected override async Task OnInitializedAsync()
     {
         Working = true;
-        
+
         var scheduledTransactions = await ScheduledTransactionProvider
             .GetScheduledTransactions(new ScheduledTransactionQuery { Id = ScheduledTransactionId });
 
@@ -80,55 +92,88 @@
 
         ScheduledTransaction = new ScheduledTransactionModel
         {
-            Id = scheduledTransaction.Id, 
-            CreatedDate = scheduledTransaction.CreatedDate, 
-            UpdatedDate = scheduledTransaction.UpdatedDate, 
+            Id = scheduledTransaction.Id,
+            CreatedDate = scheduledTransaction.CreatedDate,
+            UpdatedDate = scheduledTransaction.UpdatedDate,
             Description = scheduledTransaction.Description,
             AccountType = scheduledTransaction.AccountType,
             TransactionSubCategoryId = scheduledTransaction.TransactionSubCategoryId,
-            Amount = scheduledTransaction.Amount, 
-            NextTransactionDate = scheduledTransaction.NextTransactionDate, 
-            Occurrence = scheduledTransaction.Occurrence, 
+            Amount = scheduledTransaction.Amount,
+            NextTransactionDate = scheduledTransaction.NextTransactionDate,
+            Occurrence = scheduledTransaction.Occurrence,
             TransactionDirection = scheduledTransaction.Amount > 0 ?
                 TransactionDirection.In :
                 TransactionDirection.Out,
             Completed = scheduledTransaction.Completed
         };
-        
+
         Working = false;
     }
 
-    private async Task Save()
+    private async Task<bool> Save()
     {
         Working = true;
 
         ScheduledTransaction.Validate(out var isValid);
-        
+
         if (!isValid)
         {
             Working = false;
-            return;
+            return false;
         }
-        
+
         await ScheduledTransactionService.UpdateScheduledTransaction(ScheduledTransaction, true);
-        
+
         await OnScheduledTransactionUpdated.Invoke(UiHelpers, ScheduledTransaction.Id);
 
         Working = false;
-        
+
         MudDialog.Close(DialogResult.Ok(true));
+
+        return true;
+    }
+
+    private async Task CompleteAndCreateTransaction()
+    {
+        ScheduledTransaction.Completed = true;
+        
+        if (!await Save())
+        {
+            return;
+        }
+        
+        var accounts = await AccountProvider.GetAccounts();
+
+        var possibleAccount = accounts.FirstOrDefault(x => x.Name.ToLowerInvariant().Contains(ScheduledTransaction.Description.ToLowerInvariant())) ??
+                              accounts.FirstOrDefault(x => x.AccountType == ScheduledTransaction.AccountType);
+
+        var transaction = new TransactionModel
+        {
+            TransactionSubCategoryId = ScheduledTransaction.TransactionSubCategoryId,
+            Description = ScheduledTransaction.Description,
+            Amount = ScheduledTransaction.Amount,
+            TransactionDirection = ScheduledTransaction.TransactionDirection,
+            TransactionDate = ScheduledTransaction.NextTransactionDate,
+            AccountId = possibleAccount?.Id ?? 0
+        };
+        var parameters = new DialogParameters
+        {
+            { nameof(AddTransactionDialog.Transaction), transaction },
+        };
+
+        await UiHelpers.ShowDialog<AddTransactionDialog>(parameters);
     }
 
     private async Task Delete()
     {
         Working = true;
-        
+
         await ScheduledTransactionService.DeleteScheduledTransaction(ScheduledTransaction, true);
 
         Working = false;
 
         await OnScheduledTransactionDeleted.Invoke(UiHelpers, ScheduledTransaction.Id);
-        
+
         MudDialog.Close(DialogResult.Ok(true));
     }
 
