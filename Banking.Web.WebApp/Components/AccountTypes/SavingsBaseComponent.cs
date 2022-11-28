@@ -32,7 +32,7 @@ public class SavingsBaseComponent : BaseComponent, IDisposable
         
         await Search();
 
-        State.QueryParametersChanged += OnStateOnStateChanged;
+        State.OnStateUpdated += OnStateOnStateChanged;
     }
 
     private async void OnStateOnStateChanged(object sender, EventArgs args)
@@ -54,31 +54,31 @@ public class SavingsBaseComponent : BaseComponent, IDisposable
         TransactionQuery = new TransactionQuery
         {
             AccountType = Hub.Shared.DataContracts.Banking.Constants.AccountTypes.Saving,
-            FromDate = DateTimeUtils.FirstDayOfMonth(State.Year, State.Month),
-            ToDate = DateTimeUtils.LastDayOfMonth(State.Year, State.Month)
+            FromDate = State.GetValidFromDateForMonthAndYear(),
+            ToDate = State.GetValidToDateForMonthAndYear()
         };
 
         var accountQuery = new AccountQuery
         {
             AccountType = Hub.Shared.DataContracts.Banking.Constants.AccountTypes.Saving,
-            BalanceToDate = DateTimeUtils.LastDayOfMonth(State.Year, State.Month).AddMonths(-1),
-            DiscontinuedDate = DateTimeUtils.LastDayOfMonth(State.Year, State.Month).AddMonths(-1)
+            BalanceToDate = State.GetValidToDateForMonthAndYear().AddMonths(-1),
+            DiscontinuedDate = State.GetValidToDateForMonthAndYear().AddMonths(-1)
         };
 
         var lastMonthsAccountBalances = await AccountProvider.GetAccounts(accountQuery);
 
         LastMonthSavingsBalance = lastMonthsAccountBalances.Sum(x => x.Balance);
         
-        accountQuery.BalanceToDate = DateTimeUtils.LastDayOfMonth(State.Year, State.Month);
-        accountQuery.DiscontinuedDate = DateTimeUtils.LastDayOfMonth(State.Year, State.Month);
+        accountQuery.BalanceToDate = State.GetValidToDateForMonthAndYear();
+        accountQuery.DiscontinuedDate = State.GetValidToDateForMonthAndYear();
         
         CurrentSavingsBalance = (await AccountProvider.GetAccounts(accountQuery)).Sum(x => x.Balance);
 
         var scheduledTransactionQuery = new ScheduledTransactionQuery
         {
             AccountType = Hub.Shared.DataContracts.Banking.Constants.AccountTypes.Saving,
-            NextTransactionFromDate = DateTimeUtils.FirstDayOfMonth(State.Year, State.Month),
-            NextTransactionToDate = DateTimeUtils.LastDayOfMonth(State.Year, State.Month),
+            NextTransactionFromDate = State.GetValidFromDateForMonthAndYear(),
+            NextTransactionToDate = State.GetValidToDateForMonthAndYear(),
             IncludeCompletedTransactions = true
         };
 
@@ -128,6 +128,6 @@ public class SavingsBaseComponent : BaseComponent, IDisposable
     
     public void Dispose()
     {
-        State.QueryParametersChanged -= OnStateOnStateChanged;
+        State.OnStateUpdated -= OnStateOnStateChanged;
     }
 }

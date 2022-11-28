@@ -102,7 +102,7 @@ public class ScheduledTransactionsTableService : TableService<ScheduledTransacti
         scheduledTransactionQuery.IncludeCompletedTransactions = value;
         checkbox.Value = value;
         
-        State.QueryParametersChanged.Invoke(this, EventArgs.Empty);
+        State.OnStateUpdated.Invoke(this, EventArgs.Empty);
         
         return Task.CompletedTask;
     }
@@ -118,8 +118,8 @@ public class ScheduledTransactionsTableService : TableService<ScheduledTransacti
         
         if (UseStateForQuerying)
         {
-            scheduledTransactionQuery.NextTransactionFromDate = DateTimeUtils.FirstDayOfMonth(State.Year, State.Month);
-            scheduledTransactionQuery.NextTransactionToDate = DateTimeUtils.LastDayOfMonth(State.Year, State.Month);
+            scheduledTransactionQuery.NextTransactionFromDate = State.GetValidFromDateForMonthAndYear();
+            scheduledTransactionQuery.NextTransactionToDate = State.GetValidToDateForMonthAndYear();
         }
         
         var scheduledTransactions = await _scheduledTransactionProvider.GetScheduledTransactions(scheduledTransactionQuery);

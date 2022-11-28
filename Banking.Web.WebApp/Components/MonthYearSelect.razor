@@ -11,6 +11,8 @@
         AnchorOrigin="@Origin.BottomCenter">
         @if (State.Months != null)
         {
+            <MudSelectItem T="int" Value="0">All</MudSelectItem>
+
             foreach (var month in State.Months)
             {
                 <MudSelectItem T="int" Value="month">@TextUtils.GetMonthText(month)</MudSelectItem>
@@ -29,6 +31,8 @@
         AnchorOrigin="@Origin.BottomCenter">
         @if (State.Years != null)
         {
+            <MudSelectItem T="int" Value="0">All</MudSelectItem>
+            
             foreach (var year in State.Years)
             {
                 <MudSelectItem T="int" Value="year">@year</MudSelectItem>
@@ -44,7 +48,7 @@
 
     protected override void OnInitialized()
     {
-        State.QueryParametersChanged += QueryParametersChanged;
+        State.OnStateUpdated += QueryParametersChanged;
     }
 
     private async void QueryParametersChanged(object sender, EventArgs e)

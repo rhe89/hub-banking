@@ -109,7 +109,7 @@ public class AccountsTableService : TableService<AccountQuery>
         query.IncludeExternalAccounts = value;
         checkbox.Value = value;
         
-        State.QueryParametersChanged.Invoke(this, EventArgs.Empty);
+        State.OnStateUpdated.Invoke(this, EventArgs.Empty);
         
         return Task.CompletedTask;
     }
@@ -119,7 +119,7 @@ public class AccountsTableService : TableService<AccountQuery>
         query.IncludeDiscontinuedAccounts = value;
         checkbox.Value = value;
         
-        State.QueryParametersChanged.Invoke(this, EventArgs.Empty);
+        State.OnStateUpdated.Invoke(this, EventArgs.Empty);
         
         return Task.CompletedTask;
     }
@@ -129,7 +129,7 @@ public class AccountsTableService : TableService<AccountQuery>
         query.IncludeSharedAccounts = value;
         checkbox.Value = value;
         
-        State.QueryParametersChanged.Invoke(this, EventArgs.Empty);
+        State.OnStateUpdated.Invoke(this, EventArgs.Empty);
         
         return Task.CompletedTask;
     }
@@ -139,7 +139,7 @@ public class AccountsTableService : TableService<AccountQuery>
         IncludeAccountsWithNoBalanceForGivenPeriod = value;
         checkbox.Value = value;
         
-        State.QueryParametersChanged.Invoke(this, EventArgs.Empty);
+        State.OnStateUpdated.Invoke(this, EventArgs.Empty);
 
         return Task.CompletedTask;
     }
@@ -150,13 +150,12 @@ public class AccountsTableService : TableService<AccountQuery>
         {
             await CreateFilters(accountQuery);
         }
+        
+        var toDate = State.GetValidToDateForMonthAndYear();
 
-        if (UseStateForQuerying)
-        {
-            accountQuery.BankId = State.BankId;
-            accountQuery.BalanceToDate = DateTimeUtils.LastDayOfMonth(State.Year, State.Month);
-            accountQuery.DiscontinuedDate = DateTimeUtils.LastDayOfMonth(State.Year, State.Month);
-        }
+        accountQuery.BankId = State.BankId;
+        accountQuery.BalanceToDate = toDate;
+        accountQuery.DiscontinuedDate = toDate;
         
         var accounts = await _accountProvider.GetAccounts(accountQuery);
         

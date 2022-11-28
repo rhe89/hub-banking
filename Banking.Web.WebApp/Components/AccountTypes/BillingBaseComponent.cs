@@ -21,7 +21,7 @@ public class BillingBaseComponent : BaseComponent, IDisposable
     protected decimal BillingAccountsBalance { get; set; }
     protected decimal UpcomingBillsAmount { get; set; }
     protected decimal PaidBillsAmount { get; set; }
-    protected bool MonthHasPassed => DateTime.Now > DateTimeUtils.LastDayOfMonth(State.Year, State.Month);
+    protected bool MonthHasPassed => DateTime.Now > State.GetValidToDateForMonthAndYear();
 
     public BillingBaseComponent()
     {
@@ -32,7 +32,7 @@ public class BillingBaseComponent : BaseComponent, IDisposable
     {
         await Search();
 
-        State.QueryParametersChanged += OnStateChanged;
+        State.OnStateUpdated += OnStateChanged;
     }
 
     private async void OnStateChanged(object sender, EventArgs args)
@@ -61,7 +61,7 @@ public class BillingBaseComponent : BaseComponent, IDisposable
         {
             AccountType = Hub.Shared.DataContracts.Banking.Constants.AccountTypes.Billing,
             IncludeSharedAccounts = false,
-            BalanceToDate = DateTimeUtils.LastDayOfMonth(State.Year, State.Month)
+            BalanceToDate = State.GetValidToDateForMonthAndYear()
         };
 
         var accounts = await AccountProvider.GetAccounts(accountQuery);
@@ -81,8 +81,8 @@ public class BillingBaseComponent : BaseComponent, IDisposable
             {
                 AccountType = Hub.Shared.DataContracts.Banking.Constants.AccountTypes.Billing,
                 IncludeCompletedTransactions = false,
-                NextTransactionFromDate = DateTimeUtils.FirstDayOfMonth(State.Year, State.Month),
-                NextTransactionToDate = DateTimeUtils.LastDayOfMonth(State.Year, State.Month)
+                NextTransactionFromDate = State.GetValidFromDateForMonthAndYear(),
+                NextTransactionToDate = State.GetValidToDateForMonthAndYear()
             };
 
             UpcomingBillsAmount = (await ScheduledTransactionProvider
@@ -98,9 +98,9 @@ public class BillingBaseComponent : BaseComponent, IDisposable
             AccountType = Hub.Shared.DataContracts.Banking.Constants.AccountTypes.Billing,
             IncludeTransactionsFromSharedAccounts = false,
             IncludeExcludedTransactions = false,
-            FromDate = DateTimeUtils.FirstDayOfMonth(State.Year, State.Month),
+            FromDate = State.GetValidFromDateForMonthAndYear(),
             ToDate = MonthHasPassed
-                ? DateTimeUtils.LastDayOfMonth(State.Year, State.Month)
+                ? State.GetValidToDateForMonthAndYear()
                 : DateTime.Now
         };
 
@@ -111,6 +111,6 @@ public class BillingBaseComponent : BaseComponent, IDisposable
     
     public void Dispose()
     {
-        State.QueryParametersChanged -= OnStateChanged;
+        State.OnStateUpdated -= OnStateChanged;
     }
 }

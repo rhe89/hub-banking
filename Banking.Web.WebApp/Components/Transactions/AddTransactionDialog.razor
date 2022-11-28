@@ -9,7 +9,7 @@
 
 @inherits BaseComponent
 
-<Dialog 
+<Dialog
     HeaderText="Add transaction"
     HeaderIcon="@IconUtils.TransactionIcon">
 
@@ -43,23 +43,20 @@
     </TransactionForm>
 
     <AdditionalData>
-        <CascadingValue Name="Query" Value="TransactionQuery">
-            <TransactionsTable/>
-        </CascadingValue>
+        <TransactionsTable/>
     </AdditionalData>
 </Dialog>
 
 @code {
+
     [Parameter]
     public Func<UIHelpers, long, Task> OnTransactionAdded { get; set; }
-    
-    [CascadingParameter] 
+
+    [CascadingParameter]
     public MudDialogInstance MudDialog { get; set; }
-    
+
     [Parameter]
     public TransactionModel Transaction { get; set; }
-    
-    private TransactionQuery TransactionQuery { get; set; }
     
     protected override void OnInitialized()
     {
@@ -76,16 +73,9 @@
             TransactionType = 0,
         };
 
-        TransactionQuery = new TransactionQuery
-        {
-            AccountId = Transaction.AccountId,
-            Month = Transaction.TransactionDate?.Month,
-            Year = Transaction.TransactionDate?.Year
-        };
-        
         Working = false;
     }
-    
+
     private async Task SaveAndAddNew()
     {
         var saved = await Save();
@@ -111,16 +101,16 @@
         {
             return;
         }
-        
+
         MudDialog.Close(DialogResult.Ok(true));
     }
-    
+
     private async Task<bool> Save()
-    {        
+    {
         Working = true;
-        
+
         Transaction.Validate(out var isValid);
-        
+
         if (!isValid)
         {
             Working = false;
@@ -128,16 +118,17 @@
         }
 
         Transaction.TransactionId = $"{Transaction.AccountId}-{Transaction.TransactionDate}-{Transaction.Description}-{Transaction.Amount}";
-        
+
         await TransactionService.AddTransaction(Transaction, saveChanges: true);
 
         if (OnTransactionAdded != null)
         {
             await OnTransactionAdded.Invoke(UiHelpers, Transaction.Id);
         }
-        
+
         Working = false;
 
         return true;
     }
+
 }

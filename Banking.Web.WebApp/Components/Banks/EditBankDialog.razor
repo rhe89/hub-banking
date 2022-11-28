@@ -6,7 +6,6 @@
 @inherits BaseComponent
 
 @inject IBankProvider BankProvider
-@inject IAccountProvider AccountProvider
 @inject IBankService BankService
 @inject UIHelpers UiHelpers
 
@@ -34,11 +33,7 @@
     }
 
     <AdditionalData>
-        <CascadingValue Name="Query" Value="AccountQuery">
-            <CascadingValue Name="UseState" Value="false">
-                <AccountsTable/>
-            </CascadingValue>
-        </CascadingValue>
+        <AccountsTable/>
     </AdditionalData>
 </Dialog>
 
@@ -58,7 +53,6 @@
     public MudDialogInstance MudDialog { get; set; }
 
     private BankDto Bank { get; set; }
-    public AccountQuery AccountQuery { get; set; }
 
     protected override async Task OnInitializedAsync()
     {
@@ -66,10 +60,7 @@
 
         Bank = (await BankProvider.GetBanks(new BankQuery { Id = BankId })).Single();
 
-        AccountQuery = new AccountQuery
-        {
-            BankId = BankId
-        };
+        State.BankId = BankId;
 
         Working = false;
     }

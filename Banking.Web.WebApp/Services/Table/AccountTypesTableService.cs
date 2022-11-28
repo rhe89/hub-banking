@@ -58,11 +58,10 @@ public class AccountTypesTableService : TableService<AccountTypesQuery>
 
     public override async Task<IList<TableRow>> FetchData(AccountTypesQuery accountTypesQuery, TableState tablestate)
     {
-        if (UseStateForQuerying)
-        {
-            accountTypesQuery.BalanceToDate = DateTimeUtils.LastDayOfMonth(State.Year, State.Month);
-            accountTypesQuery.DiscontinuedDate = DateTimeUtils.LastDayOfMonth(State.Year, State.Month);
-        }
+        var toDate = State.GetValidToDateForMonthAndYear();
+        
+        accountTypesQuery.BalanceToDate = toDate;
+        accountTypesQuery.DiscontinuedDate = toDate;
         
         var thisMonthsAccountBalances = await _accountProvider.GetAccounts(accountTypesQuery);
 

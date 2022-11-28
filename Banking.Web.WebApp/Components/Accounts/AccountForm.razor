@@ -50,9 +50,7 @@
                         </div>
 
                         <div class="col-12 mt-3">
-                            <BanksSelect
-                                Disabled="@Working"
-                                @bind-SelectedBankId="Account.BankId"/>
+                            <BanksSelect/>
                         </div>
 
                         <div class="col-12 mt-3">
@@ -134,16 +132,4 @@
 
     [Parameter]
     public bool ExpandDetails { get; set; } = true;
-
-    private IList<BankDto> Banks { get; set; } = new List<BankDto>();
-
-    protected override async Task OnInitializedAsync()
-    {
-        Working = true;
-
-        Banks = await BankProvider.GetBanks();
-
-        Working = false;
-    }
-
 }

@@ -1,18 +1,11 @@
 @page "/"
 @page "/index"
-
-@using Hub.Shared.DataContracts.Banking.Dto
 @using Hub.Shared.Storage.ServiceBus
 @using Hub.Shared.Storage.ServiceBus.MessageBody
-@using Banking.Providers
-@using Hub.Shared.DataContracts.Banking.Query
 
 @inherits BaseComponent
 @implements IDisposable
 
-@inject IAccountProvider AccountProvider
-@inject IBankProvider BankProvider
-@inject ITransactionProvider TransactionProvider
 @inject IMessageSender MessageSender
 @inject UIHelpers UiHelpers
 
@@ -64,18 +57,10 @@
             </TitleContent>
             <ExpansionBody>
                 <div class="col-sm-12 col-lg-3 mt-2 mt-lg-0">
-                    <BanksSelect
-                        Banks="Banks"
-                        SelectedBankId="State.BankId"
-                        SelectedBankIdChanged="BankIdChanged"
-                        Disabled="@Working"/>
+                    <BanksSelect/>
                 </div>
                 <div class="col-sm-12 col-lg-3 mt-2 mt-lg-0">
-                    <AccountsSelect
-                        Label="Account"
-                        Accounts="Accounts"
-                        @bind-SelectedAccountId="State.AccountId"
-                        Disabled="@Working"/>
+                    <AccountsSelect/>
                 </div>
                 <MonthYearSelect SelectWrapperClass="col-sm-12 col-lg-3 mt-2 mt-lg-0"/>
             </ExpansionBody>
@@ -124,35 +109,14 @@
 </main>
 
 @code {
-    private IList<BankDto> Banks { get; set; }
-    private IList<AccountDto> Accounts { get; set; }
-
+    
     protected override async Task OnInitializedAsync()
     {
         Working = true;
+        
+        await State.InitState();
 
-        State.Month = DateTime.Now.Month;
-        State.Year = DateTime.Now.Year;
-
-        State.Months ??= new[] { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12 };
-        State.Years = await TransactionProvider.GetTransactionYears();
-
-        var latestYear = State.Years.Last();
-
-        for (var year = latestYear + 1; year < (latestYear + 2); year++)
-        {
-            State.Years.Add(year);
-        }
-
-        Banks = await BankProvider.GetBanks();
-
-        Banks.Insert(0, new BankDto { Id = 0, Name = "All" });
-
-        Accounts = await AccountProvider.GetAccounts();
-
-        Accounts.Insert(0, new AccountDto { Id = 0, Name = "All" });
-
-        State.QueryParametersChanged += OnStateChanged;
+        State.OnStateUpdated += OnStateChanged;
 
         await InvokeAsync(StateHasChanged);
 
@@ -195,26 +159,6 @@
 
     public void Dispose()
     {
-        State.QueryParametersChanged -= OnStateChanged;
+        State.OnStateUpdated -= OnStateChanged;
     }
-
-    private async Task BankIdChanged(long? bankId)
-    {
-        if (bankId == null)
-        {
-            return;
-        }
-
-        Working = true;
-
-        State.BankId = bankId.Value;
-
-        Accounts = await AccountProvider.GetAccounts(new AccountQuery { BankId = bankId });
-        Accounts.Insert(0, new AccountDto { Id = 0, Name = "All" });
-
-        State.AccountId = Accounts.FirstOrDefault()?.Id ?? 0;
-
-        Working = false;
-    }
-
 }

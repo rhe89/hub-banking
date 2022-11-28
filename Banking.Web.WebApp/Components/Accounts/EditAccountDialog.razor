@@ -36,14 +36,7 @@
     }
 
     <AdditionalData>
-        @if (TransactionQuery != null)
-        {
-            <CascadingValue Name="UseState" Value="false">
-                <CascadingValue Name="Query" Value="TransactionQuery">
-                    <TransactionsTable/>
-                </CascadingValue>
-            </CascadingValue>
-        }
+        <TransactionsTable/>
     </AdditionalData>
 </Dialog>
 
@@ -72,20 +65,15 @@
         var accounts = await AccountProvider.GetAccounts(new AccountQuery
         {
             Id = AccountId, 
-            BalanceToDate = DateTimeUtils.LastDayOfMonth(State.Year, State.Month)
+            BalanceToDate = State.GetValidToDateForMonthAndYear()
         });
 
         Account = accounts.Single();
 
-        OriginalBalanceDate = Account.BalanceDate;
+        State.AccountId = AccountId;
+        State.BankId = Account.BankId ?? 0;
 
-        TransactionQuery = new TransactionQuery
-        {
-            BankId = Account.BankId,
-            AccountId = Account.Id,
-            Month = State.Month,
-            Year = State.Year
-        };
+        OriginalBalanceDate = Account.BalanceDate;
 
         Working = false;
     }

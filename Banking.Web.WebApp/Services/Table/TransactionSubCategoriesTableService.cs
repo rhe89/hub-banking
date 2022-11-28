@@ -48,8 +48,8 @@ public class TransactionSubCategoriesTableService : TableService<TransactionSubC
 
         if (UseStateForQuerying)
         {
-            transactionQuery.FromDate = DateTimeUtils.FirstDayOfMonth(State.Year, State.Month);
-            transactionQuery.ToDate = DateTimeUtils.LastDayOfMonth(State.Year, State.Month);
+            transactionQuery.FromDate = State.GetValidFromDateForMonthAndYear();
+            transactionQuery.ToDate = State.GetValidToDateForMonthAndYear();
         }
         
         var transactions = await _transactionProvider.GetTransactions(transactionQuery);

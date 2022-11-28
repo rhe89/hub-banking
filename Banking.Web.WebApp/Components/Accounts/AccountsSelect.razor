@@ -13,75 +13,41 @@
 
 <div class="row">
     <div class="widget-col-12 front-page-col-12 col-8 col-sm-9">
-            <MudSelect ReadOnly="@Disabled"
-                       Value="@SelectedAccountId"
-                       ValueChanged="@SelectedAccountIdChanged"
-                       Label="@Label"
-                       Variant="@Constants.InputVariant"
-                       AnchorOrigin="@Origin.BottomCenter">
-                @if (Accounts != null)
-                {
-                    foreach (var account in Accounts)
-                    {
-                        <MudSelectItem T="long" Value="@account.Id">@account.Name @(!string.IsNullOrEmpty(account.Bank?.Name) && State.BankId == 0 ? $" ({account.Bank.Name})" : "")</MudSelectItem>
-                    }
-                }
-            </MudSelect>
-        </div>
-        
-        <MudButtonGroup
-            class="col-3 col-sm-2 d-widget-none d-front-page-none"
-            Size="@Size.Small"
-            DisableElevation="true"
-            OverrideStyles="false">
-            <MudIconButton
-                Disabled="@(SelectedAccountId == 0)"
-                Color="@Color.Primary"
-                Icon="@Icons.Filled.OpenInNew"
-                @onclick="() => OpenEditAccountDialog(UiHelpers, SelectedAccountId)"/>
-            <MudIconButton
-                Icon="@Icons.Filled.Add"
-                Color="@Color.Primary"
-                @onclick="() => OpenAddAccountDialog(UiHelpers)"/>
-        </MudButtonGroup>
+        <MudSelect ReadOnly="Working"
+                   @bind-Value="@State.AccountId"
+                   Label="Account"
+                   Variant="@Constants.InputVariant"
+                   AnchorOrigin="@Origin.BottomCenter">
+            <MudSelectItem T="long" Value="0">All</MudSelectItem>
+            @foreach (var account in State.Accounts)
+            {
+            <MudSelectItem T="long" Value="@account.Id">@account.Name @(!string.IsNullOrEmpty(account.Bank?.Name) ? $" ({account.Bank.Name})" : "")</MudSelectItem>
+            }
+        </MudSelect>
+    </div>
+
+    <MudButtonGroup
+        class="col-3 col-sm-2 d-widget-none d-front-page-none"
+        Size="@Size.Small"
+        DisableElevation="true"
+        OverrideStyles="false">
+        <MudIconButton
+            Disabled="@(State.AccountId == 0)"
+            Color="@Color.Primary"
+            Icon="@Icons.Filled.OpenInNew"
+            @onclick="() => OpenEditAccountDialog(UiHelpers, State.AccountId)"/>
+        <MudIconButton
+            Icon="@Icons.Filled.Add"
+            Color="@Color.Primary"
+            @onclick="() => OpenAddAccountDialog(UiHelpers)"/>
+    </MudButtonGroup>
+
 </div>
 
 @code {
-    [Parameter]
-    public EventCallback<long> SelectedAccountIdChanged { get; set; }
-    
-    [Parameter]
-    public long SelectedAccountId { get; set; }
-    
-    [Parameter]
-    public IList<AccountDto> Accounts { get; set; }
-
-    [Parameter]
-    public long? BankId { get; set; }
-    
-    [Parameter]
-    public string Label { get; set; }
-
-    [Parameter]
-    public bool Disabled { get; set; }
-
-    protected override async Task OnInitializedAsync()
+    protected override void OnInitialized()
     {
-        Working = true;
-        
-        Accounts ??= await AccountProvider.GetAccounts(new AccountQuery
-        {
-            DiscontinuedDate = DateTimeUtils.LastDayOfMonth(State.Year, State.Month),
-            IncludeExternalAccounts = true,
-            IncludeSharedAccounts = true
-        });
-        
-        if (BankId != null)
-        {
-            Accounts = Accounts.Where(account => account.BankId == BankId).ToList();
-        }
-
-        Working = false;
+        State.OnStateUpdated += async (sender, args) => await InvokeAsync(StateHasChanged);
     }
 
     protected async Task OpenAddAccountDialog(UIHelpers uiHelpers)
@@ -90,28 +56,26 @@
         {
             { nameof(AddAccountDialog.OnAccountAdded), OnAccountAdded }
         };
-        
+
         await uiHelpers.ShowDialog<AddAccountDialog>(parameters);
     }
-    
+
     protected async Task OnAccountAdded(UIHelpers uiHelpers, long accountId)
     {
-        var addedAccount = (await AccountProvider.GetAccounts(new AccountQuery { Id = accountId })).Single();
-        
-        Accounts.Insert(0, addedAccount);
-        
+        await State.SetAccounts();
+
         uiHelpers.ShowSnackbar("Account added", Severity.Success);
 
         await InvokeAsync(StateHasChanged);
     }
-    
+
     protected async Task OpenEditAccountDialog(UIHelpers uiHelpers, long? accountId)
     {
         if (accountId == null)
         {
             return;
         }
-        
+
         var parameters = new DialogParameters
         {
             { nameof(EditAccountDialog.AccountId), accountId.Value },
@@ -124,43 +88,20 @@
 
     protected async Task OnAccountUpdated(UIHelpers uiHelpers, long accountId)
     {
-        var updatedAccount = (await AccountProvider.GetAccounts(new AccountQuery { Id = accountId })).Single();
-        
-        var existingAccount = Accounts.FirstOrDefault(account => account.Id == updatedAccount.Id);
+        await State.SetAccounts();
 
-        if (existingAccount == null)
-        {
-            return;
-        }
-        
-        var index = Accounts.IndexOf(existingAccount);
-
-        if (index == -1)
-        {
-            return;
-        }
-
-        Accounts[index] = updatedAccount;
-        
         uiHelpers.ShowSnackbar("Account updated", Severity.Success);
 
         await InvokeAsync(StateHasChanged);
     }
-    
+
     protected async Task OnAccountDeleted(UIHelpers uiHelpers, long bankId)
     {
-        var deletedAccount = Accounts
-            .FirstOrDefault(account => account.Id == bankId);
+        await State.SetAccounts();
 
-        if (deletedAccount == null)
-        {
-            return;
-        }
-        
-        Accounts.Remove(deletedAccount);
-        
         uiHelpers.ShowSnackbar("Account deleted", Severity.Success);
 
         await InvokeAsync(StateHasChanged);
     }
+
 }

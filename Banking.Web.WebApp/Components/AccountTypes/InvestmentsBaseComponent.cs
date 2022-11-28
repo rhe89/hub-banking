@@ -28,7 +28,7 @@ public class InvestmentsBaseComponent : BaseComponent, IDisposable
     {
         await Search();
 
-        State.QueryParametersChanged += OnStateChanged;
+        State.OnStateUpdated += OnStateChanged;
     }
 
     private async void OnStateChanged(object sender, EventArgs args)
@@ -50,24 +50,24 @@ public class InvestmentsBaseComponent : BaseComponent, IDisposable
         var accountQuery = new AccountQuery
         {
             AccountType = Hub.Shared.DataContracts.Banking.Constants.AccountTypes.Investment,
-            BalanceToDate = DateTimeUtils.LastDayOfMonth(State.Year, State.Month).AddMonths(-1),
-            DiscontinuedDate = DateTimeUtils.LastDayOfMonth(State.Year, State.Month).AddMonths(-1)
+            BalanceToDate = State.GetValidToDateForMonthAndYear().AddMonths(-1),
+            DiscontinuedDate = State.GetValidToDateForMonthAndYear().AddMonths(-1)
         };
 
         var lastMonthsAccountBalances = await AccountProvider.GetAccounts(accountQuery);
 
         LastMonthInvestmentBalance = lastMonthsAccountBalances.Sum(x => x.Balance);
 
-        accountQuery.BalanceToDate = DateTimeUtils.LastDayOfMonth(State.Year, State.Month);
-        accountQuery.DiscontinuedDate = DateTimeUtils.LastDayOfMonth(State.Year, State.Month);
+        accountQuery.BalanceToDate = State.GetValidToDateForMonthAndYear();
+        accountQuery.DiscontinuedDate = State.GetValidToDateForMonthAndYear();
 
         CurrentInvestmentsBalance = (await AccountProvider.GetAccounts(accountQuery)).Sum(x => x.Balance);
 
         var scheduledTransactionQuery = new ScheduledTransactionQuery
         {
             AccountType = Hub.Shared.DataContracts.Banking.Constants.AccountTypes.Investment,
-            NextTransactionFromDate = DateTimeUtils.FirstDayOfMonth(State.Year, State.Month),
-            NextTransactionToDate = DateTimeUtils.LastDayOfMonth(State.Year, State.Month),
+            NextTransactionFromDate = State.GetValidFromDateForMonthAndYear(),
+            NextTransactionToDate = State.GetValidToDateForMonthAndYear(),
             IncludeCompletedTransactions = true
         };
 
@@ -112,6 +112,6 @@ public class InvestmentsBaseComponent : BaseComponent, IDisposable
     
     public void Dispose()
     {
-        State.QueryParametersChanged -= OnStateChanged;
+        State.OnStateUpdated -= OnStateChanged;
     }
 }

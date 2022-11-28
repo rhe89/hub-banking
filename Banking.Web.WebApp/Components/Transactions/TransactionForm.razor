@@ -35,10 +35,7 @@
     
     <div class="row mt-3">
         <div class="@Constants.FormInputCol">
-            <AccountsSelect 
-                Label="Account"
-                Disabled="Working"
-                @bind-SelectedAccountId="Transaction.AccountId"/>
+            <AccountsSelect/>
         </div>
     </div>
 
@@ -125,4 +122,10 @@
 
     [Parameter]
     public RenderFragment SubmitActions { get; set; }
+
+    protected override void OnInitialized()
+    {
+        State.AccountId = Transaction.AccountId;
+    }
+
 }

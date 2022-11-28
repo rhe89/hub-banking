@@ -83,7 +83,6 @@
 
     protected override async Task OnInitializedAsync()
     {
-    //TODO Why are all entities returned from this query? Id is set.. 
         var transactionCategoryDto = (await TransactionCategoryProvider
             .GetTransactionCategories(new TransactionCategoryQuery { Id = TransactionCategoryId }));
 

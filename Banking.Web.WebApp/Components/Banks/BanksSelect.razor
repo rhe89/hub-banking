@@ -9,84 +9,59 @@
 @inject IBankProvider BankProvider
 
 <div class="row">
-    @if (Banks != null)
-    {
-        <div class="widget-col-12 front-page-col-12 col-8 col-sm-9">
-            <MudSelect ReadOnly="@Disabled"
-                       Value="@SelectedBankId"
-                       ValueChanged="SelectedBankIdChanged"
-                       Label="Bank"
-                       Placeholder="Select bank"
-                       Variant="@Constants.InputVariant"
-                       AnchorOrigin="@Origin.BottomCenter">
-                @foreach (var bank in Banks)
-                {
-                    <MudSelectItem T="long?" Value="@bank.Id">@bank.Name</MudSelectItem>
-                }
-            </MudSelect>
-        </div>
-    
-        <MudButtonGroup
-            class="col-3 col-sm-2 d-widget-none d-front-page-none"
-            Size="@Size.Small"
-            DisableElevation="true"
-            OverrideStyles="false">
-            <MudIconButton
-                Disabled="@(SelectedBankId == null)"
-                Color="@Color.Primary"
-                Icon="@Icons.Filled.OpenInNew"
-                @onclick="() => OpenEditBankDialog(UiHelpers, SelectedBankId ?? 0)"/>
-            <MudIconButton
-                Icon="@Icons.Filled.Add"
-                Color="@Color.Primary"
-                @onclick="() => OpenAddBankDialog(UiHelpers)"/>
-        </MudButtonGroup>
-    }
+    <div class="widget-col-12 front-page-col-12 col-8 col-sm-9">
+        <MudSelect ReadOnly="Working"
+                   @bind-Value="@State.BankId"
+                   Label="Bank"
+                   Placeholder="Select bank"
+                   Variant="@Constants.InputVariant"
+                   AnchorOrigin="@Origin.BottomCenter">
+            <MudSelectItem T="long" Value="0">All</MudSelectItem>
+            @foreach (var bank in State.Banks)
+            {
+                <MudSelectItem T="long" Value="@bank.Id">@bank.Name</MudSelectItem>
+            }
+        </MudSelect>
+    </div>
+
+    <MudButtonGroup
+        class="col-3 col-sm-2 d-widget-none d-front-page-none"
+        Size="@Size.Small"
+        DisableElevation="true"
+        OverrideStyles="false">
+        <MudIconButton
+            Disabled="@(State.BankId == 0)"
+            Color="@Color.Primary"
+            Icon="@Icons.Filled.OpenInNew"
+            @onclick="() => OpenEditBankDialog(UiHelpers, State.BankId)"/>
+        <MudIconButton
+            Icon="@Icons.Filled.Add"
+            Color="@Color.Primary"
+            @onclick="() => OpenAddBankDialog(UiHelpers)"/>
+    </MudButtonGroup>
 </div>
 
 @code {
-    [Parameter]
-    public long? SelectedBankId { get; set; }
-    
-    [Parameter]
-    public EventCallback<long?> SelectedBankIdChanged { get; set; }
-    
-    [Parameter]
-    public IList<BankDto> Banks { get; set; }
 
-    [Parameter]
-    public bool Disabled { get; set; }
-    
-    protected override async Task OnInitializedAsync()
-    {
-        Working = true;
-        
-        Banks ??= await BankProvider.GetBanks();
-
-        Working = false;
-    }
-    
     private async Task OpenAddBankDialog(UIHelpers uiHelpers)
     {
         var parameters = new DialogParameters
         {
             { nameof(AddBankDialog.OnBankAdded), OnBankAdded }
         };
-        
+
         await uiHelpers.ShowDialog<AddBankDialog>(parameters);
     }
-    
+
     private async Task OnBankAdded(UIHelpers uiHelpers, long bankId)
     {
-        var addedBank = (await BankProvider.GetBanks(new BankQuery { Id = bankId })).Single();
-        
-        Banks.Insert(0, addedBank);
+        await State.SetBanks();
 
         uiHelpers.ShowSnackbar("Bank added", Severity.Success);
 
         await InvokeAsync(StateHasChanged);
     }
-    
+
     private async Task OpenEditBankDialog(UIHelpers uiHelpers, long bankId)
     {
         var parameters = new DialogParameters
@@ -101,43 +76,20 @@
 
     private async Task OnBankUpdated(UIHelpers uiHelpers, long bankId)
     {
-        var updatedBank = (await BankProvider.GetBanks(new BankQuery { Id = bankId })).Single();
-        
-        var existingBank = Banks.FirstOrDefault(bank => bank.Id == updatedBank.Id);
+        await State.SetBanks();
 
-        if (existingBank == null)
-        {
-            return;
-        }
-        
-        var index = Banks.IndexOf(existingBank);
-
-        if (index == -1)
-        {
-            return;
-        }
-
-        Banks[index] = updatedBank;
-        
         uiHelpers.ShowSnackbar("Bank saved", Severity.Success);
 
         await InvokeAsync(StateHasChanged);
     }
-    
+
     private async Task OnBankDeleted(UIHelpers uiHelpers, long bankId)
     {
-        var deletedBank = Banks
-            .FirstOrDefault(bank => bank.Id == bankId);
+        await State.SetBanks();
 
-        if (deletedBank == null)
-        {
-            return;
-        }
-        
-        Banks.Remove(deletedBank);
-        
         uiHelpers.ShowSnackbar("Bank deleted", Severity.Success);
 
         await InvokeAsync(StateHasChanged);
     }
+
 }
