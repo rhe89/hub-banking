@@ -116,7 +116,7 @@ public class State : IDisposable
             
             _bankId = value;
             
-            Accounts = AllAccounts.Where(x => x.BankId == _bankId).ToList();
+            Accounts = AllAccounts.Where(x => BankId == 0 || x.BankId == _bankId).ToList();
             AccountId = 0;
             
             OnStateUpdated?.Invoke(this, EventArgs.Empty);
