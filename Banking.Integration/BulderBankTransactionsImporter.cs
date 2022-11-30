@@ -13,12 +13,12 @@ using Microsoft.Extensions.Configuration;
 
 namespace Banking.Integration;
 
-public interface ICsvTransactionsImporter
+public interface IBulderBankTransactionsImporter
 {
-    Task<IList<CsvTransaction>> ImportTransactionsFromCsv(string fileId);
+    Task<IList<BulderBankTransaction>> ImportTransactionsFromCsv(string fileId);
 }
 
-public class CsvTransactionsImporter : ICsvTransactionsImporter
+public class BulderBankTransactionsImporter : IBulderBankTransactionsImporter
 {
     private readonly IConfiguration _configuration;
 
@@ -27,12 +27,12 @@ public class CsvTransactionsImporter : ICsvTransactionsImporter
         Delimiter = ";"
     };
 
-    public CsvTransactionsImporter(IConfiguration configuration)
+    public BulderBankTransactionsImporter(IConfiguration configuration)
     {
         _configuration = configuration;
     }
 
-    public async Task<IList<CsvTransaction>> ImportTransactionsFromCsv(string fileId)
+    public async Task<IList<BulderBankTransaction>> ImportTransactionsFromCsv(string fileId)
     {
         var memoryStreamFile = await GoogleDriveService.DownloadFile(fileId, _configuration);
 
@@ -41,11 +41,11 @@ public class CsvTransactionsImporter : ICsvTransactionsImporter
         
         csv.Context.RegisterClassMap<CsvTransactionMap>();
         
-        return csv.GetRecords<CsvTransaction>().ToList();
+        return csv.GetRecords<BulderBankTransaction>().ToList();
     }
 
     [UsedImplicitly]
-    private sealed class CsvTransactionMap : ClassMap<CsvTransaction>
+    private sealed class CsvTransactionMap : ClassMap<BulderBankTransaction>
     {
         public CsvTransactionMap()
         {

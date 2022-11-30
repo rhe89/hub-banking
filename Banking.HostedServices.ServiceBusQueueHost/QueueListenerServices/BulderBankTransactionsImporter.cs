@@ -7,11 +7,11 @@ using Microsoft.Extensions.Logging;
 
 namespace Banking.HostedServices.ServiceBusQueueHost.QueueListenerServices;
 
-public class CsvTransactionsImporter : ServiceBusHostedService
+public class BulderBankTransactionsImporter : ServiceBusHostedService
 {
-    public CsvTransactionsImporter(ILogger<CsvTransactionsImporter> logger, 
+    public BulderBankTransactionsImporter(ILogger<BulderBankTransactionsImporter> logger, 
         IConfiguration configuration,
-        CsvTransactionsImporterCommand command, 
+        BulderBankTransactionsImporterCommand command, 
         IQueueProcessor queueProcessor,
         TelemetryClient telemetryClient) : base(logger, 
         configuration,

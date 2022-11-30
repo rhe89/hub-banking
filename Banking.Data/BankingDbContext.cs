@@ -25,6 +25,9 @@ public class BankingDbContext : HubDbContext
             .WithMany(x => x.AccountBalance)
             .IsRequired();
 
+        builder.Entity<AccumulatedAccountBalance>()
+            .ToView(schema: "dbo", name: "AccumulatedAccountBalance");
+
         builder.Entity<Transaction>()
             .ToTable(schema: "dbo", name: "Transaction");
         

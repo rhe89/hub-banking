@@ -7,15 +7,15 @@ using Microsoft.Extensions.Logging;
 
 namespace Banking.HostedServices.ServiceBusQueueHost.QueueListenerServices;
 
-public class SbankenTransactionsUpdater : ServiceBusHostedService
+public class SbankenTransactionsImporter : ServiceBusHostedService
 {
-    public SbankenTransactionsUpdater(ILogger<SbankenTransactionsUpdater> logger, 
+    public SbankenTransactionsImporter(ILogger<SbankenTransactionsImporter> logger, 
         IConfiguration configuration,
-        SbankenTransactionsUpdaterCommand updaterCommand, 
+        SbankenTransactionsImporterCommand importerCommand, 
         IQueueProcessor queueProcessor,
         TelemetryClient telemetryClient) : base(logger, 
         configuration,
-        updaterCommand, 
+        importerCommand, 
         queueProcessor,
         telemetryClient)
     {

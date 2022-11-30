@@ -9,6 +9,7 @@ var builder = WebApiBuilder.CreateWebApplicationBuilder<BankingDbContext>(args, 
 
 builder.Services.TryAddSingleton<IAccountProvider, AccountProvider>();
 builder.Services.TryAddSingleton<IAccountBalanceProvider, AccountBalanceProvider>();
+builder.Services.TryAddSingleton<IAccumulatedAccountBalanceProvider, AccumulatedAccountBalanceProvider>();
 builder.Services.TryAddSingleton<ITransactionProvider, TransactionProvider>();
 builder.Services.TryAddSingleton<IScheduledTransactionProvider, ScheduledTransactionProvider>();
 builder.Services.TryAddSingleton<IBankProvider, BankProvider>();

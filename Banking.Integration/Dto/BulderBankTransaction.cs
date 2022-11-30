@@ -3,7 +3,7 @@ using System.Runtime.Serialization;
 
 namespace Banking.Integration.Dto;
 
-public class CsvTransaction
+public class BulderBankTransaction
 {
     [DataMember]
     public DateTime TransactionDate { get; set; }

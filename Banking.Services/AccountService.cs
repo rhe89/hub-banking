@@ -106,7 +106,6 @@ public class AccountService : IAccountService
         {
             _dbRepository.QueueUpdate<Account, AccountDto>(accountInDb);
         }
-
         
         return true;
     }
@@ -157,7 +156,6 @@ public class AccountService : IAccountService
         {
             _dbRepository.QueueAdd<AccountBalance, AccountBalanceDto>(newAccountBalance);
         }
-        
     }
 
     public async Task DeleteAccount(AccountDto account)
@@ -177,7 +175,6 @@ public class AccountService : IAccountService
     private async Task NotifyConsumers()
     {
         await _messageSender.AddToQueue(QueueNames.BankingAccountsUpdated);
-        await _messageSender.AddToQueue(QueueNames.BankingAccountBalanceHistoryUpdated);
         await _messageSender.AddToQueue(QueueNames.CalculateCreditCardPayments);
     }
 }

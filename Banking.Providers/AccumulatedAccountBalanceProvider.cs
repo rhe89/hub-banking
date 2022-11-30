@@ -10,17 +10,16 @@ using Hub.Shared.DataContracts.Banking.Query;
 
 namespace Banking.Providers;
 
-public interface IAccountBalanceProvider
+public interface IAccumulatedAccountBalanceProvider
 {
     Task<IList<AccountBalanceDto>> GetAccountBalances();
-    Task<IList<AccountBalanceDto>> GetAccountBalances(AccountQuery accountQuery);
 }
     
-public class AccountBalanceProvider : IAccountBalanceProvider
+public class AccumulatedAccountBalanceProvider : IAccumulatedAccountBalanceProvider
 {
     private readonly IHubDbRepository _dbRepository;
 
-    public AccountBalanceProvider(IHubDbRepository dbRepository)
+    public AccumulatedAccountBalanceProvider(IHubDbRepository dbRepository)
     {
         _dbRepository = dbRepository;
     }
@@ -32,10 +31,10 @@ public class AccountBalanceProvider : IAccountBalanceProvider
 
     public async Task<IList<AccountBalanceDto>> GetAccountBalances(AccountQuery accountQuery)
     {
-        return await _dbRepository.GetAsync<AccountBalance, AccountBalanceDto>(GetQueryable(accountQuery));
+        return await _dbRepository.GetAsync<AccumulatedAccountBalance, AccountBalanceDto>(GetQueryable(accountQuery));
     }
-    
-    private static Queryable<AccountBalance> GetQueryable(AccountQuery accountQuery)
+
+    private static Queryable<AccumulatedAccountBalance> GetQueryable(AccountQuery accountQuery)
     {
         if (accountQuery.Id != null || accountQuery.AccountId != null)
         {
@@ -44,7 +43,7 @@ public class AccountBalanceProvider : IAccountBalanceProvider
             accountQuery.IncludeDiscontinuedAccounts = true;
         }
         
-        return new Queryable<AccountBalance>
+        return new Queryable<AccumulatedAccountBalance>
         {
             Where = accountBalance =>
                 (accountQuery.Id == null || accountQuery.Id == accountBalance.Id) &&
@@ -59,7 +58,7 @@ public class AccountBalanceProvider : IAccountBalanceProvider
                 (accountQuery.IncludeExternalAccounts || accountBalance.Account.Name != accountBalance.Account.AccountNumber) &&
                 (accountQuery.IncludeSharedAccounts || !accountBalance.Account.SharedAccount) &&
                 (accountQuery.DiscontinuedDate == null || accountQuery.IncludeDiscontinuedAccounts || accountBalance.Account.DiscontinuedDate == null || accountBalance.Account.DiscontinuedDate > accountQuery.DiscontinuedDate),
-            Includes = new List<Expression<Func<AccountBalance, object>>>
+            Includes = new List<Expression<Func<AccumulatedAccountBalance, object>>>
             {
                 accountBalance => accountBalance.Account,
                 accountBalance => accountBalance.Account.Bank

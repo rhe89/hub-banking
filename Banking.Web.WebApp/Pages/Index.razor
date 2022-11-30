@@ -1,7 +1,6 @@
 @page "/"
 @page "/index"
 @using Hub.Shared.Storage.ServiceBus
-@using Hub.Shared.Storage.ServiceBus.MessageBody
 
 @inherits BaseComponent
 @implements IDisposable
@@ -23,26 +22,8 @@
                         class="w-100"
                         Variant="Variant.Filled"
                         Color="Color.Primary"
-                        @onclick="QueueImportTransactionsCsv">
-                        Import transactions
-                    </MudButton>
-                </div>
-                <div class="col-12 col-lg-4 mt-2 mt-lg-0">
-                    <MudButton
-                        class="w-100"
-                        Variant="Variant.Filled"
-                        Color="Color.Primary"
-                        @onclick="QueueBankingTransactionsUpdated">
-                        Notify transactions updated
-                    </MudButton>
-                </div>
-                <div class="col-12 col-lg-4 mt-2 mt-lg-0 mb-3 mb-lg-0">
-                    <MudButton
-                        class="w-100"
-                        Variant="Variant.Filled"
-                        Color="Color.Primary"
-                        @onclick="QueueBankingAccountBalancesUpdated">
-                        Notify account balances updated
+                        @onclick="QueueImportBulderBankTransactions">
+                        Import transactions from Bulder Bank
                     </MudButton>
                 </div>
             </ExpansionBody>
@@ -128,35 +109,13 @@
         await InvokeAsync(StateHasChanged);
     }
 
-    private void QueueImportTransactionsCsv()
+    private void QueueImportBulderBankTransactions()
     {
-        MessageSender.AddToQueue(QueueNames.ImportTransactionsCsv);
+        MessageSender.AddToQueue(QueueNames.UpdateBulderBankTransactions);
 
         UiHelpers.ShowSnackbar("Queued message for importing transactions from CSV-file(s)", Severity.Success);
     }
-
-    private void QueueBankingTransactionsUpdated()
-    {
-        MessageSender.AddToQueue(QueueNames.BankingTransactionsUpdated, new BankingTransactionsUpdatedBody
-        {
-            Month = State.Month,
-            Year = State.Year
-        });
-
-        UiHelpers.ShowSnackbar("Queued message for notifying consumers that transactions has been updated for selected period", Severity.Success);
-    }
-
-    private void QueueBankingAccountBalancesUpdated()
-    {
-        MessageSender.AddToQueue(QueueNames.BankingAccountsUpdated, new BankingAccountBalancesUpdatedBody
-        {
-            Month = State.Month,
-            Year = State.Year
-        });
-
-        UiHelpers.ShowSnackbar("Queued message for notifying consumers that banking account balances has been updated for selected period", Severity.Success);
-    }
-
+    
     public void Dispose()
     {
         State.OnStateUpdated -= OnStateChanged;

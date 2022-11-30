@@ -17,7 +17,8 @@ namespace Banking.Services;
 public interface ITransactionService
 {
     Task<bool> AddTransaction(TransactionDto newTransaction, bool saveChanges);
-    Task AddTransactionsFromFile(string fileName, IEnumerable<CsvTransaction> transactionsToImport);
+    Task AddTransactionsFromFile(string fileName, IEnumerable<BulderBankTransaction> transactionsToImport);
+    Task AddTransactionsFromFile(string fileName, IEnumerable<SbankenTransaction> transactionsToImport);
     Task<bool> UpdateTransaction(TransactionDto transaction, bool saveChanges);
     Task DeleteTransaction(TransactionDto transaction, bool saveChanges);
     Task<int> CategorizeTransactions();
@@ -76,7 +77,7 @@ public class TransactionService : ITransactionService
     }
 
     //TODO Reduce amount of calls to db
-    public async Task AddTransactionsFromFile(string fileName, IEnumerable<CsvTransaction> transactionsToImport)
+    public async Task AddTransactionsFromFile(string fileName, IEnumerable<BulderBankTransaction> transactionsToImport)
     {
         var transactionsFromNewestToOldest = transactionsToImport.OrderBy(x => x.TransactionDate).ToList();
 
@@ -150,6 +151,76 @@ public class TransactionService : ITransactionService
         }
     }
 
+    public async Task AddTransactionsFromFile(string fileName, IEnumerable<SbankenTransaction> transactionsToImport)
+    {
+        var transactionsFromNewestToOldest = transactionsToImport.OrderBy(x => x.AccountingDate).ToList();
+
+        var dateOfOldestTransactionToImport = transactionsFromNewestToOldest.First().AccountingDate;
+        var dateOfNewestTransactionToImport = transactionsFromNewestToOldest.Last().AccountingDate;
+
+        _logger.LogWarning(
+            "Starting import of {Count} transactions from file {FileName} from {From} to {To}",
+            transactionsFromNewestToOldest.Count,
+            fileName,
+            dateOfOldestTransactionToImport.ToString("dd.MM.yyyy"),
+            dateOfNewestTransactionToImport.ToString("dd.MM.yyyy"));
+
+        var accountNumber = fileName.Split("_")[0];
+
+        var iteration = 1;
+
+        foreach (var transactionsChunck in transactionsFromNewestToOldest.Chunk(50))
+        {
+            _logger.LogInformation(
+                "Importing {From} of {To}",
+                (iteration - 1) * 50,
+                iteration * transactionsChunck.Length);
+
+            foreach (var transactionToImport in transactionsChunck)
+            {
+                await AddTransaction(
+                    accountNumber,
+                    transactionToImport.AccountingDate,
+                    transactionToImport.Text,
+                    transactionToImport.AmountIn,
+                    fileName);
+            }
+
+            await _dbRepository.ExecuteQueueAsync();
+            await _scheduledTransactionService.SaveChanges();
+
+            iteration++;
+        }
+    }
+    
+    private async Task AddTransaction(
+        string accountNumber,
+        DateTime transactionDate,
+        string transactionText,
+        decimal amount,
+        string filename)
+    {
+        var account = await _accountService.GetOrAddAccount(
+            accountNumber,
+            AccountTypes.Standard,
+            accountNumber);
+
+        var transactionId =
+            $"{account.AccountNumber}-{transactionDate}-{transactionText}-{amount}";
+        
+        var newTransaction = new TransactionDto
+        {
+            AccountId = account.Id,
+            TransactionId = transactionId,
+            Amount = amount,
+            TransactionDate = transactionDate,
+            Description = transactionText,
+            Source = $"CsvImport-{filename}"
+        };
+
+        await AddTransaction(newTransaction, false);
+    }
+    
     private async Task AddTransaction(
         string accountNumber,
         DateTime transactionDate,
@@ -216,14 +287,13 @@ public class TransactionService : ITransactionService
             Amount = amount,
             TransactionDate = transactionDate,
             Description = transactionText,
-            Exclude = false,
             TransactionSubCategoryId = transactionSubCategoryItem?.Id,
             Source = $"CsvImport-{filename}"
         };
 
         await AddTransaction(newTransaction, false);
     }
-
+    
     public async Task<bool> UpdateTransaction(TransactionDto transaction, bool saveChanges)
     {
         _logger.LogInformation(

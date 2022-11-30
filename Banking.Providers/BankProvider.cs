@@ -38,7 +38,7 @@ public class BankProvider : IBankProvider
         return new Queryable<Bank>
         {
             Where = bank =>
-                (bankQuery.Id == null || bankQuery.Id == bank.Id) &&
+                (bankQuery.Id == null || bankQuery.Id == 0 || bankQuery.Id == bank.Id) &&
                 (bankQuery.Name == null || bankQuery.Name == bank.Name) &&
                 (bankQuery.AccountNumberPrefix == null || bankQuery.AccountNumberPrefix == bank.AccountNumberPrefix),
             OrderBy = bank => bank.Name,

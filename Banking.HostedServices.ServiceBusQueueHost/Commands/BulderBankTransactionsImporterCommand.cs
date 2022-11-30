@@ -14,22 +14,22 @@ using Microsoft.Extensions.Logging;
 
 namespace Banking.HostedServices.ServiceBusQueueHost.Commands;
 
-public class CsvTransactionsImporterCommand : ServiceBusQueueCommand
+public class BulderBankTransactionsImporterCommand : ServiceBusQueueCommand
 {
-    private readonly ICsvTransactionsImporter _csvTransactionsImporter;
+    private readonly IBulderBankTransactionsImporter _bulderBankTransactionsImporter;
     private readonly ITransactionService _transactionService;
     private readonly IConfiguration _configuration;
-    private readonly ILogger<CsvTransactionsImporterCommand> _logger;
+    private readonly ILogger<BulderBankTransactionsImporterCommand> _logger;
     private readonly IHubDbRepository _dbRepository;
 
-    public CsvTransactionsImporterCommand(
-        ICsvTransactionsImporter csvTransactionsImporter,
+    public BulderBankTransactionsImporterCommand(
+        IBulderBankTransactionsImporter bulderBankTransactionsImporter,
         ITransactionService transactionService,
         IConfiguration configuration,
-        ILogger<CsvTransactionsImporterCommand> logger,
+        ILogger<BulderBankTransactionsImporterCommand> logger,
         IHubDbRepository dbRepository)
     {
-        _csvTransactionsImporter = csvTransactionsImporter;
+        _bulderBankTransactionsImporter = bulderBankTransactionsImporter;
         _transactionService = transactionService;
         _configuration = configuration;
         _logger = logger;
@@ -37,7 +37,7 @@ public class CsvTransactionsImporterCommand : ServiceBusQueueCommand
     }
     public override async Task Execute(CancellationToken cancellationToken)
     {
-        var fileList = await GoogleDriveService.ListFiles(_configuration);
+        var fileList = await GoogleDriveService.ListFiles(_configuration.GetValue<string>("BulderBankTransactionsFolderId"), _configuration);
         
         _logger.LogInformation("Found {Count} files to import", fileList.Files.Count);
         
@@ -53,7 +53,7 @@ public class CsvTransactionsImporterCommand : ServiceBusQueueCommand
                 continue;
             }
 
-            var transactionsToImport = await _csvTransactionsImporter.ImportTransactionsFromCsv(file.Id);
+            var transactionsToImport = await _bulderBankTransactionsImporter.ImportTransactionsFromCsv(file.Id);
 
             _logger.LogInformation("Found {Count} transactions to import", transactionsToImport.Count);
 
@@ -71,6 +71,6 @@ public class CsvTransactionsImporterCommand : ServiceBusQueueCommand
         }
     }
 
-    public override string Trigger => QueueNames.ImportTransactionsCsv;
+    public override string Trigger => QueueNames.UpdateBulderBankTransactions;
 }
 

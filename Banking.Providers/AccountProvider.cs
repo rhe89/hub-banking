@@ -19,13 +19,16 @@ public interface IAccountProvider
 public class AccountProvider : IAccountProvider
 {
     private readonly IAccountBalanceProvider _accountBalanceProvider;
+    private readonly IAccumulatedAccountBalanceProvider _accumulatedAccountBalanceProvider;
     private readonly ICacheableHubDbRepository _dbRepository;
 
     public AccountProvider(
         IAccountBalanceProvider accountBalanceProvider,
+        IAccumulatedAccountBalanceProvider accumulatedAccountBalanceProvider,
         ICacheableHubDbRepository dbRepository)
     {
         _accountBalanceProvider = accountBalanceProvider;
+        _accumulatedAccountBalanceProvider = accumulatedAccountBalanceProvider;
         _dbRepository = dbRepository;
     }
 
@@ -46,15 +49,21 @@ public class AccountProvider : IAccountProvider
 
             var accountBalances = await _accountBalanceProvider.GetAccountBalances(accountQuery);
 
+            var accumulatedAccountBalances = await _accumulatedAccountBalanceProvider.GetAccountBalances();
+
             foreach (var account in accounts)
             {
                 var accountBalance = accountBalances.Where(x => x.AccountId == account.Id).MaxBy(x => x.BalanceDate);
-                
-                var latestAccountBalance = accountBalance ?? await _accountBalanceProvider.GetAccumulatedAccountBalance(account, accountQuery);
 
-                account.NoBalanceForGivenPeriod = latestAccountBalance == null;
-                account.Balance = latestAccountBalance?.Balance ?? 0;
-                account.BalanceDate = latestAccountBalance?.BalanceDate ?? DateTime.Now;
+                if (accountBalance == null)
+                {
+                    accountBalance = accumulatedAccountBalances.Where(x => x.AccountId == account.Id).MaxBy(x => x.BalanceDate);
+                    account.BalanceIsAccumulated = accountBalance != null;
+                }
+
+                account.NoBalanceForGivenPeriod = accountBalance == null;
+                account.Balance = accountBalance?.Balance ?? 0;
+                account.BalanceDate = accountBalance?.BalanceDate ?? DateTime.Now;
             }
         }
 
@@ -72,6 +81,8 @@ public class AccountProvider : IAccountProvider
             .ThenByDescending(x => x.UpdatedDate)
             .ToList();
     }
+    
+    
     
     private static Queryable<Account> GetQueryable(AccountQuery accountQuery)
     {

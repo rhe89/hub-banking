@@ -23,6 +23,7 @@ builder.Services.AddTransient<ITransactionProvider, TransactionProvider>();
 builder.Services.AddTransient<IAccountService, AccountService>();
 builder.Services.AddTransient<IAccountProvider, AccountProvider>();
 builder.Services.AddTransient<IAccountBalanceProvider, AccountBalanceProvider>();
+builder.Services.AddTransient<IAccumulatedAccountBalanceProvider, AccumulatedAccountBalanceProvider>();
 
 builder.Services.AddTransient<IScheduledTransactionProvider, ScheduledTransactionProvider>();
 builder.Services.AddTransient<IScheduledTransactionService, ScheduledTransactionService>();
