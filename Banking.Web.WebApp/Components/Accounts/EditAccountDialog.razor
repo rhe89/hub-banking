@@ -77,7 +77,7 @@
     {
         Working = true;
 
-        if (OriginalBalanceDate == Account.BalanceDate)
+        if (!Account.BalanceIsAccumulated && OriginalBalanceDate == Account.BalanceDate)
         {
             Account.BalanceDate = DateTime.Now;
         }
