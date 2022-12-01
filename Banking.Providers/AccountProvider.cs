@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Banking.Data.Entities;
+using Banking.Shared;
 using Hub.Shared.DataContracts.Banking.Dto;
 using Hub.Shared.DataContracts.Banking.Query;
 using Hub.Shared.Storage.Repository;
@@ -41,15 +42,17 @@ public class AccountProvider : IAccountProvider
     {
         var accounts = await _dbRepository.GetAsync<Account, AccountDto>(GetQueryable(accountQuery));
 
-        if (accountQuery.BalanceFromDate != null ||
-            accountQuery.BalanceToDate != null)
+        var accountBalanceQuery = accountQuery;
+        
+        if (accountBalanceQuery.BalanceFromDate != null ||
+            accountBalanceQuery.BalanceToDate != null)
         {
-            accountQuery.AccountId = accountQuery.Id;
-            accountQuery.Id = null;
+            accountBalanceQuery.AccountId = accountBalanceQuery.Id;
+            accountBalanceQuery.Id = null;
 
-            var accountBalances = await _accountBalanceProvider.GetAccountBalances(accountQuery);
+            var accountBalances = await _accountBalanceProvider.GetAccountBalances(accountBalanceQuery);
 
-            var accumulatedAccountBalances = await _accumulatedAccountBalanceProvider.GetAccountBalances();
+            var accumulatedAccountBalances = await _accumulatedAccountBalanceProvider.GetAccountBalances(accountQuery);
 
             foreach (var account in accounts)
             {
@@ -61,7 +64,19 @@ public class AccountProvider : IAccountProvider
                     account.BalanceIsAccumulated = accountBalance != null;
                 }
 
-                account.NoBalanceForGivenPeriod = accountBalance == null;
+                if (accountBalance?.BalanceDate != null && accountBalanceQuery.BalanceToDate != null)
+                {
+                    account.NoBalanceForGivenPeriod =
+                        DateTimeUtils.LastDayOfMonth(accountBalanceQuery.BalanceToDate.Value.Year,
+                                                     accountBalanceQuery.BalanceToDate.Value.Month) >
+                        DateTimeUtils.LastDayOfMonth(accountBalance.BalanceDate.Year, accountBalance.BalanceDate.Month);
+
+                }
+                else
+                {
+                    account.NoBalanceForGivenPeriod = accountBalance?.BalanceDate == null;
+                }
+                
                 account.Balance = accountBalance?.Balance ?? 0;
                 account.BalanceDate = accountBalance?.BalanceDate ?? DateTime.Now;
             }

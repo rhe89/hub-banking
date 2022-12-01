@@ -55,7 +55,6 @@
     public MudDialogInstance MudDialog { get; set; }
 
     private AccountDto Account { get; set; }
-    private TransactionQuery TransactionQuery { get; set; }
     
     private DateTime? OriginalBalanceDate { get; set; }
 
@@ -68,10 +67,7 @@
         });
 
         Account = accounts.Single();
-
-        State.AccountId = AccountId;
-        State.BankId = Account.BankId ?? 0;
-
+        
         OriginalBalanceDate = Account.BalanceDate;
 
         Working = false;

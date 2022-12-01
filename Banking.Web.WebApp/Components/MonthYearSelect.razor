@@ -2,7 +2,7 @@
 
 <div class="@SelectWrapperClass">
     <MudSelect
-        ReadOnly="@Working"
+        Disabled="State.Months.Count == 0"
         Placeholder="Select"
         T="int"
         @bind-Value="@State.Month"
@@ -22,7 +22,7 @@
 </div>
 <div class="@SelectWrapperClass">
     <MudSelect
-        ReadOnly="@Working"
+        Disabled="State.Years.Count == 0"
         Placeholder="Select"
         T="int"
         @bind-Value="@State.Year"

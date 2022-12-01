@@ -126,15 +126,12 @@ public class TransactionsTableService : TableService<TransactionQuery>
             await CreateFilters(transactionQuery);
         }
 
-        if (UseStateForQuerying)
-        {
-            transactionQuery.BankId = State.BankId;
-            transactionQuery.AccountId = State.AccountId;
-            transactionQuery.FromDate = State.GetValidFromDateForMonthAndYear();
-            transactionQuery.ToDate = State.GetValidToDateForMonthAndYear();
-            transactionQuery.IncludeTransactionsFromSharedAccounts = true;
-        }
-
+        transactionQuery.BankId = State.BankId;
+        transactionQuery.AccountId = State.AccountId;
+        transactionQuery.FromDate = State.GetValidFromDateForMonthAndYear();
+        transactionQuery.ToDate = State.GetValidToDateForMonthAndYear();
+        transactionQuery.IncludeTransactionsFromSharedAccounts = true;
+        
         transactionQuery.Take = Widget ? 5 : null;
 
         var transactions = await _transactionProvider.GetTransactions(transactionQuery);
@@ -177,7 +174,7 @@ public class TransactionsTableService : TableService<TransactionQuery>
                 {
                     ColumnText = new ColumnText
                     {
-                        Text = transaction.Account?.Name,
+                        Text = $"{transaction.Account?.Name}{(transaction.Account?.Bank != null ? $" ({transaction.Account.Bank.Name})" : "")}",
                         Icon = IconUtils.GetAccountTypeIcon(transaction.Account?.AccountType)
                     },
                     TdClass = "d-none d-md-table-cell d-widget-none td-md-width-20"

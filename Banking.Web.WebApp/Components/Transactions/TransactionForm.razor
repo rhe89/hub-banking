@@ -13,9 +13,9 @@
 <EditForm Model="@Transaction">
     <div class="row">
         <div class="@Constants.FormInputCol">
-            <MudRadioGroup 
+            <MudRadioGroup
                 T="TransactionDirection"
-                SelectedOption="Transaction.TransactionDirection" 
+                SelectedOption="Transaction.TransactionDirection"
                 SelectedOptionChanged="Transaction.OnTransactionDirectionChanged">
                 <MudRadio
                     Disabled="@Working"
@@ -32,16 +32,25 @@
             </MudRadioGroup>
         </div>
     </div>
-    
+
     <div class="row mt-3">
         <div class="@Constants.FormInputCol">
-            <AccountsSelect/>
+            <MudSelect ReadOnly="Working"
+                       @bind-Value="@Transaction.AccountId"
+                       Label="Account"
+                       Variant="@Constants.InputVariant"
+                       AnchorOrigin="@Origin.BottomCenter">
+                @foreach (var account in Accounts)
+                {
+                    <MudSelectItem T="long" Value="@account.Id">@account.Name @(!string.IsNullOrEmpty(account.Bank?.Name) ? $" ({account.Bank.Name})" : "")</MudSelectItem>
+                }
+            </MudSelect>
         </div>
     </div>
 
     <div class="row mt-3">
         <div class="@Constants.FormInputCol">
-            <TransactionCategoriesSelect 
+            <TransactionCategoriesSelect
                 Disabled="@Working"
                 @bind-SelectedTransactionSubCategoryId="Transaction.TransactionSubCategoryId"/>
         </div>
@@ -49,7 +58,7 @@
 
     <div class="row mt-3">
         <div class="@Constants.FormInputCol">
-            <MudDatePicker 
+            <MudDatePicker
                 Label="Transaction date"
                 Placeholder="Select transaction date"
                 DateFormat="dd.MM.yyyy"
@@ -68,7 +77,7 @@
                 @bind-Value="@Transaction.Description"/>
         </div>
     </div>
-                     
+
     <div class="row mt-3">
         <div class="@Constants.FormInputCol">
             <MudNumericField
@@ -82,7 +91,7 @@
                 HideSpinButtons="true"/>
         </div>
     </div>
-                     
+
     <div class="row mt-3">
         <div class="@Constants.FormInputCol">
             <MudCheckBox
@@ -91,13 +100,13 @@
                 @bind-Checked="@Transaction.Exclude"/>
         </div>
     </div>
-    
+
     @if (ValidationSummary != null)
     {
         @ValidationSummary
     }
-    
-    
+
+
     @if (SubmitActions != null)
     {
         <div class="row mt-3">
@@ -111,6 +120,7 @@
 </EditForm>
 
 @code {
+
     [Parameter]
     public TransactionModel Transaction { get; set; }
 
@@ -123,9 +133,14 @@
     [Parameter]
     public RenderFragment SubmitActions { get; set; }
 
-    protected override void OnInitialized()
+    public IList<AccountDto> Accounts { get; set; } = new List<AccountDto>();
+
+    protected override async Task OnInitializedAsync()
     {
-        State.AccountId = Transaction.AccountId;
+        Accounts = await AccountProvider.GetAccounts(new AccountQuery
+        {
+            IncludeSharedAccounts = true
+        });
     }
 
 }

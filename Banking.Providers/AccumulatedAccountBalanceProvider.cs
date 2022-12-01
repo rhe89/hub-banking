@@ -13,6 +13,7 @@ namespace Banking.Providers;
 public interface IAccumulatedAccountBalanceProvider
 {
     Task<IList<AccountBalanceDto>> GetAccountBalances();
+    Task<IList<AccountBalanceDto>> GetAccountBalances(AccountQuery accountQuery);
 }
     
 public class AccumulatedAccountBalanceProvider : IAccumulatedAccountBalanceProvider

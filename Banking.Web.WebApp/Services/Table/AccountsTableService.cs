@@ -167,7 +167,7 @@ public class AccountsTableService : TableService<AccountQuery>
                 {
                     ColumnText = new ColumnText
                     {
-                        Text = $"{account.Name} ({account.Bank.Name})",
+                        Text = $"{account.Name}{(account.Bank != null ? $" ({account.Bank.Name})" : "")}",
                         Icon = IconUtils.GetAccountTypeIcon(account.AccountType)
                     },
                     TdClass = Widget ? "td-width-60" : "td-md-width-40 td-width-60" 

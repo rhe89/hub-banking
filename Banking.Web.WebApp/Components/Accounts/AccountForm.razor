@@ -50,7 +50,20 @@
                         </div>
 
                         <div class="col-12 mt-3">
-                            <BanksSelect/>
+                            <MudSelect Disabled="Working"
+                                       Value="@SelectedBankId"
+                                       ValueChanged="OnSelectedBankIdChanged"
+                                       Label="Bank"
+                                       Placeholder="Select bank"
+                                       Variant="@Constants.InputVariant"
+                                       T="long"
+                                       AnchorOrigin="@Origin.BottomCenter">
+                                <MudSelectItem T="long" Value="0">Select</MudSelectItem>
+                                @foreach (var bank in Banks)
+                                {
+                                    <MudSelectItem T="long" Value="@bank.Id">@bank.Name</MudSelectItem>
+                                }
+                            </MudSelect>
                         </div>
 
                         <div class="col-12 mt-3">
@@ -76,7 +89,7 @@
                                 }
                             </MudSelect>
                         </div>
-                        
+
                         <div class="col-12 mt-3">
                             <MudDatePicker
                                 Label="Discontinued date"
@@ -132,4 +145,23 @@
 
     [Parameter]
     public bool ExpandDetails { get; set; } = true;
+
+    public long SelectedBankId { get; set; } = 0;
+
+    public IList<BankDto> Banks { get; set; } = new List<BankDto>();
+    
+    protected override async Task OnInitializedAsync()
+    {
+        Banks = await BankProvider.GetBanks();
+
+        SelectedBankId = Account?.BankId ?? 0;
+    }
+
+    private void OnSelectedBankIdChanged(long selectedBankId)
+    {
+        SelectedBankId = selectedBankId;
+        Account.BankId = selectedBankId == 0 ? null : selectedBankId;
+        
+    }
+
 }
