@@ -182,7 +182,9 @@ public class TransactionService : ITransactionService
                     accountNumber,
                     transactionToImport.AccountingDate,
                     transactionToImport.Text,
-                    transactionToImport.AmountIn,
+                    transactionToImport.AmountIn ?? (transactionToImport.AmountOut != null ? 
+                        decimal.Negate(transactionToImport.AmountOut.Value) : 
+                        0),
                     fileName);
             }
 

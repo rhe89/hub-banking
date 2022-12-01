@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Banking.Providers;
-using Banking.Shared;
 using Banking.Web.WebApp.Components;
 using Banking.Web.WebApp.Components.Accounts;
 using Banking.Web.WebApp.Shared;

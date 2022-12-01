@@ -25,8 +25,8 @@ public class SbankenTransaction
     public string Text { get; set; }
     
     [DataMember]
-    public decimal AmountOut { get; set; }
+    public decimal? AmountOut { get; set; }
     
     [DataMember]
-    public decimal AmountIn { get; set; }
+    public decimal? AmountIn { get; set; }
 }

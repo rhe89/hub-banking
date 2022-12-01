@@ -2,7 +2,6 @@ using System;
 using System.Linq;
 using System.Threading.Tasks;
 using Banking.Providers;
-using Banking.Shared;
 using Banking.Web.WebApp.Services.Table;
 using Hub.Shared.DataContracts.Banking.Query;
 using Microsoft.AspNetCore.Components;
