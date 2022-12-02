@@ -4,6 +4,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Banking.Providers;
 using Banking.Services;
+using Banking.Shared;
 using Hub.Shared.DataContracts.Banking.Constants;
 using Hub.Shared.DataContracts.Banking.Dto;
 using Hub.Shared.DataContracts.Banking.Query;
@@ -41,7 +42,7 @@ public class CreditCardPaymentCalculatorCommand : ServiceBusQueueCommand
         {
             BalanceToDate = DateTime.Now,
             AccountType = AccountTypes.CreditCard,
-            DiscontinuedDate = DateTime.Now
+            DiscontinuedDate = DateTimeUtils.FirstDayOfMonth()
         });
         
         var thisMonthsScheduledCreditCardPayment = (await _scheduledTransactionProvider.GetScheduledTransactions(new ScheduledTransactionQuery

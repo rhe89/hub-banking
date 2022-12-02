@@ -61,7 +61,7 @@ public class SavingsBaseComponent : BaseComponent, IDisposable
         {
             AccountType = Hub.Shared.DataContracts.Banking.Constants.AccountTypes.Saving,
             BalanceToDate = State.GetValidToDateForMonthAndYear().AddMonths(-1),
-            DiscontinuedDate = State.GetValidToDateForMonthAndYear().AddMonths(-1)
+            DiscontinuedDate = State.GetValidFromDateForMonthAndYear().AddMonths(-1)
         };
 
         var lastMonthsAccountBalances = await AccountProvider.GetAccounts(accountQuery);
@@ -69,7 +69,7 @@ public class SavingsBaseComponent : BaseComponent, IDisposable
         LastMonthSavingsBalance = lastMonthsAccountBalances.Sum(x => x.Balance);
         
         accountQuery.BalanceToDate = State.GetValidToDateForMonthAndYear();
-        accountQuery.DiscontinuedDate = State.GetValidToDateForMonthAndYear();
+        accountQuery.DiscontinuedDate = State.GetValidFromDateForMonthAndYear();
         
         CurrentSavingsBalance = (await AccountProvider.GetAccounts(accountQuery)).Sum(x => x.Balance);
 

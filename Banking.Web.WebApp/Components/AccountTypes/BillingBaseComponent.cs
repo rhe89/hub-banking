@@ -59,7 +59,8 @@ public class BillingBaseComponent : BaseComponent, IDisposable
         {
             AccountType = Hub.Shared.DataContracts.Banking.Constants.AccountTypes.Billing,
             IncludeSharedAccounts = false,
-            BalanceToDate = State.GetValidToDateForMonthAndYear()
+            BalanceToDate = State.GetValidToDateForMonthAndYear(),
+            DiscontinuedDate = State.GetValidToDateForMonthAndYear()
         };
 
         var accounts = await AccountProvider.GetAccounts(accountQuery);

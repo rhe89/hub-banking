@@ -58,7 +58,7 @@ public class AccountBalanceProvider : IAccountBalanceProvider
                 (accountQuery.BalanceToDate == null || accountBalance.BalanceDate <= accountQuery.BalanceToDate.Value) &&
                 (accountQuery.IncludeExternalAccounts || accountBalance.Account.Name != accountBalance.Account.AccountNumber) &&
                 (accountQuery.IncludeSharedAccounts || !accountBalance.Account.SharedAccount) &&
-                (accountQuery.DiscontinuedDate == null || accountQuery.IncludeDiscontinuedAccounts || accountBalance.Account.DiscontinuedDate == null || accountBalance.Account.DiscontinuedDate > accountQuery.DiscontinuedDate),
+                (accountQuery.DiscontinuedDate == null || accountQuery.IncludeDiscontinuedAccounts || accountBalance.Account.DiscontinuedDate == null || accountBalance.Account.DiscontinuedDate >= accountQuery.DiscontinuedDate),
             Includes = new List<Expression<Func<AccountBalance, object>>>
             {
                 accountBalance => accountBalance.Account,

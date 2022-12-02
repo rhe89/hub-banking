@@ -119,7 +119,7 @@ public class AccountProvider : IAccountProvider
                 (accountQuery.BankId == null || accountQuery.BankId == 0 || accountQuery.BankId == account.BankId) &&
                 (accountQuery.IncludeExternalAccounts || account.Name != account.AccountNumber) && 
                 (accountQuery.IncludeSharedAccounts || !account.SharedAccount) &&
-                (accountQuery.IncludeDiscontinuedAccounts || account.DiscontinuedDate == null || account.DiscontinuedDate > accountQuery.DiscontinuedDate),
+                (accountQuery.IncludeDiscontinuedAccounts || account.DiscontinuedDate == null || account.DiscontinuedDate >= accountQuery.DiscontinuedDate),
             OrderBy = account => account.UpdatedDate,
             Include = account => account.Bank,
             Skip = accountQuery.Skip

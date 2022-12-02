@@ -150,11 +150,9 @@ public class AccountsTableService : TableService<AccountQuery>
             await CreateFilters(accountQuery);
         }
         
-        var toDate = State.GetValidToDateForMonthAndYear();
-
         accountQuery.BankId = State.BankId;
-        accountQuery.BalanceToDate = toDate;
-        accountQuery.DiscontinuedDate = toDate;
+        accountQuery.BalanceToDate = State.GetValidToDateForMonthAndYear();
+        accountQuery.DiscontinuedDate = State.GetValidFromDateForMonthAndYear();
         
         var accounts = await _accountProvider.GetAccounts(accountQuery);
         
