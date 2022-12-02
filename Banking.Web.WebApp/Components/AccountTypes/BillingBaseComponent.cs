@@ -78,8 +78,6 @@ public class BillingBaseComponent : BaseComponent, IDisposable
             UpcomingBillsQuery = new ScheduledTransactionQuery
             {
                 AccountType = Hub.Shared.DataContracts.Banking.Constants.AccountTypes.Billing,
-                IncludeCompletedTransactions = false,
-                NextTransactionFromDate = State.GetValidFromDateForMonthAndYear(),
                 NextTransactionToDate = State.GetValidToDateForMonthAndYear()
             };
 
