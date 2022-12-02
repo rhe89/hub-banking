@@ -16,17 +16,20 @@ namespace Banking.HostedServices.ServiceBusQueueHost.Commands;
 public class CreditCardPaymentCalculatorCommand : ServiceBusQueueCommand
 {
     private readonly IAccountProvider _accountProvider;
+    private readonly IScheduledTransactionProvider _scheduledTransactionProvider;
     private readonly IScheduledTransactionService _scheduledTransactionService;
     private readonly ITransactionCategoryProvider _transactionCategoryProvider;
     private readonly ISettingProvider _settingProvider;
 
     public CreditCardPaymentCalculatorCommand(
         IAccountProvider accountProvider,
+        IScheduledTransactionProvider scheduledTransactionProvider,
         IScheduledTransactionService scheduledTransactionService,
         ITransactionCategoryProvider transactionCategoryProvider,
         ISettingProvider settingProvider)
     {
         _accountProvider = accountProvider;
+        _scheduledTransactionProvider = scheduledTransactionProvider;
         _scheduledTransactionService = scheduledTransactionService;
         _transactionCategoryProvider = transactionCategoryProvider;
         _settingProvider = settingProvider;
@@ -40,12 +43,17 @@ public class CreditCardPaymentCalculatorCommand : ServiceBusQueueCommand
             AccountType = AccountTypes.CreditCard,
             DiscontinuedDate = DateTime.Now
         });
+        
+        var thisMonthsScheduledCreditCardPayment = (await _scheduledTransactionProvider.GetScheduledTransactions(new ScheduledTransactionQuery
+        {
+            Description = $"Credit card payment for {DateTime.Now.AddMonths(-1):MM.yyyy}"
+        })).FirstOrDefault();
 
         var creditLimitSetting = await _settingProvider.GetSetting("CreditCardLimit");
 
         var creditLimit = int.Parse(creditLimitSetting.Value);
 
-        var nextMonthCreditCardPayment = thisMonthsCreditCardBalances.Sum(x => x.Balance) - creditLimit;
+        var nextMonthCreditCardPayment = (thisMonthsCreditCardBalances.Sum(x => x.Balance) + decimal.Negate(thisMonthsScheduledCreditCardPayment?.Amount ?? 0)) - creditLimit;
 
         var creditCardSubCategory = (await _transactionCategoryProvider.GetTransactionSubCategories(new TransactionSubCategoryQuery
         {
