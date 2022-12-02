@@ -4,6 +4,7 @@
 @using Hub.Shared.DataContracts.Banking.Query
 
 @inherits BaseComponent
+@implements IDisposable
 
 @inject IBankProvider BankProvider
 @inject IBankService BankService
@@ -93,4 +94,8 @@
         MudDialog.Close(DialogResult.Ok(true));
     }
 
+    public void Dispose()
+    {
+        State.BankId = 0;
+    }
 }

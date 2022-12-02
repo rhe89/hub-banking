@@ -4,6 +4,7 @@
 @using Hub.Shared.DataContracts.Banking.Query
 
 @inherits BaseComponent
+@implements IDisposable
 
 @inject IAccountProvider AccountProvider
 @inject IAccountService AccountService
@@ -32,11 +33,11 @@
                     DisableDelete="true"/>
             </SubmitActions>
         </AccountForm>
+        
+        <AdditionalData>
+            <TransactionsTable/>
+        </AdditionalData>
     }
-
-    <AdditionalData>
-        <TransactionsTable/>
-    </AdditionalData>
 </Dialog>
 
 
@@ -65,8 +66,11 @@
             Id = AccountId, 
             BalanceToDate = State.GetValidToDateForMonthAndYear()
         });
-
+        
         Account = accounts.Single();
+
+        State.BankId = Account.BankId ?? 0;
+        State.AccountId = AccountId;
         
         OriginalBalanceDate = Account.BalanceDate;
 
@@ -81,7 +85,7 @@
         {
             Account.BalanceDate = DateTime.Now;
         }
-
+        
         await AccountService.UpdateAccount(Account, saveChanges: true);
 
         await OnAccountUpdated.Invoke(UiHelpers, Account.Id);
@@ -96,9 +100,15 @@
         await AccountService.DeleteAccount(Account);
 
         Working = false;
-
+        
         await OnAccountDeleted.Invoke(UiHelpers, Account.Id);
 
         MudDialog.Close(DialogResult.Ok(true));
+    }
+
+    public void Dispose()
+    {
+        State.AccountId = 0;
+        State.BankId = 0;
     }
 }
