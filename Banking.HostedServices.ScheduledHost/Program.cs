@@ -9,7 +9,6 @@ ScheduledHostBuilder
     .CreateHostBuilder<BankingDbContext>(args, "SQL_DB_BANKING")
     .ConfigureServices(serviceCollection =>
     {
-        serviceCollection.AddSingleton<IScheduledCommand, QueueUpdateScheduledTransactionsCommand>();
         serviceCollection.AddSingleton<IScheduledCommand, QueueUpdateAccountBalancesForNewMonthCommand>();
         serviceCollection.AddSingleton<IScheduledCommand, QueueUpdateMonthlyBudget>();
         serviceCollection.AddSingleton<IScheduledCommand, QueueUpdateScheduledTransactions>();
