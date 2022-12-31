@@ -43,15 +43,15 @@ public class MonthlyBudgetCalculatorCommand : ServiceBusQueueCommand
     {
         var years = new List<DateTime>
         {
-            DateTime.Now,
-            DateTime.Now.AddYears(1),
-            DateTime.Now.AddYears(2),
-            DateTime.Now.AddYears(3)
+            DateTimeUtils.Today,
+            DateTimeUtils.Today.AddYears(1),
+            DateTimeUtils.Today.AddYears(2),
+            DateTimeUtils.Today.AddYears(3)
         };
 
         var scheduledTransactions = await _scheduledTransactionProvider.Get(new ScheduledTransactionQuery
         {
-            NextTransactionFromDate = new DateTime(DateTime.Now.Year, DateTime.Now.Month, 1),
+            NextTransactionFromDate = new DateTime(DateTimeUtils.Today.Year, DateTimeUtils.Today.Month, 1),
             IncludeCompletedTransactions = true
         });
 
@@ -123,7 +123,7 @@ public class MonthlyBudgetCalculatorCommand : ServiceBusQueueCommand
                     Amount = monthlyBudget.Result,
                     NextTransactionDate = nextTransactionDate,
                     Occurrence = Occurrence.Once,
-                    Completed = nextTransactionDate < DateTime.Now
+                    Completed = nextTransactionDate < DateTimeUtils.Today
                 }, false);
             }
 

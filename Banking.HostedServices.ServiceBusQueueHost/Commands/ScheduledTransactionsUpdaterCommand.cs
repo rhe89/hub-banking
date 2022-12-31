@@ -4,6 +4,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Banking.Providers;
 using Banking.Services;
+using Banking.Shared;
 using Hub.Shared.DataContracts.Banking.Dto;
 using Hub.Shared.HostedServices.ServiceBusQueue;
 using Hub.Shared.Storage.ServiceBus;
@@ -39,7 +40,7 @@ public class ScheduledTransactionsUpdaterCommand : ServiceBusQueueCommand
                 continue;
             }
 
-            var monthDifferenceBetweenNowAndLatestTransactionDate = GetMonthDifference(DateTime.Now, latestNextTransaction.NextTransactionDate);
+            var monthDifferenceBetweenNowAndLatestTransactionDate = GetMonthDifference(DateTimeUtils.Today, latestNextTransaction.NextTransactionDate);
             
             if (monthDifferenceBetweenNowAndLatestTransactionDate < 12 * 3)
             {

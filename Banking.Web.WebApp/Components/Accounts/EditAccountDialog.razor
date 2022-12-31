@@ -1,5 +1,6 @@
 @using Banking.Providers
 @using Banking.Services
+@using Banking.Shared
 @using Hub.Shared.DataContracts.Banking.Dto
 @using Hub.Shared.DataContracts.Banking.Query
 
@@ -83,7 +84,7 @@
 
         if (!Account.BalanceIsAccumulated && OriginalBalanceDate == Account.BalanceDate)
         {
-            Account.BalanceDate = DateTime.Now;
+            Account.BalanceDate = DateTimeUtils.Today;
         }
         
         await AccountService.Update(Account, saveChanges: true);

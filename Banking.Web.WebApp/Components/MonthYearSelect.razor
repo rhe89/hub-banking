@@ -1,3 +1,4 @@
+@using Banking.Shared
 @inherits BaseComponent
 
 <div class="@SelectWrapperClass">
@@ -18,7 +19,7 @@
             foreach (var monthInYear in State.MonthsInYears)
             {
                 var borderClass = year != monthInYear.Year ? "border-top" : "";
-                var fwClass = monthInYear.Month == DateTime.Now.Month && monthInYear.Year == DateTime.Now.Year ?
+                var fwClass = monthInYear.Month == DateTimeUtils.Today.Month && monthInYear.Year == DateTimeUtils.Today.Year ?
                     "fw-bold" : "";
                 
                 <MudSelectItem

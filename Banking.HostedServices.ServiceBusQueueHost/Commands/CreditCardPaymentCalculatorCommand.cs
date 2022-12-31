@@ -50,7 +50,7 @@ public class CreditCardPaymentCalculatorCommand : ServiceBusQueueCommand
         
         var thisMonthsScheduledCreditCardPayment = (await _scheduledTransactionProvider.Get(new ScheduledTransactionQuery
         {
-            Description = $"Credit card payment for {DateTime.Now.AddMonths(-1):MM.yyyy}"
+            Description = $"Credit card payment for {DateTimeUtils.Today.AddMonths(-1):MM.yyyy}"
         })).FirstOrDefault();
 
         var creditLimitSetting = await _settingProvider.GetSetting("CreditCardLimit");
@@ -64,7 +64,7 @@ public class CreditCardPaymentCalculatorCommand : ServiceBusQueueCommand
             Name = "lån og kreditt"
         })).FirstOrDefault();
 
-        var nextMonth = DateTime.Now.AddMonths(1);
+        var nextMonth = DateTimeUtils.Today.AddMonths(1);
 
         var billingAccount = await _preferenceProvider.GetDefaultBillingAccount();
         
@@ -72,7 +72,7 @@ public class CreditCardPaymentCalculatorCommand : ServiceBusQueueCommand
         {
             AccountId = billingAccount.Id,
             TransactionSubCategoryId = creditCardSubCategory?.Id,
-            Description = $"Credit card payment for {DateTime.Now:MM.yyyy}",
+            Description = $"Credit card payment for {DateTimeUtils.Today:MM.yyyy}",
             Amount = nextMonthCreditCardPayment,
             TransactionKey = Guid.NewGuid(),
             NextTransactionDate = new DateTime(nextMonth.Year, nextMonth.Month, 20),

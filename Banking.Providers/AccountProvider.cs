@@ -78,7 +78,7 @@ public class AccountProvider : IAccountProvider
                 }
                 
                 account.Balance = accountBalance?.Balance ?? 0;
-                account.BalanceDate = accountBalance?.BalanceDate ?? DateTime.Now;
+                account.BalanceDate = accountBalance?.BalanceDate ?? DateTimeUtils.Today;
             }
         }
 

@@ -5,6 +5,7 @@
 @using Hub.Shared.DataContracts.Banking.Query
 @using JetBrains.Annotations
 @using System.Globalization
+@using Banking.Shared
 @using Banking.Web.WebApp.Models.Form
 
 @inject IScheduledTransactionProvider ScheduledTransactionProvider
@@ -79,7 +80,7 @@
     {
         TransactionDirection = TransactionDirection.Out,
         Occurrence = Occurrence.Monthly,
-        NextTransactionDate = DateTime.Now
+        NextTransactionDate = DateTimeUtils.Today
     };
     private ScheduledTransactionDto ScheduledTransactionWithSameDescription { get; set; }
 

@@ -3,6 +3,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Banking.Data.Entities;
 using Banking.Providers;
+using Banking.Shared;
 using Hub.Shared.DataContracts.Banking.Dto;
 using Hub.Shared.DataContracts.Banking.Query;
 using Hub.Shared.Storage.Repository;
@@ -80,7 +81,7 @@ public class AccountService : IAccountService
         var accountInDb = (await _accountProvider.Get(new AccountQuery
         {
             Id = updatedAccount.Id,
-            BalanceToDate = DateTime.Now
+            BalanceToDate = DateTimeUtils.Today
         })).First();
 
         accountInDb.BankId = updatedAccount.BankId;

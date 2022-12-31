@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using Banking.Shared;
 using Hub.Shared.DataContracts.Banking.Dto;
 
 namespace Banking.Web.WebApp.Models.Form;
@@ -11,7 +12,7 @@ public class ScheduledTransactionModel : ScheduledTransactionDto, IValidatableMo
     public new DateTime? NextTransactionDate
     {
         get => base.NextTransactionDate;
-        set => base.NextTransactionDate = value ?? DateTime.Now;
+        set => base.NextTransactionDate = value ?? DateTimeUtils.Today;
     }
 
     public IDictionary<string, string> ValidationErrors { get; } = new Dictionary<string, string>

@@ -3,6 +3,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Banking.Data.Entities;
 using Banking.Providers;
+using Banking.Shared;
 using Hub.Shared.DataContracts.Banking.Dto;
 using Hub.Shared.DataContracts.Banking.Query;
 using Hub.Shared.Storage.Repository.Core;
@@ -52,7 +53,7 @@ public class ScheduledTransactionService : IScheduledTransactionService
             _dbRepository.QueueAdd<ScheduledTransaction, ScheduledTransactionDto>(newScheduledTransaction);
         }
 
-        await FillScheduledTransactionForPeriod(newScheduledTransaction, DateTime.Now.AddYears(3), saveChanges);
+        await FillScheduledTransactionForPeriod(newScheduledTransaction, DateTimeUtils.Today.AddYears(3), saveChanges);
 
         return newScheduledTransaction;
     }
@@ -139,7 +140,7 @@ public class ScheduledTransactionService : IScheduledTransactionService
         scheduledTransactionInDb.NextTransactionDate = updatedScheduledTransaction.NextTransactionDate;
 
         await DeleteNewerScheduledTransactions(scheduledTransactionInDb.TransactionKey, scheduledTransactionInDb.Id, scheduledTransactionInDb.NextTransactionDate, saveChanges);
-        await FillScheduledTransactionForPeriod(scheduledTransactionInDb, DateTime.Now.AddYears(3), saveChanges);
+        await FillScheduledTransactionForPeriod(scheduledTransactionInDb, DateTimeUtils.Today.AddYears(3), saveChanges);
 
         _dbRepository.QueueUpdate<ScheduledTransaction, ScheduledTransactionDto>(scheduledTransactionInDb);
 

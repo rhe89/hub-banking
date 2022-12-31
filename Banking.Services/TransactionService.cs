@@ -6,6 +6,7 @@ using Hub.Shared.Storage.Repository.Core;
 using Banking.Data.Entities;
 using Banking.Integration.Dto;
 using Banking.Providers;
+using Banking.Shared;
 using Hub.Shared.DataContracts.Banking.Constants;
 using Hub.Shared.DataContracts.Banking.Dto;
 using Hub.Shared.DataContracts.Banking.Query;
@@ -112,7 +113,7 @@ public class TransactionService : ITransactionService
             {
                 if (
                     transactionToImport.Text == "Betaling" &&
-                    transactionToImport.TransactionDate.Date >= DateTime.Now.AddDays(-3).Date)
+                    transactionToImport.TransactionDate.Date >= DateTimeUtils.Today.AddDays(-3).Date)
                 {
                     continue;
                 }

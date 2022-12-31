@@ -44,7 +44,7 @@ public class State : IDisposable
 
         var months = new List<int> { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12 };
 
-        for (int year = 2009; year <= DateTime.Now.AddYears(3).Year; year++)
+        for (int year = 2009; year <= DateTimeUtils.Today.AddYears(3).Year; year++)
         {
             foreach (var month in months)
             {
@@ -52,7 +52,7 @@ public class State : IDisposable
             }
         }
 
-        MonthInYear = MonthsInYears.First(x => x.Month == DateTime.Now.Month && x.Year == DateTime.Now.Year);
+        MonthInYear = MonthsInYears.First(x => x.Month == DateTimeUtils.Today.Month && x.Year == DateTime.Now.Year);
         
         await SetAccounts();
         await SetBanks();
@@ -154,9 +154,9 @@ public class State : IDisposable
     {
         if (MonthInYear.Month == 0 && MonthInYear.Year == 0)
         {
-            DateTime now = DateTime.Now;
+            var today = DateTimeUtils.Today;
 
-            return DateTimeUtils.FirstDayOfMonth(now.Year, now.Month);
+            return DateTimeUtils.FirstDayOfMonth(today.Year, today.Month);
         }
         
         return DateTimeUtils.FirstDayOfMonth(MonthInYear.Year, MonthInYear.Month);
@@ -166,9 +166,9 @@ public class State : IDisposable
     {
         if (MonthInYear.Month == 0 && MonthInYear.Year == 0)
         {
-            DateTime now = DateTime.Now;
+            var today = DateTimeUtils.Today;
 
-            return DateTimeUtils.LastDayOfMonth(now.Year, now.Month);
+            return DateTimeUtils.LastDayOfMonth(today.Year, today.Month);
         }
         
         return DateTimeUtils.LastDayOfMonth(MonthInYear.Year, MonthInYear.Month);

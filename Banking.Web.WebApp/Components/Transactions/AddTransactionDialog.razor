@@ -1,5 +1,6 @@
 @using Banking.Providers
 @using Banking.Services
+@using Banking.Shared
 @using Banking.Web.WebApp.Models.Form
 
 @inject ITransactionService TransactionService
@@ -68,7 +69,7 @@
             Exclude = true,
             AccountId = State.AccountId,
             Amount = 0,
-            TransactionDate = DateTime.Now,
+            TransactionDate = DateTimeUtils.Today,
             TransactionType = 0,
         };
 
@@ -87,7 +88,7 @@
         Transaction = new TransactionModel
         {
             AccountId = Transaction.AccountId,
-            TransactionDate = DateTime.Now,
+            TransactionDate = DateTimeUtils.Today,
             TransactionType = 0
         };
     }

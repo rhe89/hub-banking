@@ -19,7 +19,7 @@ public class BillingBaseComponent : BaseComponent, IDisposable
     protected decimal BillingAccountsBalance { get; set; }
     protected decimal UpcomingBillsAmount { get; set; }
     protected decimal PaidBillsAmount { get; set; }
-    protected bool MonthHasPassed => DateTime.Now > State.GetValidToDateForMonthAndYear();
+    protected bool MonthHasPassed => DateTimeUtils.Today > State.GetValidToDateForMonthAndYear();
 
     public BillingBaseComponent()
     {
@@ -118,7 +118,7 @@ public class BillingBaseComponent : BaseComponent, IDisposable
             FromDate = State.GetValidFromDateForMonthAndYear(),
             ToDate = MonthHasPassed
                 ? State.GetValidToDateForMonthAndYear()
-                : DateTime.Now
+                : DateTimeUtils.Today
         };
 
         PaidBillsAmount = (await TransactionsProvider
