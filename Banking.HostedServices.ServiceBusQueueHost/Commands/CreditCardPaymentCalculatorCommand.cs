@@ -17,6 +17,7 @@ namespace Banking.HostedServices.ServiceBusQueueHost.Commands;
 public class CreditCardPaymentCalculatorCommand : ServiceBusQueueCommand
 {
     private readonly IAccountProvider _accountProvider;
+    private readonly IPreferenceProvider _preferenceProvider;
     private readonly IScheduledTransactionProvider _scheduledTransactionProvider;
     private readonly IScheduledTransactionService _scheduledTransactionService;
     private readonly ITransactionCategoryProvider _transactionCategoryProvider;
@@ -24,12 +25,14 @@ public class CreditCardPaymentCalculatorCommand : ServiceBusQueueCommand
 
     public CreditCardPaymentCalculatorCommand(
         IAccountProvider accountProvider,
+        IPreferenceProvider preferenceProvider,
         IScheduledTransactionProvider scheduledTransactionProvider,
         IScheduledTransactionService scheduledTransactionService,
         ITransactionCategoryProvider transactionCategoryProvider,
         ISettingProvider settingProvider)
     {
         _accountProvider = accountProvider;
+        _preferenceProvider = preferenceProvider;
         _scheduledTransactionProvider = scheduledTransactionProvider;
         _scheduledTransactionService = scheduledTransactionService;
         _transactionCategoryProvider = transactionCategoryProvider;
@@ -38,14 +41,14 @@ public class CreditCardPaymentCalculatorCommand : ServiceBusQueueCommand
 
     public override async Task Execute(CancellationToken cancellationToken)
     {
-        var thisMonthsCreditCardBalances = await _accountProvider.GetAccounts(new AccountQuery
+        var thisMonthsCreditCardBalances = await _accountProvider.Get(new AccountQuery
         {
             BalanceToDate = DateTime.Now,
             AccountType = AccountTypes.CreditCard,
             DiscontinuedDate = DateTimeUtils.FirstDayOfMonth()
         });
         
-        var thisMonthsScheduledCreditCardPayment = (await _scheduledTransactionProvider.GetScheduledTransactions(new ScheduledTransactionQuery
+        var thisMonthsScheduledCreditCardPayment = (await _scheduledTransactionProvider.Get(new ScheduledTransactionQuery
         {
             Description = $"Credit card payment for {DateTime.Now.AddMonths(-1):MM.yyyy}"
         })).FirstOrDefault();
@@ -56,18 +59,20 @@ public class CreditCardPaymentCalculatorCommand : ServiceBusQueueCommand
 
         var nextMonthCreditCardPayment = (thisMonthsCreditCardBalances.Sum(x => x.Balance) + decimal.Negate(thisMonthsScheduledCreditCardPayment?.Amount ?? 0)) - creditLimit;
 
-        var creditCardSubCategory = (await _transactionCategoryProvider.GetTransactionSubCategories(new TransactionSubCategoryQuery
+        var creditCardSubCategory = (await _transactionCategoryProvider.Get(new TransactionSubCategoryQuery
         {
             Name = "lån og kreditt"
         })).FirstOrDefault();
 
         var nextMonth = DateTime.Now.AddMonths(1);
 
+        var billingAccount = await _preferenceProvider.GetDefaultBillingAccount();
+        
         var scheduledCreditCardPayment = new ScheduledTransactionDto
         {
+            AccountId = billingAccount.Id,
             TransactionSubCategoryId = creditCardSubCategory?.Id,
             Description = $"Credit card payment for {DateTime.Now:MM.yyyy}",
-            AccountType = AccountTypes.Billing,
             Amount = nextMonthCreditCardPayment,
             TransactionKey = Guid.NewGuid(),
             NextTransactionDate = new DateTime(nextMonth.Year, nextMonth.Month, 20),
@@ -75,7 +80,7 @@ public class CreditCardPaymentCalculatorCommand : ServiceBusQueueCommand
             Completed = false
         };
 
-        await _scheduledTransactionService.AddOrUpdateScheduledTransaction(scheduledCreditCardPayment, true);
+        await _scheduledTransactionService.AddOrUpdate(scheduledCreditCardPayment, true);
     }
 
     public override string Trigger => QueueNames.CalculateCreditCardPayments;

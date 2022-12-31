@@ -59,7 +59,7 @@
     {
         Working = true;
 
-        Bank = (await BankProvider.GetBanks(new BankQuery { Id = BankId })).Single();
+        Bank = (await BankProvider.Get(new BankQuery { Id = BankId })).Single();
 
         State.BankId = BankId;
 
@@ -70,7 +70,7 @@
     {
         Working = true;
 
-        await BankService.UpdateBank(Bank, saveChanges: true);
+        await BankService.Update(Bank, saveChanges: true);
 
         await OnBankUpdated.Invoke(UiHelpers, Bank.Id);
 
@@ -85,7 +85,7 @@
     {
         Working = true;
 
-        await BankService.DeleteBank(Bank, true);
+        await BankService.Delete(Bank, true);
 
         Working = false;
 

@@ -2,40 +2,33 @@
 
 <div class="@SelectWrapperClass">
     <MudSelect
-        Disabled="State.Months.Count == 0"
+        Disabled="@(State.MonthsInYears.Count == 0)"
         Placeholder="Select"
-        T="int"
-        @bind-Value="@State.Month"
+        T="MonthInYear"
+        @bind-Value="@State.MonthInYear"
         Label="Month"
         Variant="@Constants.InputVariant"
         AnchorOrigin="@Origin.BottomCenter">
-        @if (State.Months != null)
+        @if (State.MonthsInYears != null)
         {
-            <MudSelectItem T="int" Value="0">All</MudSelectItem>
+            <MudSelectItem T="MonthInYear" Value="new MonthInYear(0, 0)">All</MudSelectItem>
 
-            foreach (var month in State.Months)
-            {
-                <MudSelectItem T="int" Value="month">@TextUtils.GetMonthText(month)</MudSelectItem>
-            }
-        }
-    </MudSelect>
-</div>
-<div class="@SelectWrapperClass">
-    <MudSelect
-        Disabled="State.Years.Count == 0"
-        Placeholder="Select"
-        T="int"
-        @bind-Value="@State.Year"
-        Label="Year"
-        Variant="@Constants.InputVariant"
-        AnchorOrigin="@Origin.BottomCenter">
-        @if (State.Years != null)
-        {
-            <MudSelectItem T="int" Value="0">All</MudSelectItem>
+            var year = 0;
             
-            foreach (var year in State.Years)
+            foreach (var monthInYear in State.MonthsInYears)
             {
-                <MudSelectItem T="int" Value="year">@year</MudSelectItem>
+                var borderClass = year != monthInYear.Year ? "border-top" : "";
+                var fwClass = monthInYear.Month == DateTime.Now.Month && monthInYear.Year == DateTime.Now.Year ?
+                    "fw-bold" : "";
+                
+                <MudSelectItem
+                    T="MonthInYear"
+                    Value="monthInYear"
+                    Class=@($"{borderClass} {fwClass}")>
+                    @monthInYear.DisplayText
+                </MudSelectItem>
+                
+                year = monthInYear.Year;
             }
         }
     </MudSelect>

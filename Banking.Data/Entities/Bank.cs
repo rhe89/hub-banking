@@ -4,6 +4,7 @@ using JetBrains.Annotations;
 
 namespace Banking.Data.Entities;
 
+[UsedImplicitly]
 public class Bank : EntityBase
 {
     [UsedImplicitly]

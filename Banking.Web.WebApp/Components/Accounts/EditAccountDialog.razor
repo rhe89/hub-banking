@@ -61,7 +61,7 @@
 
     protected override async Task OnInitializedAsync()
     {
-        var accounts = await AccountProvider.GetAccounts(new AccountQuery
+        var accounts = await AccountProvider.Get(new AccountQuery
         {
             Id = AccountId, 
             BalanceToDate = State.GetValidToDateForMonthAndYear()
@@ -86,7 +86,7 @@
             Account.BalanceDate = DateTime.Now;
         }
         
-        await AccountService.UpdateAccount(Account, saveChanges: true);
+        await AccountService.Update(Account, saveChanges: true);
 
         await OnAccountUpdated.Invoke(UiHelpers, Account.Id);
 
@@ -97,7 +97,7 @@
     {
         Working = true;
 
-        await AccountService.DeleteAccount(Account);
+        await AccountService.Delete(Account);
 
         Working = false;
         

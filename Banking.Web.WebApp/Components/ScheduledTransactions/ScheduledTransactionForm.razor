@@ -5,8 +5,11 @@
 @using Hub.Shared.DataContracts.Banking.Dto
 @using Hub.Shared.DataContracts.Banking.Query
 @using Hub.Shared.Extensions
+@using Banking.Providers
 
 @inherits BaseComponent
+
+@inject IAccountProvider AccountProvider
 
 <EditForm Model="@ScheduledTransaction">
     <div class="row">
@@ -70,18 +73,16 @@
     </div>
     
     <div class="row mt-3">
-        <div class="col-12 mt-3">
-            <MudSelect
-                ReadOnly="@Working"
-                Placeholder="Select"
-                T="string"
-                @bind-Value="ScheduledTransaction.AccountType"
-                Label="Account type"
+        <div class="@Constants.FormInputCol">
+            <MudSelect 
+                ReadOnly="Working"
+                @bind-Value="@ScheduledTransaction.AccountId"
+                Label="Account"
                 Variant="@Constants.InputVariant"
                 AnchorOrigin="@Origin.BottomCenter">
-                @foreach (var accountType in AccountTypes.ToArray)
+                @foreach (var account in Accounts)
                 {
-                    <MudSelectItem T="string" Value="@accountType">@accountType</MudSelectItem>
+                    <MudSelectItem T="long" Value="@account.Id">@account.Name @(!string.IsNullOrEmpty(account.Bank?.Name) ? $" ({account.Bank.Name})" : "")</MudSelectItem>
                 }
             </MudSelect>
         </div>
@@ -154,10 +155,17 @@
 
     private long? SelectedTransactionCategoryId { get; set; }
 
-    protected override void OnParametersSet()
+    public IList<AccountDto> Accounts { get; set; } = new List<AccountDto>();
+
+    protected override async Task OnInitializedAsync()
     {
         Working = true;
 
+        Accounts = await AccountProvider.Get(new AccountQuery
+        {
+            IncludeSharedAccounts = true
+        });
+        
         if (ScheduledTransaction != null)
         {
             SelectedTransactionCategoryId = ScheduledTransaction.TransactionSubCategory?.TransactionCategoryId;
@@ -165,5 +173,4 @@
 
         Working = false;
     }
-
 }

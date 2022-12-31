@@ -25,7 +25,7 @@ public class AccountBalancesForNewMonthUpdaterCommand : ServiceBusQueueCommand
 
     public override async Task Execute(CancellationToken cancellationToken)
     {
-        var accounts = await _accountProvider.GetAccounts(new AccountQuery
+        var accounts = await _accountProvider.Get(new AccountQuery
         {
             IncludeDiscontinuedAccounts = false,
             IncludeSharedAccounts = true,
@@ -43,7 +43,7 @@ public class AccountBalancesForNewMonthUpdaterCommand : ServiceBusQueueCommand
                 account.BalanceDate = firstDayOfCurrentMonth;
                 account.Balance = account.Balance;
 
-                await _accountService.UpdateAccount(account, false);
+                await _accountService.Update(account, false);
             }
         }
 

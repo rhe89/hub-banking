@@ -11,6 +11,8 @@ ScheduledHostBuilder
     {
         serviceCollection.AddSingleton<IScheduledCommand, QueueUpdateScheduledTransactionsCommand>();
         serviceCollection.AddSingleton<IScheduledCommand, QueueUpdateAccountBalancesForNewMonthCommand>();
+        serviceCollection.AddSingleton<IScheduledCommand, QueueUpdateMonthlyBudget>();
+        serviceCollection.AddSingleton<IScheduledCommand, QueueUpdateScheduledTransactions>();
         serviceCollection.AddSingleton<IMessageSender, MessageSender>();
     })
     .Build()

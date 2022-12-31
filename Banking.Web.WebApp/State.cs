@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Banking.Providers;
 using Banking.Shared;
+using Banking.Web.WebApp.Utils;
 using Hub.Shared.DataContracts.Banking.Dto;
 using Hub.Shared.DataContracts.Banking.Query;
 
@@ -14,36 +15,24 @@ public class State : IDisposable
     private readonly IBankProvider _bankProvider;
     private readonly IAccountProvider _accountProvider;
     private long _accountId;
-    private int _month;
-    private int _year;
+    private MonthInYear _monthInYear;
     private long _bankId;
 
     public IList<BankDto> AllBanks { get; set; }
     public IList<BankDto> Banks { get; set; } = new List<BankDto>();
     public IList<AccountDto> AllAccounts { get; set; } = new List<AccountDto>();
     public IList<AccountDto> Accounts { get; set; } = new List<AccountDto>();
-    public IList<int> Months { get; set; }
-    public IList<int> Years { get; set; }
+    public IList<MonthInYear> MonthsInYears { get; set; }
 
     public State(IBankProvider bankProvider, IAccountProvider accountProvider)
     {
         _bankProvider = bankProvider;
         _accountProvider = accountProvider;
         
-        Months = new List<int> { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12 };
-        Years = new List<int>();
-
-        OnYearChanged += MonthHasChanged;
-        OnMonthChanged += YearHasChanged;
+        OnMonthInYearChanged += MonthInYearHasChanged;
     }
-
-    private async void MonthHasChanged(object sender, EventArgs e)
-    {
-        await SetAccounts();
-        await SetBanks();
-    }
-
-    private async void YearHasChanged(object sender, EventArgs e)
+    
+    private async void MonthInYearHasChanged(object sender, EventArgs e)
     {
         await SetAccounts();
         await SetBanks();
@@ -51,16 +40,20 @@ public class State : IDisposable
 
     public async Task InitState()
     {
-        for (int year = DateTime.Now.AddYears(3).Year; year >= 2009; year--)
-        {
-            Years.Add(year);
-        }
-        
-        Years = Years.Reverse().ToList();
-        
-        Month = DateTime.Now.Month;
-        Year = DateTime.Now.Year;
+        MonthsInYears = new List<MonthInYear>();
 
+        var months = new List<int> { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12 };
+
+        for (int year = 2009; year <= DateTime.Now.AddYears(3).Year; year++)
+        {
+            foreach (var month in months)
+            {
+                MonthsInYears.Add(new MonthInYear(month, year));
+            }
+        }
+
+        MonthInYear = MonthsInYears.First(x => x.Month == DateTime.Now.Month && x.Year == DateTime.Now.Year);
+        
         await SetAccounts();
         await SetBanks();
     }
@@ -69,7 +62,7 @@ public class State : IDisposable
     {
         Accounts.Clear();
         
-        AllAccounts = await _accountProvider.GetAccounts(new AccountQuery
+        AllAccounts = await _accountProvider.Get(new AccountQuery
         {
             BalanceToDate = GetValidFromDateForMonthAndYear(),
             DiscontinuedDate = GetValidToDateForMonthAndYear(),
@@ -90,7 +83,7 @@ public class State : IDisposable
     
     public async Task SetBanks()
     {
-        AllBanks ??= await _bankProvider.GetBanks();
+        AllBanks ??= await _bankProvider.Get();
 
         Banks = AllBanks
             .Where(bank => Accounts.Any(account => account.BankId == bank.Id))
@@ -139,37 +132,19 @@ public class State : IDisposable
         }
     }
 
-    public int Month
+    public MonthInYear MonthInYear
     {
-        get => _month;
+        get => _monthInYear;
         set
         {
-            if (_month == value)
+            if (_monthInYear == value)
             {
                 return;
             }
             
-            _month = value;
+            _monthInYear = value;
 
-            OnMonthChanged?.Invoke(this, EventArgs.Empty);
-            
-            OnStateUpdated?.Invoke(this, EventArgs.Empty);
-        }
-    }
-
-    public int Year
-    {
-        get => _year;
-        set
-        {
-            if (_year == value)
-            {
-                return;
-            }
-            
-            _year = value;
-            
-            OnYearChanged?.Invoke(this, EventArgs.Empty);
+            OnMonthInYearChanged?.Invoke(this, EventArgs.Empty);
             
             OnStateUpdated?.Invoke(this, EventArgs.Empty);
         }
@@ -177,43 +152,49 @@ public class State : IDisposable
     
     public DateTime GetValidFromDateForMonthAndYear()
     {
-        DateTime now = DateTime.Now;
-        
-        if (Month == 0 || Year == 0)
+        if (MonthInYear.Month == 0 && MonthInYear.Year == 0)
         {
-            var year = Year == 0 ? Years[1] : Year;
+            DateTime now = DateTime.Now;
 
-            var month = Month == 0 ? year == now.Year ? now.Month : Months[1] : Month;
-            
-            return DateTimeUtils.FirstDayOfMonth(year, month);
+            return DateTimeUtils.FirstDayOfMonth(now.Year, now.Month);
         }
         
-        return DateTimeUtils.FirstDayOfMonth(Year, Month);
+        return DateTimeUtils.FirstDayOfMonth(MonthInYear.Year, MonthInYear.Month);
     }
 
     public DateTime GetValidToDateForMonthAndYear()
     {
-        DateTime now = DateTime.Now;
-        
-        if (Month == 0 || Year == 0)
+        if (MonthInYear.Month == 0 && MonthInYear.Year == 0)
         {
-            var year = Year == 0 ? now.Year : Year;
+            DateTime now = DateTime.Now;
 
-            var month = Month == 0 ? year == now.Year ? now.Month : Months.Last() : Month;
-            
-            return DateTimeUtils.LastDayOfMonth(year, month);
+            return DateTimeUtils.LastDayOfMonth(now.Year, now.Month);
         }
         
-        return DateTimeUtils.LastDayOfMonth(Year, Month);
+        return DateTimeUtils.LastDayOfMonth(MonthInYear.Year, MonthInYear.Month);
     }
 
     public EventHandler OnStateUpdated { get; set; }
+    public EventHandler OnMonthInYearChanged { get; set; }
     public EventHandler OnMonthChanged { get; set; }
     public EventHandler OnYearChanged { get; set; }
     
     public void Dispose()
     {
-        OnYearChanged -= MonthHasChanged;
-        OnMonthChanged -= YearHasChanged;
+        OnMonthInYearChanged -= MonthInYearHasChanged;
     }
+}
+
+public class MonthInYear
+{
+    public int Month { get; }
+    public int Year { get; }
+
+    public MonthInYear(int month, int year)
+    {
+        Month = month;
+        Year = year;
+    }
+
+    public string DisplayText => $"{TextUtils.GetMonthText(Month)} {Year}";
 }

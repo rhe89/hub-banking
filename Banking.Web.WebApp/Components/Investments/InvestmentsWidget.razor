@@ -19,11 +19,11 @@
     {
         <section>
             <MudText class="fs-3">kr @CurrentInvestmentsBalance.ToString("N2")</MudText>
-            <MudText Color="@(IsGainComparedToPreviousMonth ? Color.Success : Color.Error)">
-                @(IsGainComparedToPreviousMonth ? "+" : "-")kr @InvestmentsBalanceComparedToPreviousMonth.ToString("N2") (@(IsGainComparedToPreviousMonth ? "+" : "-")@InvestmentsBalanceDiffInPercentageComparedToPreviousMonth.ToString("N2")%)
+            <MudText Color="@(InvestmentsBalanceComparedToPreviousMonth > 0 ? Color.Success : Color.Error)">
+                kr @InvestmentsBalanceComparedToPreviousMonth.ToString("N2") (@InvestmentsBalanceDiffInPercentageComparedToPreviousMonth.ToString("N2")%) actually invested
             </MudText>
             <MudText class="" Color="@((BudgetedDeposits - BudgetedWithdrawals > 0) ? Color.Success : Color.Error)">
-                kr @((BudgetedDeposits - (-BudgetedWithdrawals)).ToString("N2")) budgeted
+                kr @((BudgetedDeposits - (-BudgetedWithdrawals)).ToString("N2")) budgeted invested
             </MudText>
         </section>
     }

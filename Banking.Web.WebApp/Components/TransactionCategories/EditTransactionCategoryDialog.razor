@@ -84,7 +84,7 @@
     protected override async Task OnInitializedAsync()
     {
         var transactionCategoryDto = (await TransactionCategoryProvider
-            .GetTransactionCategories(new TransactionCategoryQuery { Id = TransactionCategoryId }));
+            .Get(new TransactionCategoryQuery { Id = TransactionCategoryId }));
 
         TransactionCategory = TransactionCategoryModel.CreateFromDto(transactionCategoryDto.Single(x => x.Id == TransactionCategoryId));
 
@@ -113,7 +113,7 @@
             return;
         }
 
-        await TransactionCategoryService.UpdateTransactionCategory(TransactionCategory, true);
+        await TransactionCategoryService.Update(TransactionCategory, true);
 
         Working = false;
 

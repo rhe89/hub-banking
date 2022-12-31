@@ -17,9 +17,9 @@ public class TransactionCategoriesController : ControllerBase
     }
     
     [HttpPost]
-    public async Task<IActionResult> GetTransactionCategories([FromBody]TransactionCategoryQuery transactionCategoryQuery)
+    public async Task<IActionResult> Get([FromBody]TransactionCategoryQuery transactionCategoryQuery)
     {
-        var transactionCategories = await _transactionCategoryProvider.GetTransactionCategories(transactionCategoryQuery);
+        var transactionCategories = await _transactionCategoryProvider.Get(transactionCategoryQuery);
 
         return Ok(transactionCategories);
     }

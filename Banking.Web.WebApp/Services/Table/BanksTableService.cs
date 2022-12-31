@@ -57,8 +57,8 @@ public class BanksTableService : TableService<BankQuery>
     {
         bankQuery.Take = Widget ? 5 : null;
         
-        var banks = await _bankProvider.GetBanks(bankQuery);
-        var accounts = await _accountProvider.GetAccounts();
+        var banks = await _bankProvider.Get(bankQuery);
+        var accounts = await _accountProvider.Get();
 
         return banks.Select(bank => new TableRow
         {

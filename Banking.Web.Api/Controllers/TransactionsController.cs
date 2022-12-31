@@ -17,9 +17,9 @@ public class TransactionsController : ControllerBase
     }
     
     [HttpPost]
-    public async Task<IActionResult> GetTransactions([FromBody]TransactionQuery transactionQuery)
+    public async Task<IActionResult> Get([FromBody]TransactionQuery transactionQuery)
     {
-        var transactions = await _transactionProvider.GetTransactions(transactionQuery);
+        var transactions = await _transactionProvider.Get(transactionQuery);
 
         return Ok(transactions);
     }

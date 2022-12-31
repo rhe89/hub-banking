@@ -1,5 +1,6 @@
 using System;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using Banking.Providers;
 using Banking.Shared;
@@ -7,10 +8,12 @@ using Banking.Web.WebApp.Services.Table;
 using Hub.Shared.DataContracts.Banking.Query;
 using Microsoft.AspNetCore.Components;
 
-namespace Banking.Web.WebApp.Components.AccountTypes;
+namespace Banking.Web.WebApp.Components.Investments;
 
 public class InvestmentsBaseComponent : BaseComponent, IDisposable
 {
+    private static readonly SemaphoreSlim _semaphore = new SemaphoreSlim(1);
+    
     [Inject] private IAccountProvider AccountProvider { get; set; }
     [Inject] private IScheduledTransactionProvider ScheduledTransactionProvider { get; set; }
     
@@ -22,7 +25,6 @@ public class InvestmentsBaseComponent : BaseComponent, IDisposable
     protected decimal LastMonthInvestmentsBalance { get; set; }
     protected decimal InvestmentsBalanceDiffInPercentageComparedToPreviousMonth { get; set; }
     protected decimal InvestmentsBalanceComparedToPreviousMonth { get; set; }
-    protected bool IsGainComparedToPreviousMonth { get; set; }
     
     protected override async Task OnInitializedAsync()
     {
@@ -40,7 +42,15 @@ public class InvestmentsBaseComponent : BaseComponent, IDisposable
 
     private async Task Search()
     {
+        await _semaphore.WaitAsync();
+        
         Working = true;
+
+        LastMonthInvestmentBalance = 0;
+        CurrentInvestmentsBalance = 0;
+
+        var fromDate = State.GetValidFromDateForMonthAndYear();
+        var toDate = State.GetValidToDateForMonthAndYear();
         
         AccountTypesQuery = new AccountTypesQuery
         {
@@ -50,39 +60,57 @@ public class InvestmentsBaseComponent : BaseComponent, IDisposable
         var accountQuery = new AccountQuery
         {
             AccountType = Hub.Shared.DataContracts.Banking.Constants.AccountTypes.Investment,
-            BalanceToDate = State.GetValidToDateForMonthAndYear().AddMonths(-1),
-            DiscontinuedDate = State.GetValidFromDateForMonthAndYear().AddMonths(-1)
+            BalanceToDate = toDate.AddMonths(-1),
+            DiscontinuedDate = fromDate.AddMonths(-1)
         };
 
-        var lastMonthsAccountBalances = await AccountProvider.GetAccounts(accountQuery);
+        var lastMonthsAccountBalances = await AccountProvider.Get(accountQuery);
 
         LastMonthInvestmentBalance = lastMonthsAccountBalances.Sum(x => x.Balance);
 
-        accountQuery.BalanceToDate = State.GetValidToDateForMonthAndYear();
-        accountQuery.DiscontinuedDate = State.GetValidFromDateForMonthAndYear();
+        accountQuery.BalanceToDate = toDate;
+        accountQuery.DiscontinuedDate = fromDate;
 
-        CurrentInvestmentsBalance = (await AccountProvider.GetAccounts(accountQuery)).Sum(x => x.Balance);
+        CurrentInvestmentsBalance = (await AccountProvider.Get(accountQuery)).Sum(x => x.Balance);
 
         var scheduledTransactionQuery = new ScheduledTransactionQuery
         {
             AccountType = Hub.Shared.DataContracts.Banking.Constants.AccountTypes.Investment,
-            NextTransactionFromDate = State.GetValidFromDateForMonthAndYear(),
-            NextTransactionToDate = State.GetValidToDateForMonthAndYear(),
+            NextTransactionToDate = toDate,
             IncludeCompletedTransactions = true
         };
 
-        var budgetedTransactions = await ScheduledTransactionProvider.GetScheduledTransactions(scheduledTransactionQuery);
+        var budgetedTransactions = await ScheduledTransactionProvider.Get(scheduledTransactionQuery);
 
-        BudgetedDeposits = budgetedTransactions.Where(x => x.Amount > 0).Sum(x => x.Amount);
-        BudgetedWithdrawals = budgetedTransactions.Where(x => x.Amount < 0).Sum(x => x.Amount);
+        BudgetedDeposits = budgetedTransactions
+            .Where(x => x.Amount > 0 &&
+                        x.NextTransactionDate >= fromDate &&
+                        x.NextTransactionDate <= toDate)
+            .Sum(x => x.Amount);
+        
+        BudgetedWithdrawals = budgetedTransactions
+            .Where(x => x.Amount < 0 &&
+                        x.NextTransactionDate >= fromDate &&
+                        x.NextTransactionDate <= toDate)
+            .Sum(x => x.Amount);
 
-        IsGainComparedToPreviousMonth = CurrentInvestmentsBalance >= LastMonthInvestmentsBalance;
+        //Include budgeted deposits/withdrawals in future months 
+        if (toDate > DateTimeUtils.LastDayOfMonth())
+        {
+            LastMonthInvestmentBalance += budgetedTransactions
+                .Where(x => x.NextTransactionDate < fromDate && !x.Completed)
+                .Sum(x => x.Amount);
+            
+            CurrentInvestmentsBalance += budgetedTransactions
+                .Where(x => !x.Completed)
+                .Sum(x => x.Amount);
+        }
+        
         
         if (CurrentInvestmentsBalance == 0)
         {
             Working = false;
             InvestmentsBalanceDiffInPercentageComparedToPreviousMonth = LastMonthInvestmentBalance > 0 ? 100 : 0;
-            IsGainComparedToPreviousMonth = LastMonthInvestmentBalance == 0;
             InvestmentsBalanceComparedToPreviousMonth = CurrentInvestmentsBalance - LastMonthInvestmentBalance;
             return;
         }
@@ -91,12 +119,13 @@ public class InvestmentsBaseComponent : BaseComponent, IDisposable
         {
             Working = false;
             InvestmentsBalanceDiffInPercentageComparedToPreviousMonth = 100;
-            IsGainComparedToPreviousMonth = true;
             InvestmentsBalanceComparedToPreviousMonth = CurrentInvestmentsBalance;
             return;
         }
 
-        if (IsGainComparedToPreviousMonth)
+        var isGainComparedToPreviousMonth = CurrentInvestmentsBalance >= LastMonthInvestmentsBalance;
+
+        if (isGainComparedToPreviousMonth)
         {
             InvestmentsBalanceDiffInPercentageComparedToPreviousMonth = 100 - (LastMonthInvestmentBalance / CurrentInvestmentsBalance * 100);
             InvestmentsBalanceComparedToPreviousMonth = CurrentInvestmentsBalance - LastMonthInvestmentBalance;
@@ -108,6 +137,8 @@ public class InvestmentsBaseComponent : BaseComponent, IDisposable
         }
 
         Working = false;
+        
+        _semaphore.Release();
     }
     
     public void Dispose()

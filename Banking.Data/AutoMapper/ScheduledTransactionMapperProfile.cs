@@ -11,6 +11,7 @@ public class ScheduledTransactionMapperProfile : Profile
         CreateMap<ScheduledTransaction, ScheduledTransactionDto>()
             .ForMember(dest => dest.Description, opt => opt.MapFrom(x => x.Text))
             .ReverseMap()
-            .ForMember(dest => dest.TransactionSubCategory, opt => opt.Ignore());
+            .ForMember(dest => dest.TransactionSubCategory, opt => opt.Ignore())
+            .ForMember(dest => dest.Account, opt => opt.Ignore());
     }
 }

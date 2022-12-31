@@ -17,9 +17,9 @@ public class ScheduledTransactionsController : ControllerBase
     }
     
     [HttpPost]
-    public async Task<IActionResult> GetTransactions([FromBody]ScheduledTransactionQuery scheduledTransactionQuery)
+    public async Task<IActionResult> Get([FromBody]ScheduledTransactionQuery scheduledTransactionQuery)
     {
-        var transactions = await _scheduledTransactionProvider.GetScheduledTransactions(scheduledTransactionQuery);
+        var transactions = await _scheduledTransactionProvider.Get(scheduledTransactionQuery);
 
         return Ok(transactions);
     }

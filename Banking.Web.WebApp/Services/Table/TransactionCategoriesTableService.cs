@@ -41,7 +41,7 @@ public class TransactionCategoriesTableService : TableService<TransactionCategor
     {
         transactionCategoryQuery.Take = Widget ? 5 : null;
 
-        var transactionCategories = await _transactionCategoryProvider.GetTransactionCategories(transactionCategoryQuery);
+        var transactionCategories = await _transactionCategoryProvider.Get(transactionCategoryQuery);
 
         var transactionQuery = new TransactionQuery();
 
@@ -51,7 +51,7 @@ public class TransactionCategoriesTableService : TableService<TransactionCategor
             transactionQuery.ToDate = State.GetValidToDateForMonthAndYear();
         }
         
-        var transactions = await _transactionProvider.GetTransactions(transactionQuery);
+        var transactions = await _transactionProvider.Get(transactionQuery);
         
         return transactionCategories.Select(transactionCategory => new TableRow
         {

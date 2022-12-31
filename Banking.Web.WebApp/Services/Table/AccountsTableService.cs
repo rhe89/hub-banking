@@ -154,7 +154,7 @@ public class AccountsTableService : TableService<AccountQuery>
         accountQuery.BalanceToDate = State.GetValidToDateForMonthAndYear();
         accountQuery.DiscontinuedDate = State.GetValidFromDateForMonthAndYear();
         
-        var accounts = await _accountProvider.GetAccounts(accountQuery);
+        var accounts = await _accountProvider.Get(accountQuery);
         
         return accounts.Where(account => IncludeAccountsWithNoBalanceForGivenPeriod || !account.NoBalanceForGivenPeriod).Take(Widget ? 5 : accounts.Count).Select(account => new TableRow
         {

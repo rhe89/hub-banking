@@ -5,6 +5,7 @@ using JetBrains.Annotations;
 
 namespace Banking.Data.Entities;
 
+[UsedImplicitly]
 public class TransactionCategory : EntityBase
 {
     [Column]

@@ -2,17 +2,17 @@ using System;
 using System.Linq;
 using System.Threading.Tasks;
 using Banking.Providers;
+using Banking.Shared;
 using Hub.Shared.DataContracts.Banking.Query;
 using Microsoft.AspNetCore.Components;
 
-namespace Banking.Web.WebApp.Components.AccountTypes;
+namespace Banking.Web.WebApp.Components.Billing;
 
 public class BillingBaseComponent : BaseComponent, IDisposable
 {
     [Inject] private IScheduledTransactionProvider ScheduledTransactionProvider { get; set; }
     [Inject] private ITransactionProvider TransactionsProvider { get; set; }
     [Inject] private IAccountProvider AccountProvider { get; set; }
-    [Inject] private IAccountBalanceProvider AccountBalanceProvider { get; set; }
     
     protected TransactionQuery PaidBillsQuery { get; set; }
     protected ScheduledTransactionQuery UpcomingBillsQuery { get; set; }
@@ -55,17 +55,24 @@ public class BillingBaseComponent : BaseComponent, IDisposable
 
     private async Task SetBillingAccountsBalance()
     {
-        var accountQuery = new AccountQuery
+        if (MonthHasPassed || State.GetValidFromDateForMonthAndYear() > DateTimeUtils.FirstDayOfMonth().AddMonths(1))
         {
-            AccountType = Hub.Shared.DataContracts.Banking.Constants.AccountTypes.Billing,
-            IncludeSharedAccounts = false,
-            BalanceToDate = State.GetValidToDateForMonthAndYear(),
-            DiscontinuedDate = State.GetValidToDateForMonthAndYear()
-        };
+            BillingAccountsBalance = 0;
+        }
+        else
+        {
+            var accountQuery = new AccountQuery
+            {
+                AccountType = Hub.Shared.DataContracts.Banking.Constants.AccountTypes.Billing,
+                IncludeSharedAccounts = false,
+                BalanceToDate = State.GetValidToDateForMonthAndYear(),
+                DiscontinuedDate = State.GetValidToDateForMonthAndYear()
+            };
 
-        var accounts = await AccountProvider.GetAccounts(accountQuery);
+            var accounts = await AccountProvider.Get(accountQuery);
 
-        BillingAccountsBalance = accounts.Sum(x => x.Balance);
+            BillingAccountsBalance = accounts.Sum(x => x.Balance);
+        }
     }
 
     private async Task SetUpcomingBillsAmount()
@@ -74,7 +81,7 @@ public class BillingBaseComponent : BaseComponent, IDisposable
         {
             UpcomingBillsAmount = 0;
         }
-        else
+        else if (State.GetValidFromDateForMonthAndYear().AddMonths(1) == DateTimeUtils.FirstDayOfMonth().AddMonths(1))
         {
             UpcomingBillsQuery = new ScheduledTransactionQuery
             {
@@ -83,7 +90,20 @@ public class BillingBaseComponent : BaseComponent, IDisposable
             };
 
             UpcomingBillsAmount = (await ScheduledTransactionProvider
-                    .GetScheduledTransactions(UpcomingBillsQuery))
+                    .Get(UpcomingBillsQuery))
+                .Sum(x => x.Amount);
+        }
+        else
+        {
+            UpcomingBillsQuery = new ScheduledTransactionQuery
+            {
+                AccountType = Hub.Shared.DataContracts.Banking.Constants.AccountTypes.Billing,
+                NextTransactionFromDate = State.GetValidFromDateForMonthAndYear(),
+                NextTransactionToDate = State.GetValidToDateForMonthAndYear()
+            };
+
+            UpcomingBillsAmount = (await ScheduledTransactionProvider
+                    .Get(UpcomingBillsQuery))
                 .Sum(x => x.Amount);
         }
     }
@@ -102,7 +122,7 @@ public class BillingBaseComponent : BaseComponent, IDisposable
         };
 
         PaidBillsAmount = (await TransactionsProvider
-                .GetTransactions(PaidBillsQuery))
+                .Get(PaidBillsQuery))
             .Sum(x => x.Amount);
     }
     

@@ -130,7 +130,7 @@
     
     private async Task OnTransactionCategoryAdded(UIHelpers uiHelpers, long transactionCategoryId)
     {
-        var addedTransactionCategory = (await TransactionCategoryProvider.GetTransactionCategories(new TransactionCategoryQuery { Id = transactionCategoryId })).Single();
+        var addedTransactionCategory = (await TransactionCategoryProvider.Get(new TransactionCategoryQuery { Id = transactionCategoryId })).Single();
 
         TransactionCategories.Insert(0, addedTransactionCategory);
         
@@ -154,9 +154,9 @@
     private async Task OnTransactionCategoryUpdated(UIHelpers uiHelpers, long transactionCategoryId)
     {
         var updatedTransactionCategory = (await TransactionCategoryProvider
-            .GetTransactionCategories(new TransactionCategoryQuery { Id = transactionCategoryId })).Single();
+            .Get(new TransactionCategoryQuery { Id = transactionCategoryId })).Single();
 
-        TransactionSubCategories = await TransactionCategoryProvider.GetTransactionSubCategories(new TransactionSubCategoryQuery
+        TransactionSubCategories = await TransactionCategoryProvider.Get(new TransactionSubCategoryQuery
         {
             TransactionCategoryIds = TransactionCategories.Select(x => x.Id).ToArray()
         });

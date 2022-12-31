@@ -1,0 +1,51 @@
+@inherits BaseComponent
+
+@inject UIHelpers UiHelpers
+
+<Widget>
+    <section class="row">
+        <div class="col-12 mt-2">
+            <header
+                class="clickable ms-3 float-start"
+                @onclick="OpenFullVersion">
+                <MudIcon class="me-2 mb-2" Icon="@IconUtils.AccountIcon" Color="Color.Default"/>
+                <h2 class="d-inline-block fs-4">Accounts</h2>
+            </header>
+            <MudIconButton
+                Icon="@Icons.Filled.Add"
+                class="float-end"
+                Style="bottom: 10px"
+                OnClick="Add"/>
+        </div>
+    </section>
+
+    <AccountsTable
+        Widget="true"
+        Take="5"/>
+</Widget>
+
+@code {
+
+    private async Task Add()
+    {
+        var parameters = new DialogParameters
+        {
+            { nameof(AddAccountDialog.OnAccountAdded), OnItemAdded }
+        };
+
+        await UiHelpers.ShowDialog<AddAccountDialog>(parameters);
+    }
+
+    private static Task OnItemAdded(UIHelpers uiHelpers, long id)
+    {
+        uiHelpers.ShowSnackbar("Account added", Severity.Success);
+
+        return Task.CompletedTask;
+    }
+
+    private async Task OpenFullVersion()
+    {
+        await UiHelpers.ShowDialog<AccountsOverviewDialog>();
+    }
+
+}

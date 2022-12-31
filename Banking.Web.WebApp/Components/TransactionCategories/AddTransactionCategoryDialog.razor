@@ -103,7 +103,7 @@
             return false;
         }
 
-        var transactionCategoryWithSameName = await TransactionCategoryProvider.GetTransactionCategories(new TransactionCategoryQuery
+        var transactionCategoryWithSameName = await TransactionCategoryProvider.Get(new TransactionCategoryQuery
         {
             Name = TransactionCategory.Name
         });
@@ -119,7 +119,7 @@
             return false;
         }
 
-        var addedTransactionCategory = await TransactionCategoryService.AddTransactionCategory(TransactionCategory, true);
+        var addedTransactionCategory = await TransactionCategoryService.Add(TransactionCategory, true);
         
         await OnTransactionCategoryAdded.Invoke(UiHelpers, addedTransactionCategory.Id);
         

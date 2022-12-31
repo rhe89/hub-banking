@@ -6,8 +6,13 @@ using JetBrains.Annotations;
 
 namespace Banking.Data.Entities;
 
+[UsedImplicitly]
 public class ScheduledTransaction : EntityBase
 {
+    [UsedImplicitly]
+    [Column]
+    public long AccountId { get; set; }
+    
     [UsedImplicitly]
     [Column]
     public long? TransactionSubCategoryId { get; set; }
@@ -16,10 +21,6 @@ public class ScheduledTransaction : EntityBase
     [Column]
     public string Text { get; set; }
     
-    [UsedImplicitly]
-    [Column]
-    public string AccountType { get; set; }
-        
     [UsedImplicitly]
     [Column(TypeName = "decimal(18,2)")]
     public decimal Amount { get; set; }
@@ -46,4 +47,7 @@ public class ScheduledTransaction : EntityBase
     
     [UsedImplicitly]
     public virtual TransactionSubCategory TransactionSubCategory { get; set; }
+    
+    [UsedImplicitly]
+    public virtual Account Account { get; set; }
 }

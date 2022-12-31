@@ -16,12 +16,12 @@ namespace Banking.Services;
 
 public interface ITransactionService
 {
-    Task<bool> AddTransaction(TransactionDto newTransaction, bool saveChanges);
-    Task AddTransactionsFromFile(string fileName, IEnumerable<BulderBankTransaction> transactionsToImport);
-    Task AddTransactionsFromFile(string fileName, IEnumerable<SbankenTransaction> transactionsToImport);
-    Task<bool> UpdateTransaction(TransactionDto transaction, bool saveChanges);
-    Task DeleteTransaction(TransactionDto transaction, bool saveChanges);
-    Task<int> CategorizeTransactions();
+    Task<bool> Add(TransactionDto newTransaction, bool saveChanges);
+    Task AddFromFile(string fileName, IEnumerable<BulderBankTransaction> transactionsToImport);
+    Task AddFromFile(string fileName, IEnumerable<SbankenTransaction> transactionsToImport);
+    Task<bool> Update(TransactionDto transaction, bool saveChanges);
+    Task Delete(TransactionDto transaction, bool saveChanges);
+    Task<int> Categorize();
     Task SaveChanges();
 }
 
@@ -59,7 +59,7 @@ public class TransactionService : ITransactionService
         _logger = logger;
     }
 
-    public async Task<bool> AddTransaction(TransactionDto newTransaction, bool saveChanges)
+    public async Task<bool> Add(TransactionDto newTransaction, bool saveChanges)
     {
         _logger.LogInformation(
             "Creating transaction {Description} on {Date}",
@@ -77,7 +77,7 @@ public class TransactionService : ITransactionService
     }
 
     //TODO Reduce amount of calls to db
-    public async Task AddTransactionsFromFile(string fileName, IEnumerable<BulderBankTransaction> transactionsToImport)
+    public async Task AddFromFile(string fileName, IEnumerable<BulderBankTransaction> transactionsToImport)
     {
         var transactionsFromNewestToOldest = transactionsToImport.OrderBy(x => x.TransactionDate).ToList();
 
@@ -85,7 +85,7 @@ public class TransactionService : ITransactionService
         var dateOfNewestTransactionToImport = transactionsFromNewestToOldest.Last().TransactionDate;
 
         var existingTransactionsOlderThanOldestTransactionToImport = await _transactionProvider
-            .GetTransactions(new TransactionQuery
+            .Get(new TransactionQuery
             {
                 FromDate = dateOfOldestTransactionToImport,
                 IncludeExcludedTransactions = true,
@@ -151,7 +151,7 @@ public class TransactionService : ITransactionService
         }
     }
 
-    public async Task AddTransactionsFromFile(string fileName, IEnumerable<SbankenTransaction> transactionsToImport)
+    public async Task AddFromFile(string fileName, IEnumerable<SbankenTransaction> transactionsToImport)
     {
         var transactionsFromNewestToOldest = transactionsToImport.OrderBy(x => x.AccountingDate).ToList();
 
@@ -202,7 +202,7 @@ public class TransactionService : ITransactionService
         decimal amount,
         string filename)
     {
-        var account = await _accountService.GetOrAddAccount(
+        var account = await _accountService.GetOrAdd(
             accountNumber,
             AccountTypes.Standard,
             accountNumber);
@@ -220,7 +220,7 @@ public class TransactionService : ITransactionService
             Source = $"CsvImport-{filename}"
         };
 
-        await AddTransaction(newTransaction, false);
+        await Add(newTransaction, false);
     }
     
     private async Task AddTransaction(
@@ -233,7 +233,7 @@ public class TransactionService : ITransactionService
         string filename,
         IEnumerable<TransactionDto> existingTransactions)
     {
-        var account = await _accountService.GetOrAddAccount(
+        var account = await _accountService.GetOrAdd(
             accountNumber,
             AccountTypes.Standard,
             accountNumber);
@@ -248,12 +248,12 @@ public class TransactionService : ITransactionService
         if (!string.IsNullOrEmpty(transactionCategory))
         {
             transactionSubCategoryItem =
-                await _transactionCategoryService.GetOrAddTransactionSubCategory(transactionCategory.ToLowerInvariant(),
+                await _transactionCategoryService.GetOrAdd(transactionCategory.ToLowerInvariant(),
                                                                                  transactionSubCategory.ToLowerInvariant());
 
             _logger.LogInformation("Got category with name {Name} and id {Id}", transactionSubCategoryItem.Name, transactionSubCategoryItem.Id);
             
-            var scheduledTransaction = (await _scheduledTransactionProvider.GetScheduledTransactions(new ScheduledTransactionQuery
+            var scheduledTransaction = (await _scheduledTransactionProvider.Get(new ScheduledTransactionQuery
             {
                 AmountRange = new[] { amount - 10, amount + 10 },
                 NextTransactionFromDate = transactionDate.AddDays(-2),
@@ -270,7 +270,7 @@ public class TransactionService : ITransactionService
                     transactionText,
                     transactionDate);
 
-                await _scheduledTransactionService.SetScheduledTransactionCompleted(scheduledTransaction, true, false);
+                await _scheduledTransactionService.SetCompleted(scheduledTransaction, true, false);
             }
         }
 
@@ -278,7 +278,7 @@ public class TransactionService : ITransactionService
         {
             existingTransaction.TransactionSubCategoryId = transactionSubCategoryItem?.Id;
 
-            await UpdateTransaction(existingTransaction, false);
+            await Update(existingTransaction, false);
             return;
         }
 
@@ -293,10 +293,10 @@ public class TransactionService : ITransactionService
             Source = $"CsvImport-{filename}"
         };
 
-        await AddTransaction(newTransaction, false);
+        await Add(newTransaction, false);
     }
     
-    public async Task<bool> UpdateTransaction(TransactionDto transaction, bool saveChanges)
+    public async Task<bool> Update(TransactionDto transaction, bool saveChanges)
     {
         _logger.LogInformation(
             "Updating transaction {Description} on {Date} (Id: {Id})",
@@ -304,7 +304,7 @@ public class TransactionService : ITransactionService
             transaction.TransactionDate.ToString("dd.MM.yyyy"),
             transaction.Id);
 
-        var transactionInDb = (await _transactionProvider.GetTransactions(new TransactionQuery
+        var transactionInDb = (await _transactionProvider.Get(new TransactionQuery
         {
             Id = transaction.Id
         })).Single();
@@ -326,7 +326,7 @@ public class TransactionService : ITransactionService
         return true;
     }
 
-    public async Task DeleteTransaction(TransactionDto transaction, bool saveChanges)
+    public async Task Delete(TransactionDto transaction, bool saveChanges)
     {
         _logger.LogInformation(
             "Deleting transaction {Description} on {Date} (Id: {Id})",
@@ -342,15 +342,15 @@ public class TransactionService : ITransactionService
         }
     }
 
-    public async Task<int> CategorizeTransactions()
+    public async Task<int> Categorize()
     {
-        var uncategorizedTransactions = (await _transactionProvider.GetTransactions())
+        var uncategorizedTransactions = (await _transactionProvider.Get())
             .Where(x => x.TransactionSubCategoryId == null);
 
         var categorizedTransactionsCount = 0;
 
         var transactionSubCategories = await _transactionCategoryProvider.GetTransactionSubCategories();
-        var scheduledTransactions = await _scheduledTransactionProvider.GetScheduledTransactions();
+        var scheduledTransactions = await _scheduledTransactionProvider.Get();
 
         foreach (var uncategorizedTransaction in uncategorizedTransactions)
         {
@@ -369,7 +369,7 @@ public class TransactionService : ITransactionService
             {
                 scheduledTransaction.NextTransactionDate = uncategorizedTransaction.TransactionDate;
                 
-                await _scheduledTransactionService.UpdateScheduledTransaction(scheduledTransaction, false);
+                await _scheduledTransactionService.Update(scheduledTransaction, false);
             }
 
             transactionSubCategoryId ??= transactionSubCategories
@@ -384,7 +384,7 @@ public class TransactionService : ITransactionService
 
             uncategorizedTransaction.TransactionSubCategoryId = transactionSubCategoryId;
 
-            await UpdateTransaction(uncategorizedTransaction, false);
+            await Update(uncategorizedTransaction, false);
 
             categorizedTransactionsCount++;
         }

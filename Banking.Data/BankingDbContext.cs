@@ -48,5 +48,11 @@ public class BankingDbContext : HubDbContext
         
         builder.Entity<TransactionSubCategory>()
             .ToTable(schema: "dbo", name: "TransactionSubCategory");
+        
+        builder.Entity<MonthlyBudget>()
+            .ToTable(schema: "dbo", name: "MonthlyBudget");
+        
+        builder.Entity<Preference>()
+            .ToTable(schema: "dbo", name: "Preference");
     }
 }

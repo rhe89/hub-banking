@@ -17,9 +17,9 @@ public class AccountBalanceController : ControllerBase
     }
 
     [HttpPost("history")]
-    public async Task<IActionResult> GetAccountBalances([FromQuery]AccountQuery accountQuery)
+    public async Task<IActionResult> Get([FromQuery]AccountQuery accountQuery)
     {
-        var accounts = await _accountBalanceProvider.GetAccountBalances(accountQuery);
+        var accounts = await _accountBalanceProvider.Get(accountQuery);
             
         return Ok(accounts);
     }

@@ -13,8 +13,8 @@ namespace Banking.Providers;
 
 public interface IAccountProvider
 {
-    Task<IList<AccountDto>> GetAccounts();
-    Task<IList<AccountDto>> GetAccounts(AccountQuery accountQuery);
+    Task<IList<AccountDto>> Get();
+    Task<IList<AccountDto>> Get(AccountQuery query);
 }
 
 public class AccountProvider : IAccountProvider
@@ -33,16 +33,16 @@ public class AccountProvider : IAccountProvider
         _dbRepository = dbRepository;
     }
 
-    public Task<IList<AccountDto>> GetAccounts()
+    public Task<IList<AccountDto>> Get()
     {
-        return GetAccounts(new AccountQuery());
+        return Get(new AccountQuery());
     }
 
-    public async Task<IList<AccountDto>> GetAccounts(AccountQuery accountQuery)
+    public async Task<IList<AccountDto>> Get(AccountQuery query)
     {
-        var accounts = await _dbRepository.GetAsync<Account, AccountDto>(GetQueryable(accountQuery));
+        var accounts = await _dbRepository.GetAsync<Account, AccountDto>(GetQueryable(query));
 
-        var accountBalanceQuery = accountQuery;
+        var accountBalanceQuery = query;
         
         if (accountBalanceQuery.BalanceFromDate != null ||
             accountBalanceQuery.BalanceToDate != null)
@@ -50,9 +50,9 @@ public class AccountProvider : IAccountProvider
             accountBalanceQuery.AccountId = accountBalanceQuery.Id;
             accountBalanceQuery.Id = null;
 
-            var accountBalances = await _accountBalanceProvider.GetAccountBalances(accountBalanceQuery);
+            var accountBalances = await _accountBalanceProvider.Get(accountBalanceQuery);
 
-            var accumulatedAccountBalances = await _accumulatedAccountBalanceProvider.GetAccountBalances(accountQuery);
+            var accumulatedAccountBalances = await _accumulatedAccountBalanceProvider.Get(query);
 
             foreach (var account in accounts)
             {
@@ -82,10 +82,10 @@ public class AccountProvider : IAccountProvider
             }
         }
 
-        if (accountQuery.Take != null)
+        if (query.Take != null)
         {
             return accounts
-                .Take(accountQuery.Take.Value)
+                .Take(query.Take.Value)
                 .OrderByDescending(x => x.BalanceDate)
                 .ThenByDescending(x => x.UpdatedDate)
                 .ToList();
@@ -99,30 +99,31 @@ public class AccountProvider : IAccountProvider
     
     
     
-    private static Queryable<Account> GetQueryable(AccountQuery accountQuery)
+    private static Queryable<Account> GetQueryable(AccountQuery query)
     {
-        if (accountQuery.Id != null && accountQuery.Id != 0)
+        if (query.Id != null && query.Id != 0)
         {
-            accountQuery.IncludeExternalAccounts = true;
-            accountQuery.IncludeSharedAccounts = true;
-            accountQuery.IncludeDiscontinuedAccounts = true;
+            query.IncludeExternalAccounts = true;
+            query.IncludeSharedAccounts = true;
+            query.IncludeDiscontinuedAccounts = true;
         }
         
         return new Queryable<Account>
         {
-            Where = account =>
-                (accountQuery.Id == null || accountQuery.Id == 0 || accountQuery.Id == account.Id) &&
-                (accountQuery.AccountNumber == null || accountQuery.AccountNumber == account.AccountNumber) &&
-                (accountQuery.AccountType == null || accountQuery.AccountType == account.AccountType) &&
-                (accountQuery.AccountName == null || accountQuery.AccountName == account.Name) &&
-                (accountQuery.AccountIds == null || accountQuery.AccountIds.Any(accountId => accountId == account.Id)) &&
-                (accountQuery.BankId == null || accountQuery.BankId == 0 || accountQuery.BankId == account.BankId) &&
-                (accountQuery.IncludeExternalAccounts || account.Name != account.AccountNumber) && 
-                (accountQuery.IncludeSharedAccounts || !account.SharedAccount) &&
-                (accountQuery.IncludeDiscontinuedAccounts || account.DiscontinuedDate == null || account.DiscontinuedDate >= accountQuery.DiscontinuedDate),
-            OrderBy = account => account.UpdatedDate,
-            Include = account => account.Bank,
-            Skip = accountQuery.Skip
+            Where = entity =>
+                (query.Id == null || query.Id == 0 || query.Id == entity.Id) &&
+                (query.AccountNumber == null || query.AccountNumber == entity.AccountNumber) &&
+                (query.AccountType == null || query.AccountType == entity.AccountType) &&
+                (query.AccountName == null || query.AccountName == entity.Name) &&
+                (query.AccountIds == null || query.AccountIds.Any(accountId => accountId == entity.Id)) &&
+                (query.BankId == null || query.BankId == 0 || query.BankId == entity.BankId) &&
+                (query.BankName == null || query.BankName == entity.Bank.Name) &&
+                (query.IncludeExternalAccounts || entity.Name != entity.AccountNumber) && 
+                (query.IncludeSharedAccounts || !entity.SharedAccount) &&
+                (query.IncludeDiscontinuedAccounts || entity.DiscontinuedDate == null || entity.DiscontinuedDate >= query.DiscontinuedDate),
+            OrderBy = entity => entity.UpdatedDate,
+            Include = entity => entity.Bank,
+            Skip = query.Skip
         };
     }
 }

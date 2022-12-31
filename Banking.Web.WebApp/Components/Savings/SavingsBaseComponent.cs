@@ -1,18 +1,23 @@
 using System;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using Banking.Providers;
+using Banking.Shared;
 using Banking.Web.WebApp.Services.Table;
 using Hub.Shared.DataContracts.Banking.Query;
 using Microsoft.AspNetCore.Components;
 
-namespace Banking.Web.WebApp.Components.AccountTypes;
+namespace Banking.Web.WebApp.Components.Savings;
 
 public class SavingsBaseComponent : BaseComponent, IDisposable
 {
+    private static readonly SemaphoreSlim _semaphore = new SemaphoreSlim(1);
+
     [Inject] private IAccountProvider AccountProvider { get; set; }
     [Inject] private IScheduledTransactionProvider ScheduledTransactionProvider { get; set; }
     [Inject] private ITransactionProvider TransactionProvider { get; set; }
+    [Inject] private IMonthlyBudgetProvider MonthlyBudgetProvider { get; set; }
 
     protected TransactionQuery TransactionQuery { get; set; }
     protected AccountTypesQuery AccountTypesQuery { get; set; }
@@ -24,11 +29,9 @@ public class SavingsBaseComponent : BaseComponent, IDisposable
     protected decimal LastMonthSavingsBalance { get; set; }
     protected decimal SavingsBalanceDiffInPercentageComparedToPreviousMonth { get; set; }
     protected decimal SavingsBalanceComparedToPreviousMonth { get; set; }
-    protected bool IsGainComparedToPreviousMonth { get; set; }
     
     protected override async Task OnInitializedAsync()
     {
-        
         await Search();
 
         State.OnStateUpdated += OnStateOnStateChanged;
@@ -43,61 +46,83 @@ public class SavingsBaseComponent : BaseComponent, IDisposable
 
     private async Task Search()
     {
+        await _semaphore.WaitAsync();
+        
         Working = true;
         
         AccountTypesQuery = new AccountTypesQuery
         {
             AccountType = Hub.Shared.DataContracts.Banking.Constants.AccountTypes.Saving,
         };
+        
+        var fromDate = State.GetValidFromDateForMonthAndYear();
+        var toDate = State.GetValidToDateForMonthAndYear();
 
         TransactionQuery = new TransactionQuery
         {
             AccountType = Hub.Shared.DataContracts.Banking.Constants.AccountTypes.Saving,
-            FromDate = State.GetValidFromDateForMonthAndYear(),
-            ToDate = State.GetValidToDateForMonthAndYear()
+            FromDate = fromDate,
+            ToDate = toDate
         };
 
         var accountQuery = new AccountQuery
         {
             AccountType = Hub.Shared.DataContracts.Banking.Constants.AccountTypes.Saving,
-            BalanceToDate = State.GetValidToDateForMonthAndYear().AddMonths(-1),
-            DiscontinuedDate = State.GetValidFromDateForMonthAndYear().AddMonths(-1)
+            BalanceToDate = toDate.AddMonths(-1),
+            DiscontinuedDate = fromDate.AddMonths(-1)
         };
 
-        var lastMonthsAccountBalances = await AccountProvider.GetAccounts(accountQuery);
+        var lastMonthsAccountBalances = await AccountProvider.Get(accountQuery);
 
         LastMonthSavingsBalance = lastMonthsAccountBalances.Sum(x => x.Balance);
         
-        accountQuery.BalanceToDate = State.GetValidToDateForMonthAndYear();
-        accountQuery.DiscontinuedDate = State.GetValidFromDateForMonthAndYear();
+        accountQuery.BalanceToDate = toDate;
+        accountQuery.DiscontinuedDate = fromDate;
         
-        CurrentSavingsBalance = (await AccountProvider.GetAccounts(accountQuery)).Sum(x => x.Balance);
+        CurrentSavingsBalance = (await AccountProvider.Get(accountQuery)).Sum(x => x.Balance);
 
         var scheduledTransactionQuery = new ScheduledTransactionQuery
         {
             AccountType = Hub.Shared.DataContracts.Banking.Constants.AccountTypes.Saving,
-            NextTransactionFromDate = State.GetValidFromDateForMonthAndYear(),
-            NextTransactionToDate = State.GetValidToDateForMonthAndYear(),
+            NextTransactionToDate = toDate,
             IncludeCompletedTransactions = true
         };
 
-        var budgetedTransactions = await ScheduledTransactionProvider.GetScheduledTransactions(scheduledTransactionQuery);
+        var budgetedTransactions = await ScheduledTransactionProvider.Get(scheduledTransactionQuery);
 
-        BudgetedDeposits = budgetedTransactions.Where(x => x.Amount > 0).Sum(x => x.Amount);
-        BudgetedWithdrawals = budgetedTransactions.Where(x => x.Amount < 0).Sum(x => x.Amount);
+        BudgetedDeposits = budgetedTransactions
+            .Where(x => x.Amount > 0 &&
+                        x.NextTransactionDate >= fromDate &&
+                        x.NextTransactionDate <= toDate)
+            .Sum(x => x.Amount);
+        
+        BudgetedWithdrawals = budgetedTransactions
+            .Where(x => x.Amount < 0 &&
+                        x.NextTransactionDate >= fromDate &&
+                        x.NextTransactionDate <= toDate)
+            .Sum(x => x.Amount);
 
-        var transactions = await TransactionProvider.GetTransactions(TransactionQuery);
+        //Include budgeted deposits/withdrawals in future months 
+        if (toDate > DateTimeUtils.LastDayOfMonth())
+        {
+            LastMonthSavingsBalance += budgetedTransactions
+                .Where(x => x.NextTransactionDate < fromDate && !x.Completed)
+                .Sum(x => x.Amount);
+            
+            CurrentSavingsBalance += budgetedTransactions
+                .Where(x => !x.Completed)
+                .Sum(x => x.Amount);
+        }
+        
+        var transactions = await TransactionProvider.Get(TransactionQuery);
 
         ActualDeposits = transactions.Where(x => x.Amount > 0).Sum(x => x.Amount);
         ActualWithdrawals = transactions.Where(x => x.Amount < 0).Sum(x => x.Amount);
         
-        IsGainComparedToPreviousMonth = CurrentSavingsBalance >= LastMonthSavingsBalance;
-
         if (CurrentSavingsBalance == 0)
         {
             Working = false;
             SavingsBalanceDiffInPercentageComparedToPreviousMonth = LastMonthSavingsBalance > 0 ? 100 : 0;
-            IsGainComparedToPreviousMonth = LastMonthSavingsBalance == 0;
             SavingsBalanceComparedToPreviousMonth = CurrentSavingsBalance - LastMonthSavingsBalance;
             return;
         }
@@ -106,12 +131,13 @@ public class SavingsBaseComponent : BaseComponent, IDisposable
         {
             Working = false;
             SavingsBalanceDiffInPercentageComparedToPreviousMonth = 100;
-            IsGainComparedToPreviousMonth = true;
             SavingsBalanceComparedToPreviousMonth = CurrentSavingsBalance;
             return;
         }
         
-        if (IsGainComparedToPreviousMonth)
+        var isGainComparedToPreviousMonth = CurrentSavingsBalance >= LastMonthSavingsBalance;
+
+        if (isGainComparedToPreviousMonth)
         {
             SavingsBalanceDiffInPercentageComparedToPreviousMonth = 100 - (LastMonthSavingsBalance / CurrentSavingsBalance * 100);
             SavingsBalanceComparedToPreviousMonth = CurrentSavingsBalance - LastMonthSavingsBalance;
@@ -123,6 +149,8 @@ public class SavingsBaseComponent : BaseComponent, IDisposable
         }
 
         Working = false;
+
+        _semaphore.Release();
     }
     
     public void Dispose()

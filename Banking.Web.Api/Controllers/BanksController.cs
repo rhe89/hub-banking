@@ -17,9 +17,9 @@ public class BanksController : ControllerBase
     }
 
     [HttpPost]
-    public async Task<IActionResult> GetBanks(BankQuery bankQuery)
+    public async Task<IActionResult> Get(BankQuery bankQuery)
     {
-        var banks = await _bankProvider.GetBanks(bankQuery);
+        var banks = await _bankProvider.Get(bankQuery);
 
         return Ok(banks);
     }

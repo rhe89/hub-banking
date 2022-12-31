@@ -12,11 +12,12 @@ namespace Banking.Services;
 
 public interface IScheduledTransactionService
 {
-    Task<ScheduledTransactionDto> AddScheduledTransaction(ScheduledTransactionDto newScheduledTransaction, bool saveChanges);
-    Task SetScheduledTransactionCompleted(ScheduledTransactionDto updatedScheduledTransaction, bool completed, bool saveChanges);
-    Task UpdateScheduledTransaction(ScheduledTransactionDto updatedScheduledTransaction, bool saveChanges);
-    Task AddOrUpdateScheduledTransaction(ScheduledTransactionDto scheduledTransaction, bool saveChanges);
-    Task DeleteScheduledTransaction(ScheduledTransactionDto scheduledTransaction, bool saveChanges);
+    Task<ScheduledTransactionDto> Add(ScheduledTransactionDto newScheduledTransaction, bool saveChanges);
+    Task SetCompleted(ScheduledTransactionDto updatedScheduledTransaction, bool completed, bool saveChanges);
+    Task Update(ScheduledTransactionDto updatedScheduledTransaction, bool saveChanges);
+    Task AddOrUpdate(ScheduledTransactionDto scheduledTransaction, bool saveChanges);
+    Task Delete(ScheduledTransactionDto scheduledTransaction, bool saveChanges);
+    Task FillScheduledTransactionForPeriod(ScheduledTransactionDto originalScheduledTransaction, DateTime periodEnd, bool saveChanges);
     Task SaveChanges();
 }
 
@@ -36,7 +37,7 @@ public class ScheduledTransactionService : IScheduledTransactionService
         _logger = logger;
     }
 
-    public async Task<ScheduledTransactionDto> AddScheduledTransaction(ScheduledTransactionDto newScheduledTransaction, bool saveChanges)
+    public async Task<ScheduledTransactionDto> Add(ScheduledTransactionDto newScheduledTransaction, bool saveChanges)
     {
         _logger.LogInformation("Creating scheduled transaction {Description}", newScheduledTransaction.Description);
         
@@ -56,7 +57,7 @@ public class ScheduledTransactionService : IScheduledTransactionService
         return newScheduledTransaction;
     }
 
-    private async Task FillScheduledTransactionForPeriod(ScheduledTransactionDto originalScheduledTransaction, DateTime periodEnd, bool saveChanges)
+    public async Task FillScheduledTransactionForPeriod(ScheduledTransactionDto originalScheduledTransaction, DateTime periodEnd, bool saveChanges)
     {
         if (originalScheduledTransaction.Occurrence == Occurrence.Once)
         {
@@ -65,13 +66,13 @@ public class ScheduledTransactionService : IScheduledTransactionService
 
         var nextTransactionDate = GetNextTransactionDate(originalScheduledTransaction.NextTransactionDate, originalScheduledTransaction.Occurrence);
 
-        while (nextTransactionDate < periodEnd)
+        while (nextTransactionDate <= periodEnd)
         {
             var newScheduledTransaction = new ScheduledTransactionDto
             {
+                AccountId = originalScheduledTransaction.AccountId,
                 TransactionSubCategoryId = originalScheduledTransaction.TransactionSubCategoryId,
                 Description = originalScheduledTransaction.Description,
-                AccountType = originalScheduledTransaction.AccountType,
                 Amount = originalScheduledTransaction.Amount,
                 TransactionKey = originalScheduledTransaction.TransactionKey,
                 NextTransactionDate = nextTransactionDate,
@@ -80,11 +81,11 @@ public class ScheduledTransactionService : IScheduledTransactionService
 
             if (saveChanges)
             {
-                _dbRepository.QueueAdd<ScheduledTransaction, ScheduledTransactionDto>(newScheduledTransaction);
+                await _dbRepository.AddAsync<ScheduledTransaction, ScheduledTransactionDto>(newScheduledTransaction);
             }
             else
             {
-                await _dbRepository.AddAsync<ScheduledTransaction, ScheduledTransactionDto>(newScheduledTransaction);
+                _dbRepository.QueueAdd<ScheduledTransaction, ScheduledTransactionDto>(newScheduledTransaction);
             }
 
             nextTransactionDate = GetNextTransactionDate(nextTransactionDate, originalScheduledTransaction.Occurrence);
@@ -96,10 +97,10 @@ public class ScheduledTransactionService : IScheduledTransactionService
         }
     }
 
-    public async Task SetScheduledTransactionCompleted(ScheduledTransactionDto updatedScheduledTransaction, bool completed, bool saveChanges)
+    public async Task SetCompleted(ScheduledTransactionDto updatedScheduledTransaction, bool completed, bool saveChanges)
     {
         var scheduledTransactionInDb =
-            (await _scheduledTransactionProvider.GetScheduledTransactions(new ScheduledTransactionQuery { Id = updatedScheduledTransaction.Id })).Single();
+            (await _scheduledTransactionProvider.Get(new ScheduledTransactionQuery { Id = updatedScheduledTransaction.Id })).Single();
         
         scheduledTransactionInDb.Completed = completed;
         
@@ -114,7 +115,7 @@ public class ScheduledTransactionService : IScheduledTransactionService
     }
  
     
-    public async Task UpdateScheduledTransaction(ScheduledTransactionDto updatedScheduledTransaction, bool saveChanges)
+    public async Task Update(ScheduledTransactionDto updatedScheduledTransaction, bool saveChanges)
     {
         _logger.LogInformation(
             "Updating scheduled transaction {Description} ({Id})", 
@@ -122,16 +123,16 @@ public class ScheduledTransactionService : IScheduledTransactionService
             updatedScheduledTransaction.Id);
 
         var scheduledTransactionInDb =
-            (await _scheduledTransactionProvider.GetScheduledTransactions(
+            (await _scheduledTransactionProvider.Get(
                 new ScheduledTransactionQuery
                 {
                     Id = updatedScheduledTransaction.Id
                 }))
             .Single();
 
+        scheduledTransactionInDb.AccountId = updatedScheduledTransaction.AccountId;
         scheduledTransactionInDb.TransactionSubCategoryId = updatedScheduledTransaction.TransactionSubCategoryId;
         scheduledTransactionInDb.Description = updatedScheduledTransaction.Description;
-        scheduledTransactionInDb.AccountType = updatedScheduledTransaction.AccountType;
         scheduledTransactionInDb.Occurrence = updatedScheduledTransaction.Occurrence;
         scheduledTransactionInDb.Amount = updatedScheduledTransaction.Amount;
         scheduledTransactionInDb.Completed = updatedScheduledTransaction.Completed;
@@ -148,24 +149,25 @@ public class ScheduledTransactionService : IScheduledTransactionService
         }
     }
 
-    public async Task AddOrUpdateScheduledTransaction(ScheduledTransactionDto scheduledTransaction, bool saveChanges)
+    public async Task AddOrUpdate(ScheduledTransactionDto scheduledTransaction, bool saveChanges)
     {
-        var existingScheduledTransaction = (await _scheduledTransactionProvider.GetScheduledTransactions(new ScheduledTransactionQuery
+        var existingScheduledTransaction = (await _scheduledTransactionProvider.Get(new ScheduledTransactionQuery
         {
-            Description = scheduledTransaction.Description
+            Description = scheduledTransaction.Description,
+            IncludeCompletedTransactions = true,
         })).FirstOrDefault();
 
         if (existingScheduledTransaction == null)
         {
-            await AddScheduledTransaction(scheduledTransaction, saveChanges);
+            await Add(scheduledTransaction, saveChanges);
         }
         else
         {
+            existingScheduledTransaction.AccountId = scheduledTransaction.AccountId;
             existingScheduledTransaction.Amount = scheduledTransaction.Amount;
             existingScheduledTransaction.NextTransactionDate = scheduledTransaction.NextTransactionDate;
-            existingScheduledTransaction.AccountType = scheduledTransaction.AccountType;
 
-            await UpdateScheduledTransaction(existingScheduledTransaction, saveChanges);
+            await Update(existingScheduledTransaction, saveChanges);
         }
     }
 
@@ -175,7 +177,7 @@ public class ScheduledTransactionService : IScheduledTransactionService
         DateTime notBeforeDate,
         bool saveChanges)
     {
-        var scheduledTransactions = await _scheduledTransactionProvider.GetScheduledTransactions(new ScheduledTransactionQuery
+        var scheduledTransactions = await _scheduledTransactionProvider.Get(new ScheduledTransactionQuery
         {
             TransactionKey = transactionKey,
         });
@@ -211,7 +213,7 @@ public class ScheduledTransactionService : IScheduledTransactionService
         };
     }
 
-    public async Task DeleteScheduledTransaction(ScheduledTransactionDto scheduledTransaction, bool saveChanges)
+    public async Task Delete(ScheduledTransactionDto scheduledTransaction, bool saveChanges)
     {
         _logger.LogInformation(
             "Deleting scheduled transaction {Description} (Id: {Id})", 

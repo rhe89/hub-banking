@@ -87,7 +87,7 @@
     {
         Working = true;
         
-        var transactions = await TransactionProvider.GetTransactions(new TransactionQuery { Id = long.Parse(TransactionId) });
+        var transactions = await TransactionProvider.Get(new TransactionQuery { Id = long.Parse(TransactionId) });
 
         var transaction = transactions.Single();
         
@@ -130,7 +130,7 @@
             return;
         }
         
-        await TransactionService.UpdateTransaction(Transaction, saveChanges: true);
+        await TransactionService.Update(Transaction, saveChanges: true);
 
         await OnTransactionUpdated.Invoke(UiHelpers, Transaction.Id);
         
@@ -143,7 +143,7 @@
     {
         Working = true;
 
-        await TransactionService.DeleteTransaction(Transaction, saveChanges: true);
+        await TransactionService.Delete(Transaction, saveChanges: true);
 
         await OnTransactionDeleted.Invoke(UiHelpers, Transaction.Id);
         

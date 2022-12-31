@@ -17,9 +17,9 @@ public class AccountsController : ControllerBase
     }
 
     [HttpPost]
-    public async Task<IActionResult> GetAccounts(AccountQuery accountQuery)
+    public async Task<IActionResult> Get(AccountQuery accountQuery)
     {
-        var accounts = await _accountProvider.GetAccounts(accountQuery);
+        var accounts = await _accountProvider.Get(accountQuery);
 
         return Ok(accounts);
     }

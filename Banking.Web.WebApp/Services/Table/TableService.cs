@@ -69,7 +69,6 @@ public class TableRow
 {
     public long Id { get; init; }
     public IList<Column> Columns { get; init; }
-    public DateTime? ValueToOrderBy { get; init; }
 }
 
 public class Column
@@ -110,19 +109,6 @@ public class Checkbox<TQuery> : Input where TQuery : Query, new()
 {
     public bool Value { get; set; }
     public Func<Checkbox<TQuery>, bool, TQuery, Task> OnChanged { get; init; }
-}
-
-public class InputList<TQuery> : Input where TQuery : Query, new()
-{
-    public IList<InputValue> Items { get; set; } = new List<InputValue>();
-    public string Value { get; set; }
-    public Func<InputList<TQuery>, string, TQuery, Task> OnChanged { get; init; }
-}
-
-public class InputValue
-{
-    public string Value { get; init; }
-    public string Text { get; init; }
 }
 
 public enum FilterType

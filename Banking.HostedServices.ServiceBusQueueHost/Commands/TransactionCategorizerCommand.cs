@@ -22,7 +22,7 @@ public class TransactionCategorizerCommand : ServiceBusQueueCommand
 
     public override async Task Execute(CancellationToken cancellationToken)
     {
-        var categorizedTransactions = await _transactionService.CategorizeTransactions();
+        var categorizedTransactions = await _transactionService.Categorize();
         
         _logger.LogInformation("Categorized {Count} transactions", categorizedTransactions);
     }

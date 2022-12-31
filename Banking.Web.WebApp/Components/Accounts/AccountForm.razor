@@ -152,7 +152,7 @@
     
     protected override async Task OnInitializedAsync()
     {
-        Banks = await BankProvider.GetBanks();
+        Banks = await BankProvider.Get();
 
         SelectedBankId = Account?.BankId ?? 0;
     }

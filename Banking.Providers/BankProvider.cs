@@ -10,8 +10,8 @@ namespace Banking.Providers;
 
 public interface IBankProvider
 {
-    Task<IList<BankDto>> GetBanks();
-    Task<IList<BankDto>> GetBanks(BankQuery bankQuery);
+    Task<IList<BankDto>> Get();
+    Task<IList<BankDto>> Get(BankQuery query);
 }
     
 public class BankProvider : IBankProvider
@@ -23,27 +23,27 @@ public class BankProvider : IBankProvider
         _dbRepository = dbRepository;
     }
 
-    public async Task<IList<BankDto>> GetBanks()
+    public async Task<IList<BankDto>> Get()
     {
-        return await GetBanks(new BankQuery());
+        return await Get(new BankQuery());
     }
 
-    public async Task<IList<BankDto>> GetBanks(BankQuery bankQuery)
+    public async Task<IList<BankDto>> Get(BankQuery query)
     {
-        return await _dbRepository.GetAsync<Bank, BankDto>(GetQueryable(bankQuery));
+        return await _dbRepository.GetAsync<Bank, BankDto>(GetQueryable(query));
     }
     
-    private static Queryable<Bank> GetQueryable(BankQuery bankQuery)
+    private static Queryable<Bank> GetQueryable(BankQuery query)
     {
         return new Queryable<Bank>
         {
-            Where = bank =>
-                (bankQuery.Id == null || bankQuery.Id == 0 || bankQuery.Id == bank.Id) &&
-                (bankQuery.Name == null || bankQuery.Name == bank.Name) &&
-                (bankQuery.AccountNumberPrefix == null || bankQuery.AccountNumberPrefix == bank.AccountNumberPrefix),
-            OrderBy = bank => bank.Name,
-            Take = bankQuery.Take,
-            Skip = bankQuery.Skip
+            Where = entity =>
+                (query.Id == null || query.Id == 0 || query.Id == entity.Id) &&
+                (query.Name == null || query.Name == entity.Name) &&
+                (query.AccountNumberPrefix == null || query.AccountNumberPrefix == entity.AccountNumberPrefix),
+            OrderBy = entity => entity.Name,
+            Take = query.Take,
+            Skip = query.Skip
         };
     }
 }

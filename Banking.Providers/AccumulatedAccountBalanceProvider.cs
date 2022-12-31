@@ -12,8 +12,8 @@ namespace Banking.Providers;
 
 public interface IAccumulatedAccountBalanceProvider
 {
-    Task<IList<AccountBalanceDto>> GetAccountBalances();
-    Task<IList<AccountBalanceDto>> GetAccountBalances(AccountQuery accountQuery);
+    Task<IList<AccountBalanceDto>> Get();
+    Task<IList<AccountBalanceDto>> Get(AccountQuery query);
 }
     
 public class AccumulatedAccountBalanceProvider : IAccumulatedAccountBalanceProvider
@@ -25,49 +25,49 @@ public class AccumulatedAccountBalanceProvider : IAccumulatedAccountBalanceProvi
         _dbRepository = dbRepository;
     }
 
-    public async Task<IList<AccountBalanceDto>> GetAccountBalances()
+    public async Task<IList<AccountBalanceDto>> Get()
     {
-        return await GetAccountBalances(new AccountQuery());
+        return await Get(new AccountQuery());
     }
 
-    public async Task<IList<AccountBalanceDto>> GetAccountBalances(AccountQuery accountQuery)
+    public async Task<IList<AccountBalanceDto>> Get(AccountQuery query)
     {
-        return await _dbRepository.GetAsync<AccumulatedAccountBalance, AccountBalanceDto>(GetQueryable(accountQuery));
+        return await _dbRepository.GetAsync<AccumulatedAccountBalance, AccountBalanceDto>(GetQueryable(query));
     }
 
-    private static Queryable<AccumulatedAccountBalance> GetQueryable(AccountQuery accountQuery)
+    private static Queryable<AccumulatedAccountBalance> GetQueryable(AccountQuery query)
     {
-        if (accountQuery.Id != null || accountQuery.AccountId != null)
+        if (query.Id != null || query.AccountId != null)
         {
-            accountQuery.IncludeExternalAccounts = true;
-            accountQuery.IncludeSharedAccounts = true;
-            accountQuery.IncludeDiscontinuedAccounts = true;
+            query.IncludeExternalAccounts = true;
+            query.IncludeSharedAccounts = true;
+            query.IncludeDiscontinuedAccounts = true;
         }
         
         return new Queryable<AccumulatedAccountBalance>
         {
-            Where = accountBalance =>
-                (accountQuery.Id == null || accountQuery.Id == accountBalance.Id) &&
-                (accountQuery.AccountNumber == null || accountQuery.AccountNumber == accountBalance.Account.AccountNumber) &&
-                (accountQuery.AccountType == null || accountQuery.AccountType == accountBalance.Account.AccountType) &&
-                (accountQuery.AccountName == null || accountQuery.AccountName == accountBalance.Account.Name) &&
-                (accountQuery.AccountId == null || accountQuery.AccountId == accountBalance.AccountId) &&
-                (accountQuery.AccountIds == null || accountQuery.AccountIds.Any(accountId => accountBalance.AccountId == accountId)) &&
-                (accountQuery.BankId == null || accountQuery.BankId == 0 || accountQuery.BankId == accountBalance.Account.BankId) &&
-                (accountQuery.BalanceFromDate == null || accountBalance.BalanceDate >= accountQuery.BalanceFromDate.Value) &&
-                (accountQuery.BalanceToDate == null || accountBalance.BalanceDate <= accountQuery.BalanceToDate.Value) &&
-                (accountQuery.IncludeExternalAccounts || accountBalance.Account.Name != accountBalance.Account.AccountNumber) &&
-                (accountQuery.IncludeSharedAccounts || !accountBalance.Account.SharedAccount) &&
-                (accountQuery.DiscontinuedDate == null || accountQuery.IncludeDiscontinuedAccounts || accountBalance.Account.DiscontinuedDate == null || accountBalance.Account.DiscontinuedDate > accountQuery.DiscontinuedDate),
+            Where = entity =>
+                (query.Id == null || query.Id == entity.Id) &&
+                (query.AccountNumber == null || query.AccountNumber == entity.Account.AccountNumber) &&
+                (query.AccountType == null || query.AccountType == entity.Account.AccountType) &&
+                (query.AccountName == null || query.AccountName == entity.Account.Name) &&
+                (query.AccountId == null || query.AccountId == entity.AccountId) &&
+                (query.AccountIds == null || query.AccountIds.Any(accountId => entity.AccountId == accountId)) &&
+                (query.BankId == null || query.BankId == 0 || query.BankId == entity.Account.BankId) &&
+                (query.BalanceFromDate == null || entity.BalanceDate >= query.BalanceFromDate.Value) &&
+                (query.BalanceToDate == null || entity.BalanceDate <= query.BalanceToDate.Value) &&
+                (query.IncludeExternalAccounts || entity.Account.Name != entity.Account.AccountNumber) &&
+                (query.IncludeSharedAccounts || !entity.Account.SharedAccount) &&
+                (query.DiscontinuedDate == null || query.IncludeDiscontinuedAccounts || entity.Account.DiscontinuedDate == null || entity.Account.DiscontinuedDate > query.DiscontinuedDate),
             Includes = new List<Expression<Func<AccumulatedAccountBalance, object>>>
             {
-                accountBalance => accountBalance.Account,
-                accountBalance => accountBalance.Account.Bank
+                entity => entity.Account,
+                entity => entity.Account.Bank
             },
-            OrderByDescending = accountBalance => accountBalance.BalanceDate,
-            ThenOrderByDescending = accountBalance => accountBalance.CreatedDate,
-            Take = accountQuery.Take,
-            Skip = accountQuery.Skip
+            OrderByDescending = entity => entity.BalanceDate,
+            ThenOrderByDescending = entity => entity.CreatedDate,
+            Take = query.Take,
+            Skip = query.Skip
         };
     }
 }

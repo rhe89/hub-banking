@@ -1,0 +1,64 @@
+@using Hub.Shared.Storage.ServiceBus
+
+@inherits BaseComponent
+
+@inject UIHelpers UiHelpers
+@inject IMessageSender MessageSender
+
+<Widget>
+    <section class="row">
+        <div class="col-12 mt-2">
+            <header
+                class="clickable ms-3 float-start"
+                @onclick="OpenFullVersion">
+                <MudIcon class="me-2 mb-2" Icon="@IconUtils.TransactionIcon" Color="Color.Default"/>
+                <h2 class="d-inline-block fs-4">Transactions</h2>
+            </header>
+            <div class="float-end">
+                <MudIconButton
+                    Style="bottom: 10px"
+                    Icon="@Icons.Filled.Refresh"
+                    OnClick="UpdateBulderBankTransactions"/>
+                <MudIconButton
+                    Style="bottom: 10px"
+                    Icon="@Icons.Filled.Add"
+                    OnClick="Add"/>
+            </div>
+        </div>
+    </section>
+
+    <TransactionsTable
+        Widget="true"
+        Take="5"/>
+</Widget>
+
+@code {
+
+    private async Task UpdateBulderBankTransactions()
+    {
+        await MessageSender.AddToQueue(QueueNames.UpdateBulderBankTransactions);
+    }
+
+    private async Task Add()
+    {
+        var parameters = new DialogParameters
+        {
+            { nameof(AddTransactionDialog.OnTransactionAdded), OnItemAdded }
+        };
+
+        await UiHelpers.ShowDialog<AddTransactionDialog>(parameters);
+    }
+
+    private static Task OnItemAdded(UIHelpers uiHelpers, long id)
+    {
+        uiHelpers.ShowSnackbar("Item added", Severity.Success);
+
+        return Task.CompletedTask;
+    }
+
+    private async Task OpenFullVersion()
+    {
+        await UiHelpers.ShowDialog<TransactionsOverviewDialog>();
+    }
+
+}

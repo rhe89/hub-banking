@@ -134,12 +134,11 @@ public class TransactionsTableService : TableService<TransactionQuery>
         
         transactionQuery.Take = Widget ? 5 : null;
 
-        var transactions = await _transactionProvider.GetTransactions(transactionQuery);
+        var transactions = await _transactionProvider.Get(transactionQuery);
 
         var tableRows = transactions.Select(transaction => new TableRow
         {
             Id = transaction.Id,
-            ValueToOrderBy = transaction.TransactionDate,
             Columns = new List<Column>
             {
                 new Column

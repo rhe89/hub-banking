@@ -11,10 +11,10 @@ namespace Banking.Services;
 
 public interface IBankService
 {
-    Task<BankDto> AddBank(BankDto newBank, bool saveChanges);
-    Task UpdateBank(BankDto updatedBank, bool saveChanges);
-    Task<BankDto> GetOrCreateBank(string name, string accountNumberPrefix);
-    Task DeleteBank(BankDto bank, bool saveChanges);
+    Task<BankDto> Add(BankDto newBank, bool saveChanges);
+    Task Update(BankDto updatedBank, bool saveChanges);
+    Task<BankDto> GetOrAdd(string name, string accountNumberPrefix);
+    Task Delete(BankDto bank, bool saveChanges);
 }
 
 public class BankService : IBankService
@@ -33,14 +33,14 @@ public class BankService : IBankService
         _logger = logger;
     }
     
-    public async Task<BankDto> AddBank(BankDto newBank, bool saveChanges)
+    public async Task<BankDto> Add(BankDto newBank, bool saveChanges)
     {
         _logger.LogInformation(
             "Creating bank {Name} with account number prefix {Prefix}",
             newBank.Name,
             newBank.AccountNumberPrefix);
 
-        var banksWithSameName = await _bankProvider.GetBanks(new BankQuery
+        var banksWithSameName = await _bankProvider.Get(new BankQuery
         {
             Name = newBank.Name
         });
@@ -60,11 +60,11 @@ public class BankService : IBankService
         return newBank;
     }
 
-    public async Task UpdateBank(BankDto updatedBank, bool saveChanges)
+    public async Task Update(BankDto updatedBank, bool saveChanges)
     {
         _logger.LogInformation("Updating bank {Name} (Id: {Id})", updatedBank.Name, updatedBank.Id);
 
-        var bankInDb = (await _bankProvider.GetBanks(new BankQuery
+        var bankInDb = (await _bankProvider.Get(new BankQuery
         {
             Id = updatedBank.Id
         })).First();
@@ -82,9 +82,9 @@ public class BankService : IBankService
         }
     }
 
-    public async Task<BankDto> GetOrCreateBank(string name, string accountNumberPrefix)
+    public async Task<BankDto> GetOrAdd(string name, string accountNumberPrefix)
     {
-        var existingBank = (await _bankProvider.GetBanks(new BankQuery
+        var existingBank = (await _bankProvider.Get(new BankQuery
         {
             AccountNumberPrefix = accountNumberPrefix
         })).FirstOrDefault();
@@ -100,10 +100,10 @@ public class BankService : IBankService
             AccountNumberPrefix = accountNumberPrefix
         };
 
-        return await AddBank(newBank, true);
+        return await Add(newBank, true);
     }
     
-    public async Task DeleteBank(BankDto bank, bool saveChanges)
+    public async Task Delete(BankDto bank, bool saveChanges)
     {
         _logger.LogInformation("Deleting bank {Name} (Id: {Id})", bank.Name, bank.Id);
 

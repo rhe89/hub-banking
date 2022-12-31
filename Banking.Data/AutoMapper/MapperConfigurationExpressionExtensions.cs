@@ -16,5 +16,6 @@ public static class MapperConfigurationExpressionExtensions
         mapperConfigurationExpression.AddProfile<BankMapperProfile>();
         mapperConfigurationExpression.AddProfile<SettingMapperProfile>();
         mapperConfigurationExpression.AddProfile<TransactionCategoryMapperProfile>();
+        mapperConfigurationExpression.AddProfile<MonthlyBudgetMapperProfile>();
     }
 }

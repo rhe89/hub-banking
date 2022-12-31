@@ -118,7 +118,7 @@
 
         Transaction.TransactionId = $"{Transaction.AccountId}-{Transaction.TransactionDate}-{Transaction.Description}-{Transaction.Amount}";
 
-        await TransactionService.AddTransaction(Transaction, saveChanges: true);
+        await TransactionService.Add(Transaction, saveChanges: true);
 
         if (OnTransactionAdded != null)
         {

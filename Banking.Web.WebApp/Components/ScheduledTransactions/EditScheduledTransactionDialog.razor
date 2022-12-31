@@ -86,7 +86,7 @@
         Working = true;
 
         var scheduledTransactions = await ScheduledTransactionProvider
-            .GetScheduledTransactions(new ScheduledTransactionQuery { Id = ScheduledTransactionId });
+            .Get(new ScheduledTransactionQuery { Id = ScheduledTransactionId });
 
         var scheduledTransaction = scheduledTransactions.Single();
 
@@ -96,7 +96,7 @@
             CreatedDate = scheduledTransaction.CreatedDate,
             UpdatedDate = scheduledTransaction.UpdatedDate,
             Description = scheduledTransaction.Description,
-            AccountType = scheduledTransaction.AccountType,
+            AccountId = scheduledTransaction.AccountId,
             TransactionSubCategoryId = scheduledTransaction.TransactionSubCategoryId,
             Amount = scheduledTransaction.Amount,
             NextTransactionDate = scheduledTransaction.NextTransactionDate,
@@ -122,7 +122,7 @@
             return false;
         }
 
-        await ScheduledTransactionService.UpdateScheduledTransaction(ScheduledTransaction, true);
+        await ScheduledTransactionService.Update(ScheduledTransaction, true);
 
         await OnScheduledTransactionUpdated.Invoke(UiHelpers, ScheduledTransaction.Id);
 
@@ -142,10 +142,8 @@
             return;
         }
         
-        var accounts = await AccountProvider.GetAccounts();
-
-        var possibleAccount = accounts.FirstOrDefault(x => x.Name.ToLowerInvariant().Contains(ScheduledTransaction.Description.ToLowerInvariant())) ??
-                              accounts.FirstOrDefault(x => x.AccountType == ScheduledTransaction.AccountType);
+        var account = (await AccountProvider.Get(new AccountQuery { Id = ScheduledTransaction.AccountId}))
+            .First();
 
         var transaction = new TransactionModel
         {
@@ -154,7 +152,7 @@
             Amount = ScheduledTransaction.Amount,
             TransactionDirection = ScheduledTransaction.TransactionDirection,
             TransactionDate = ScheduledTransaction.NextTransactionDate,
-            AccountId = possibleAccount?.Id ?? 0
+            AccountId = account.Id
         };
         var parameters = new DialogParameters
         {
@@ -168,7 +166,7 @@
     {
         Working = true;
 
-        await ScheduledTransactionService.DeleteScheduledTransaction(ScheduledTransaction, true);
+        await ScheduledTransactionService.Delete(ScheduledTransaction, true);
 
         Working = false;
 

@@ -58,7 +58,7 @@
     {
         Working = true;
 
-        var addedAccount = await AccountService.AddAccount(Account, saveChanges: true);
+        var addedAccount = await AccountService.Add(Account, saveChanges: true);
 
         await OnAccountAdded.Invoke(UiHelpers, addedAccount.Id);
         

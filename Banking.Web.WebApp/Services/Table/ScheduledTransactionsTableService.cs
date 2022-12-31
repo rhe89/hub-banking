@@ -122,7 +122,7 @@ public class ScheduledTransactionsTableService : TableService<ScheduledTransacti
             scheduledTransactionQuery.NextTransactionToDate = State.GetValidToDateForMonthAndYear();
         }
         
-        var scheduledTransactions = await _scheduledTransactionProvider.GetScheduledTransactions(scheduledTransactionQuery);
+        var scheduledTransactions = await _scheduledTransactionProvider.Get(scheduledTransactionQuery);
 
         var tableRows = scheduledTransactions.Select(scheduledTransaction => new TableRow
         {

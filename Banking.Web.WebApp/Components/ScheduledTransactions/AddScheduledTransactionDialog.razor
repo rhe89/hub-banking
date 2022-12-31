@@ -79,8 +79,7 @@
     {
         TransactionDirection = TransactionDirection.Out,
         Occurrence = Occurrence.Monthly,
-        NextTransactionDate = DateTime.Now,
-        AccountType = AccountTypes.Billing
+        NextTransactionDate = DateTime.Now
     };
     private ScheduledTransactionDto ScheduledTransactionWithSameDescription { get; set; }
 
@@ -153,7 +152,7 @@
             return false;
         }
 
-        var scheduledTransactionsWithSameDescription = await ScheduledTransactionProvider.GetScheduledTransactions(new ScheduledTransactionQuery
+        var scheduledTransactionsWithSameDescription = await ScheduledTransactionProvider.Get(new ScheduledTransactionQuery
         {
             Description = ScheduledTransaction.Description
         });
@@ -169,7 +168,7 @@
             return false;
         }
         
-        var addedScheduledTransaction = await ScheduledTransactionService.AddScheduledTransaction(ScheduledTransaction, true);
+        var addedScheduledTransaction = await ScheduledTransactionService.Add(ScheduledTransaction, true);
 
         await OnScheduledTransactionAdded.Invoke(UiHelpers, addedScheduledTransaction.Id);
         

@@ -16,7 +16,6 @@ var builder = BlazorServerBuilder.CreateWebApplicationBuilder(args);
 
 builder.Services.AddDatabase<BankingDbContext>(builder.Configuration, "SQL_DB_BANKING");
 builder.Services.AddTransient<IMessageSender, MessageSender>();
-
 builder.Services.AddTransient<ITransactionService, TransactionService>();
 builder.Services.AddTransient<ITransactionProvider, TransactionProvider>();
 
@@ -33,6 +32,8 @@ builder.Services.AddTransient<IBankService, BankService>();
 
 builder.Services.AddTransient<ITransactionCategoryProvider, TransactionCategoryProvider>();
 builder.Services.AddTransient<ITransactionCategoryService, TransactionCategoryService>();
+
+builder.Services.AddTransient<IMonthlyBudgetProvider, MonthlyBudgetProvider>();
 
 builder.Services.AddTransient<TransactionsTableService>();
 builder.Services.AddTransient<ScheduledTransactionsTableService>();

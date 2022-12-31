@@ -12,11 +12,11 @@ namespace Banking.Services;
 
 public interface ITransactionCategoryService
 {
-    Task<TransactionCategoryDto> AddTransactionCategory(TransactionCategoryDto newTransactionCategory, bool saveChanges);
-    Task<TransactionSubCategoryDto> AddTransactionSubCategory(TransactionSubCategoryDto newTransactionSubCategory, bool saveChanges);
-    Task UpdateTransactionCategory(TransactionCategoryDto updatedTransactionCategory, bool saveChanges);
-    Task UpdateTransactionSubCategory(TransactionSubCategoryDto updatedTransactionSubCategory, bool saveChanges);
-    Task<TransactionSubCategoryDto> GetOrAddTransactionSubCategory(string category, string subCategory);
+    Task<TransactionCategoryDto> Add(TransactionCategoryDto newTransactionCategory, bool saveChanges);
+    Task<TransactionSubCategoryDto> Add(TransactionSubCategoryDto newTransactionSubCategory, bool saveChanges);
+    Task Update(TransactionCategoryDto updatedTransactionCategory, bool saveChanges);
+    Task Update(TransactionSubCategoryDto updatedTransactionSubCategory, bool saveChanges);
+    Task<TransactionSubCategoryDto> GetOrAdd(string category, string subCategory);
     Task DeleteTransactionCategory(long transactionCategoryId, bool saveChanges);
     Task DeleteTransactionSubCategory(long transactionSubCategoryId, bool saveChanges);
 }
@@ -37,9 +37,9 @@ public class TransactionCategoryService : ITransactionCategoryService
         _logger = logger;
     }
     
-    public async Task<TransactionCategoryDto> AddTransactionCategory(TransactionCategoryDto newTransactionCategory, bool saveChanges)
+    public async Task<TransactionCategoryDto> Add(TransactionCategoryDto newTransactionCategory, bool saveChanges)
     {
-        var transactionCategoriesWithSameName = await _transactionCategoryProvider.GetTransactionCategories(new TransactionCategoryQuery
+        var transactionCategoriesWithSameName = await _transactionCategoryProvider.Get(new TransactionCategoryQuery
         {
             Name = newTransactionCategory.Name
         });
@@ -52,7 +52,7 @@ public class TransactionCategoryService : ITransactionCategoryService
             {
                 subCategory.TransactionCategoryId = existingTransactionCategory.Id;
             
-                var addedSubCategory = await AddTransactionSubCategory(subCategory, saveChanges);
+                var addedSubCategory = await Add(subCategory, saveChanges);
             
                 existingTransactionCategory.TransactionSubCategories.Add(addedSubCategory);
             }
@@ -73,7 +73,7 @@ public class TransactionCategoryService : ITransactionCategoryService
         {
             subCategory.TransactionCategoryId = addedTransactionCategory.Id;
             
-            var addedSubCategory = await AddTransactionSubCategory(subCategory, saveChanges);
+            var addedSubCategory = await Add(subCategory, saveChanges);
             
             addedTransactionCategory.TransactionSubCategories.Add(addedSubCategory);
         }
@@ -81,9 +81,9 @@ public class TransactionCategoryService : ITransactionCategoryService
         return addedTransactionCategory;
     }
     
-    public async Task<TransactionSubCategoryDto> AddTransactionSubCategory(TransactionSubCategoryDto newTransactionSubCategory, bool saveChanges)
+    public async Task<TransactionSubCategoryDto> Add(TransactionSubCategoryDto newTransactionSubCategory, bool saveChanges)
     {
-        var transactionCategoriesWithSameName = await _transactionCategoryProvider.GetTransactionSubCategories(new TransactionSubCategoryQuery
+        var transactionCategoriesWithSameName = await _transactionCategoryProvider.Get(new TransactionSubCategoryQuery
         {
             Name = newTransactionSubCategory.Name
         });
@@ -105,14 +105,14 @@ public class TransactionCategoryService : ITransactionCategoryService
         return newTransactionSubCategory;
     }
     
-    public async Task UpdateTransactionCategory(TransactionCategoryDto updatedTransactionCategory, bool saveChanges)
+    public async Task Update(TransactionCategoryDto updatedTransactionCategory, bool saveChanges)
     {
         _logger.LogInformation(
             "Updating transaction category {Name} (Id: {Id})", 
             updatedTransactionCategory.Name,
             updatedTransactionCategory.Id);
 
-        var transactionCategoryInDb = (await _transactionCategoryProvider.GetTransactionCategories(new TransactionCategoryQuery
+        var transactionCategoryInDb = (await _transactionCategoryProvider.Get(new TransactionCategoryQuery
         {
             Id = updatedTransactionCategory.Id
         })).First();
@@ -129,11 +129,11 @@ public class TransactionCategoryService : ITransactionCategoryService
                 {
                     subCategory.TransactionCategoryId = transactionCategoryInDb.Id;
                 
-                    await AddTransactionSubCategory(subCategory, false);
+                    await Add(subCategory, false);
                 }
                 else
                 {
-                    await UpdateTransactionSubCategory(subCategory, false);
+                    await Update(subCategory, false);
                 }
             }
 
@@ -152,14 +152,14 @@ public class TransactionCategoryService : ITransactionCategoryService
         }
     }
     
-    public async Task UpdateTransactionSubCategory(TransactionSubCategoryDto updatedTransactionSubCategory, bool saveChanges)
+    public async Task Update(TransactionSubCategoryDto updatedTransactionSubCategory, bool saveChanges)
     {
         _logger.LogInformation(
             "Updating transaction sub category {Name} (Id: {Id})", 
             updatedTransactionSubCategory.Name,
             updatedTransactionSubCategory.Id);
         
-        var transactionSubCategoryInDb = (await _transactionCategoryProvider.GetTransactionSubCategories(new TransactionSubCategoryQuery
+        var transactionSubCategoryInDb = (await _transactionCategoryProvider.Get(new TransactionSubCategoryQuery
         {
             Id = updatedTransactionSubCategory.Id
         })).First();
@@ -177,10 +177,10 @@ public class TransactionCategoryService : ITransactionCategoryService
         }
     }
 
-    public async Task<TransactionSubCategoryDto> GetOrAddTransactionSubCategory(string category, string subCategory)
+    public async Task<TransactionSubCategoryDto> GetOrAdd(string category, string subCategory)
     {
         var transactionCategory =
-            (await _transactionCategoryProvider.GetTransactionCategories(new TransactionCategoryQuery { Name = category })).FirstOrDefault();
+            (await _transactionCategoryProvider.Get(new TransactionCategoryQuery { Name = category })).FirstOrDefault();
 
         if (transactionCategory != null)
         {
@@ -188,7 +188,7 @@ public class TransactionCategoryService : ITransactionCategoryService
 
             if (transactionSubCategory == null)
             {
-                return await AddTransactionSubCategory(new TransactionSubCategoryDto
+                return await Add(new TransactionSubCategoryDto
                 {
                     TransactionCategoryId = transactionCategory.Id,
                     Name = subCategory,
@@ -197,7 +197,7 @@ public class TransactionCategoryService : ITransactionCategoryService
             }
         }
         
-        transactionCategory = await AddTransactionCategory(
+        transactionCategory = await Add(
             new TransactionCategoryDto { Name = category , TransactionSubCategories = new List<TransactionSubCategoryDto>
             {
                 new TransactionSubCategoryDto { Name = subCategory, Keywords = subCategory}
@@ -209,7 +209,7 @@ public class TransactionCategoryService : ITransactionCategoryService
 
     public async Task DeleteTransactionCategory(long transactionCategoryId, bool saveChanges)
     {
-        var transactionCategoryInDb = (await _transactionCategoryProvider.GetTransactionCategories(new TransactionCategoryQuery
+        var transactionCategoryInDb = (await _transactionCategoryProvider.Get(new TransactionCategoryQuery
         {
             Id = transactionCategoryId
         })).First();
@@ -236,7 +236,7 @@ public class TransactionCategoryService : ITransactionCategoryService
     
     public async Task DeleteTransactionSubCategory(long transactionSubCategoryId, bool saveChanges)
     {
-        var transactionSubCategoryInDb = (await _transactionCategoryProvider.GetTransactionSubCategories(new TransactionSubCategoryQuery
+        var transactionSubCategoryInDb = (await _transactionCategoryProvider.Get(new TransactionSubCategoryQuery
         {
             Id = transactionSubCategoryId
         })).First();

@@ -73,7 +73,7 @@ public class SbankenTransactionsImporterCommand : ServiceBusQueueCommand, IComma
                 continue;
             }
 
-            await _transactionService.AddTransactionsFromFile(file.Name, transactionsToImport);
+            await _transactionService.AddFromFile(file.Name, transactionsToImport);
             
             await _dbRepository.AddAsync<CsvImport, CsvImportDto>(new CsvImportDto
             {

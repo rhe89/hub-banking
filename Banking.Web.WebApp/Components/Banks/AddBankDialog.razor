@@ -55,7 +55,7 @@
     {
         Working = true;
         
-        var addedBank = await BankService.AddBank(Bank, saveChanges: true);
+        var addedBank = await BankService.Add(Bank, saveChanges: true);
 
         await OnBankAdded.Invoke(UiHelpers, addedBank.Id);
         

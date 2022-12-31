@@ -12,9 +12,9 @@ namespace Banking.Providers;
 public interface ITransactionCategoryProvider
 {
     Task<IList<TransactionCategoryDto>> GetTransactionCategories();
-    Task<IList<TransactionCategoryDto>> GetTransactionCategories(TransactionCategoryQuery transactionCategoryQuery);
+    Task<IList<TransactionCategoryDto>> Get(TransactionCategoryQuery query);
     Task<IList<TransactionSubCategoryDto>> GetTransactionSubCategories();
-    Task<IList<TransactionSubCategoryDto>> GetTransactionSubCategories(TransactionSubCategoryQuery transactionSubCategoryQuery);
+    Task<IList<TransactionSubCategoryDto>> Get(TransactionSubCategoryQuery query);
 }
 
 public class TransactionCategoryProvider : ITransactionCategoryProvider
@@ -28,51 +28,51 @@ public class TransactionCategoryProvider : ITransactionCategoryProvider
 
     public async Task<IList<TransactionCategoryDto>> GetTransactionCategories()
     {
-        return await GetTransactionCategories(new TransactionCategoryQuery());
+        return await Get(new TransactionCategoryQuery());
     }
 
-    public async Task<IList<TransactionCategoryDto>> GetTransactionCategories(TransactionCategoryQuery transactionCategoryQuery)
+    public async Task<IList<TransactionCategoryDto>> Get(TransactionCategoryQuery query)
     {
-        return await _dbRepository.GetAsync<TransactionCategory, TransactionCategoryDto>(GetQueryable(transactionCategoryQuery));
+        return await _dbRepository.GetAsync<TransactionCategory, TransactionCategoryDto>(GetQueryable(query));
     }
 
     public async Task<IList<TransactionSubCategoryDto>> GetTransactionSubCategories()
     {
-        return await GetTransactionSubCategories(new TransactionSubCategoryQuery());
+        return await Get(new TransactionSubCategoryQuery());
     }
 
-    public async Task<IList<TransactionSubCategoryDto>> GetTransactionSubCategories(TransactionSubCategoryQuery transactionSubCategoryQuery)
+    public async Task<IList<TransactionSubCategoryDto>> Get(TransactionSubCategoryQuery query)
     {
-        return await _dbRepository.GetAsync<TransactionSubCategory, TransactionSubCategoryDto>(GetQueryable(transactionSubCategoryQuery));
+        return await _dbRepository.GetAsync<TransactionSubCategory, TransactionSubCategoryDto>(GetQueryable(query));
     }
     
-    private static Queryable<TransactionCategory> GetQueryable(TransactionCategoryQuery transactionCategoryQuery)
+    private static Queryable<TransactionCategory> GetQueryable(TransactionCategoryQuery query)
     {
         return new Queryable<TransactionCategory>
         {
-            Where = transactionCategory =>
-                (transactionCategoryQuery.Id == null || transactionCategoryQuery.Id == transactionCategory.Id) &&
-                (transactionCategoryQuery.Name == null || transactionCategoryQuery.Name == transactionCategory.Name),
-            Include = transactionCategory => transactionCategory.TransactionSubCategories,
+            Where = entity =>
+                (query.Id == null || query.Id == entity.Id) &&
+                (query.Name == null || query.Name == entity.Name),
+            Include = entity => entity.TransactionSubCategories,
             OrderBy = x => x.Name,
-            Take = transactionCategoryQuery.Take,
-            Skip = transactionCategoryQuery.Skip
+            Take = query.Take,
+            Skip = query.Skip
         };
     }
 
-    private static Queryable<TransactionSubCategory> GetQueryable(TransactionSubCategoryQuery transactionSubCategoryQuery)
+    private static Queryable<TransactionSubCategory> GetQueryable(TransactionSubCategoryQuery query)
     {
         return new Queryable<TransactionSubCategory>
         {
-            Where = transactionSubCategory =>
-                (transactionSubCategoryQuery.Id == null || transactionSubCategoryQuery.Id == transactionSubCategory.Id) &&
-                (transactionSubCategoryQuery.Name == null || transactionSubCategoryQuery.Name == transactionSubCategory.Name) &&
-                (transactionSubCategoryQuery.TransactionCategoryId == null || transactionSubCategoryQuery.TransactionCategoryId == transactionSubCategory.TransactionCategoryId) &&
-                (transactionSubCategoryQuery.TransactionCategoryIds == null || transactionSubCategoryQuery.TransactionCategoryIds.Any(transactionCategoryId => transactionCategoryId == transactionSubCategory.TransactionCategoryId)) &&
-                (transactionSubCategoryQuery.TransactionCategoryName == null || transactionSubCategoryQuery.TransactionCategoryName == transactionSubCategory.TransactionCategory.Name),
-            OrderByDescending = x => x.UpdatedDate,
-            Take = transactionSubCategoryQuery.Take,
-            Skip = transactionSubCategoryQuery.Skip
+            Where = entity =>
+                (query.Id == null || query.Id == entity.Id) &&
+                (query.Name == null || query.Name == entity.Name) &&
+                (query.TransactionCategoryId == null || query.TransactionCategoryId == entity.TransactionCategoryId) &&
+                (query.TransactionCategoryIds == null || query.TransactionCategoryIds.Any(transactionCategoryId => transactionCategoryId == entity.TransactionCategoryId)) &&
+                (query.TransactionCategoryName == null || query.TransactionCategoryName == entity.TransactionCategory.Name),
+            OrderByDescending = entity => entity.UpdatedDate,
+            Take = query.Take,
+            Skip = query.Skip
         };
     }
 }

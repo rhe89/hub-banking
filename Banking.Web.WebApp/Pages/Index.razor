@@ -1,35 +1,11 @@
 @page "/"
 @page "/index"
-@using Hub.Shared.Storage.ServiceBus
 
 @inherits BaseComponent
 @implements IDisposable
 
-@inject IMessageSender MessageSender
-@inject UIHelpers UiHelpers
-
 <main class="front-page container">
     <div class="row">
-        <ExpansionSection>
-            <TitleContent>
-                <h2 class="fs-4">
-                    Actions
-                </h2>
-            </TitleContent>
-            <ExpansionBody>
-                <div class="col-12 col-lg-3 mt-lg-0">
-                    <MudButton
-                        class="w-100"
-                        Variant="Variant.Filled"
-                        Color="Color.Primary"
-                        @onclick="QueueImportBulderBankTransactions">
-                        Import transactions from Bulder Bank
-                    </MudButton>
-                </div>
-            </ExpansionBody>
-        </ExpansionSection>
-    </div>
-    <div class="row mt-0 mt-lg-3">
         <ExpansionSection>
             <TitleContent>
                 <h2 class="fs-4">
@@ -49,7 +25,10 @@
     </div>
 
     <div class="row">
-        <div class="col-lg-4 col-12 mt-2 mt-lg-4">
+        <div class="col-12 mt-2 mt-4">
+            <MonthlyBudgetWidget/>
+        </div>
+        <div class="col-lg-4 col-12 mt-4">
             <InvestmentsWidget/>
         </div>
         <div class="col-lg-4 col-12 mt-4">
@@ -59,32 +38,16 @@
             <BillingWidget/>
         </div>
         <div class="col-lg-6 col-sm-12 mt-4">
-            <Widget>
-                <TransactionsTable
-                    Widget="true"
-                    Take="5"/>
-            </Widget>
+            <TransactionsWidget/>
         </div>
         <div class="col-lg-6 col-sm-12 mt-4">
-            <Widget>
-                <AccountsTable
-                    Widget="true"
-                    Take="5"/>
-            </Widget>
+            <AccountsWidget/>
         </div>
         <div class="col-lg-6 col-sm-12 mt-4">
-            <Widget>
-                <TransactionCategoriesTable
-                    Widget="true"
-                    Take="5"/>
-            </Widget>
+            <TransactionCategoriesWidget/>
         </div>
         <div class="col-lg-6 col-sm-12 mt-4">
-            <Widget>
-                <ScheduledTransactionsTable
-                    Widget="true"
-                    Take="5"/>
-            </Widget>
+            <ScheduledTransactionsWidget/>
         </div>
     </div>
 </main>
@@ -109,13 +72,6 @@
         await InvokeAsync(StateHasChanged);
     }
 
-    private void QueueImportBulderBankTransactions()
-    {
-        MessageSender.AddToQueue(QueueNames.UpdateBulderBankTransactions);
-
-        UiHelpers.ShowSnackbar("Queued message for importing transactions from CSV-file(s)", Severity.Success);
-    }
-    
     public void Dispose()
     {
         State.OnStateUpdated -= OnStateChanged;

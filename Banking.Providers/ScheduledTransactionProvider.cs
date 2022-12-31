@@ -9,8 +9,8 @@ namespace Banking.Providers;
 
 public interface IScheduledTransactionProvider
 {
-    Task<IList<ScheduledTransactionDto>> GetScheduledTransactions();
-    Task<IList<ScheduledTransactionDto>> GetScheduledTransactions(ScheduledTransactionQuery scheduledTransactionQuery);
+    Task<IList<ScheduledTransactionDto>> Get();
+    Task<IList<ScheduledTransactionDto>> Get(ScheduledTransactionQuery entity);
 }
 
 public class ScheduledTransactionProvider : IScheduledTransactionProvider
@@ -22,38 +22,40 @@ public class ScheduledTransactionProvider : IScheduledTransactionProvider
         _dbRepository = dbRepository;
     }
 
-    public async Task<IList<ScheduledTransactionDto>> GetScheduledTransactions()
+    public async Task<IList<ScheduledTransactionDto>> Get()
     {
-        return await GetScheduledTransactions(new ScheduledTransactionQuery());
+        return await Get(new ScheduledTransactionQuery());
     }
 
-    public async Task<IList<ScheduledTransactionDto>> GetScheduledTransactions(ScheduledTransactionQuery scheduledTransactionQuery)
+    public async Task<IList<ScheduledTransactionDto>> Get(ScheduledTransactionQuery entity)
     {
-        return await _dbRepository.GetAsync<ScheduledTransaction, ScheduledTransactionDto>(GetQueryable(scheduledTransactionQuery));
+        return await _dbRepository.GetAsync<ScheduledTransaction, ScheduledTransactionDto>(GetQueryable(entity));
     }
     
-    private static Queryable<ScheduledTransaction> GetQueryable(ScheduledTransactionQuery scheduledTransactionQuery)
+    private static Queryable<ScheduledTransaction> GetQueryable(ScheduledTransactionQuery query)
     {
-        if (scheduledTransactionQuery.Id != null)
+        if (query.Id != null)
         {
-            scheduledTransactionQuery.IncludeCompletedTransactions = true;
+            query.IncludeCompletedTransactions = true;
         }
         
         return new Queryable<ScheduledTransaction>
         {
-            Where = scheduledTransaction =>
-                (scheduledTransactionQuery.Id == null || scheduledTransactionQuery.Id == scheduledTransaction.Id) &&
-                (scheduledTransactionQuery.AmountRange == null || scheduledTransaction.Amount >= scheduledTransactionQuery.AmountRange[0] && scheduledTransaction.Amount <= scheduledTransactionQuery.AmountRange[1]) &&
-                (scheduledTransactionQuery.TransactionKey == null || scheduledTransaction.TransactionKey == scheduledTransactionQuery.TransactionKey) &&
-                (scheduledTransactionQuery.TransactionSubCategoryId == null || scheduledTransaction.TransactionSubCategoryId == scheduledTransactionQuery.TransactionSubCategoryId) &&
-                (scheduledTransactionQuery.NextTransactionFromDate == null || scheduledTransaction.NextTransactionDate >= scheduledTransactionQuery.NextTransactionFromDate) &&
-                (scheduledTransactionQuery.NextTransactionToDate == null || scheduledTransaction.NextTransactionDate <= scheduledTransactionQuery.NextTransactionToDate) &&
-                (string.IsNullOrEmpty(scheduledTransactionQuery.Description) || scheduledTransaction.Text.Contains(scheduledTransactionQuery.Description)) &&
-                (string.IsNullOrEmpty(scheduledTransactionQuery.AccountType) || scheduledTransaction.AccountType == scheduledTransactionQuery.AccountType) &&
-                (scheduledTransactionQuery.IncludeCompletedTransactions || !scheduledTransaction.Completed),
-            OrderBy = scheduledTransaction => scheduledTransaction.NextTransactionDate,
-            Take = scheduledTransactionQuery.Take,
-            Skip = scheduledTransactionQuery.Skip
+            Where = entity =>
+                (query.Id == null || query.Id == entity.Id) &&
+                (query.AccountId == null || query.AccountId == 0 || query.AccountId == entity.AccountId) &&
+                (query.AmountRange == null || entity.Amount >= query.AmountRange[0] && entity.Amount <= query.AmountRange[1]) &&
+                (query.TransactionKey == null || entity.TransactionKey == query.TransactionKey) &&
+                (query.TransactionSubCategoryId == null || entity.TransactionSubCategoryId == query.TransactionSubCategoryId) &&
+                (query.NextTransactionFromDate == null || entity.NextTransactionDate >= query.NextTransactionFromDate) &&
+                (query.NextTransactionToDate == null || entity.NextTransactionDate <= query.NextTransactionToDate) &&
+                (string.IsNullOrEmpty(query.Description) || entity.Text.Contains(query.Description)) &&
+                (string.IsNullOrEmpty(query.AccountType) || entity.Account.AccountType == query.AccountType) &&
+                (query.IncludeCompletedTransactions || !entity.Completed),
+            Include = entity => entity.Account,
+            OrderBy = entity => entity.NextTransactionDate,
+            Take = query.Take,
+            Skip = query.Skip
         };
     }
 }

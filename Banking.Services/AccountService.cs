@@ -13,15 +13,15 @@ namespace Banking.Services;
 
 public interface IAccountService
 {
-    Task<AccountDto> AddAccount(AccountDto newAccount, bool saveChanges);
-    Task<bool> UpdateAccount(AccountDto updatedAccount, bool saveChanges);
+    Task<AccountDto> Add(AccountDto newAccount, bool saveChanges);
+    Task<bool> Update(AccountDto updatedAccount, bool saveChanges);
 
-    Task<AccountDto> GetOrAddAccount(
+    Task<AccountDto> GetOrAdd(
         string name,
         string accountType,
         string accountNumber);
 
-    Task DeleteAccount(AccountDto account);
+    Task Delete(AccountDto account);
     Task SaveChanges();
 }
 
@@ -46,9 +46,9 @@ public class AccountService : IAccountService
         _logger = logger;
     }
     
-    public async Task<AccountDto> AddAccount(AccountDto newAccount, bool saveChanges)
+    public async Task<AccountDto> Add(AccountDto newAccount, bool saveChanges)
     {
-        var accountsWithSameName = await _accountProvider.GetAccounts(new AccountQuery
+        var accountsWithSameName = await _accountProvider.Get(new AccountQuery
         {
             AccountName = newAccount.Name,
             BankId = newAccount.BankId
@@ -73,11 +73,11 @@ public class AccountService : IAccountService
         return addedAccount;
     }
 
-    public async Task<bool> UpdateAccount(AccountDto updatedAccount, bool saveChanges)
+    public async Task<bool> Update(AccountDto updatedAccount, bool saveChanges)
     {
         _logger.LogInformation("Updating account {Name} (Id: {Id})", updatedAccount.Name, updatedAccount.Id);
 
-        var accountInDb = (await _accountProvider.GetAccounts(new AccountQuery
+        var accountInDb = (await _accountProvider.Get(new AccountQuery
         {
             Id = updatedAccount.Id,
             BalanceToDate = DateTime.Now
@@ -110,12 +110,12 @@ public class AccountService : IAccountService
         return true;
     }
     
-    public async Task<AccountDto> GetOrAddAccount(
+    public async Task<AccountDto> GetOrAdd(
         string name,
         string accountType,
         string accountNumber)
     {
-        var existingAccount = (await _accountProvider.GetAccounts(new AccountQuery
+        var existingAccount = (await _accountProvider.Get(new AccountQuery
         {
             AccountNumber = accountNumber,
             IncludeExternalAccounts = true,
@@ -126,7 +126,7 @@ public class AccountService : IAccountService
             return existingAccount;
         }
         
-        var bank = await _bankService.GetOrCreateBank("", accountNumber[..4]);
+        var bank = await _bankService.GetOrAdd("", accountNumber[..4]);
             
         var newAccount = new AccountDto
         {
@@ -136,7 +136,7 @@ public class AccountService : IAccountService
             AccountType = accountType
         };
 
-        return await AddAccount(newAccount, true);
+        return await Add(newAccount, true);
     }
     
     private async Task UpdateAccountBalance(long accountId, DateTime balanceDate, decimal balance, bool saveChanges)
@@ -158,7 +158,7 @@ public class AccountService : IAccountService
         }
     }
 
-    public async Task DeleteAccount(AccountDto account)
+    public async Task Delete(AccountDto account)
     {
         _logger.LogInformation("Deleting account {Name} (Id: {Id})", account.Name, account.Id);
 

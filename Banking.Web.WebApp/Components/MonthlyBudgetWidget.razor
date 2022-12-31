@@ -1,0 +1,89 @@
+@using Banking.Providers
+@using Banking.Shared
+@using Hub.Shared.DataContracts.Banking.Constants
+@using Hub.Shared.DataContracts.Banking.Query
+@using Hub.Shared.Storage.ServiceBus
+@using Hub.Shared.DataContracts.Banking.Dto
+
+@inherits BaseComponent
+
+@implements IDisposable
+
+@inject UIHelpers UiHelpers
+@inject IMonthlyBudgetProvider MonthlyBudgetProvider
+@inject IMessageSender MessageSender
+
+<Widget>
+    <section>
+        <MudText class="fs-5">
+            Budget result
+            <MudIconButton
+                Icon="@Icons.Filled.Refresh"
+                class="float-end"
+                Style="bottom: 10px"
+                OnClick="ReCalculateMonthlyBudget"/>
+        </MudText>
+
+    </section>
+    @if (Working)
+    {
+        <MudSkeleton/>
+    }
+    else
+    {
+        <section>
+            <MudText
+                Color="@(MonthlyBudget?.Result > 0 ? Color.Success : Color.Error)"
+                class="fs-3">
+                kr @((MonthlyBudget?.Result ?? 0).ToString("N2"))
+            </MudText>
+            <MudText>
+                Income: kr @((MonthlyBudget?.Income ?? 0).ToString("N2"))
+            </MudText>
+            <MudText>
+                Mortgage: kr @((MonthlyBudget?.Mortgage ?? 0).ToString("N2"))
+            </MudText>
+        </section>
+    }
+</Widget>
+
+@code {
+    private MonthlyBudgetDto MonthlyBudget { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        await Search();
+
+        State.OnMonthInYearChanged += MonthInYearChanged;
+    }
+
+    private async void MonthInYearChanged(object o, EventArgs eventArgs)
+    {
+        await Search();
+    }
+
+    private async Task Search()
+    {
+        Working = true;
+
+        MonthlyBudget = (await MonthlyBudgetProvider.Get(new MonthlyBudgetQuery
+        {
+            Month = State.GetValidFromDateForMonthAndYear()
+        })).SingleOrDefault();
+
+        Working = false;
+
+        await InvokeAsync(StateHasChanged);
+    }
+
+    public void Dispose()
+    {
+        State.OnMonthInYearChanged -= MonthInYearChanged;
+    }
+
+    private async Task ReCalculateMonthlyBudget()
+    {
+        await MessageSender.AddToQueue(QueueNames.CalculateMonthlyBudget);
+    }
+
+}
