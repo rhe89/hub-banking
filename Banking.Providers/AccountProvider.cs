@@ -101,7 +101,8 @@ public class AccountProvider : IAccountProvider
     
     private static Queryable<Account> GetQueryable(AccountQuery query)
     {
-        if (query.Id != null && query.Id != 0)
+        if ((query.Id != null && query.Id != 0) ||
+            query.AccountNumber != null)
         {
             query.IncludeExternalAccounts = true;
             query.IncludeSharedAccounts = true;

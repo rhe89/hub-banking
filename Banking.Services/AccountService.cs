@@ -14,7 +14,7 @@ namespace Banking.Services;
 
 public interface IAccountService
 {
-    Task<AccountDto> Add(AccountDto newAccount, bool saveChanges);
+    Task<AccountDto> Add(AccountDto newAccount);
     Task<bool> Update(AccountDto updatedAccount, bool saveChanges);
 
     Task<AccountDto> GetOrAdd(
@@ -30,34 +30,36 @@ public class AccountService : IAccountService
 {
     private readonly ICacheableHubDbRepository _dbRepository;
     private readonly IAccountProvider _accountProvider;
+    private readonly IAccountBalanceProvider _accountBalanceProvider;
     private readonly IBankService _bankService;
     private readonly IMessageSender _messageSender;
     private readonly ILogger<AccountService> _logger;
 
     public AccountService(ICacheableHubDbRepository dbRepository, 
                           IAccountProvider accountProvider,
+                          IAccountBalanceProvider accountBalanceProvider,
                           IBankService bankService,
                           IMessageSender messageSender,
                           ILogger<AccountService> logger)
     {
         _dbRepository = dbRepository;
         _accountProvider = accountProvider;
+        _accountBalanceProvider = accountBalanceProvider;
         _bankService = bankService;
         _messageSender = messageSender;
         _logger = logger;
     }
     
-    public async Task<AccountDto> Add(AccountDto newAccount, bool saveChanges)
+    public async Task<AccountDto> Add(AccountDto newAccount)
     {
-        var accountsWithSameName = await _accountProvider.Get(new AccountQuery
+        var accountsWithSameNumber = await _accountProvider.Get(new AccountQuery
         {
-            AccountName = newAccount.Name,
-            BankId = newAccount.BankId
+            AccountNumber = newAccount.AccountNumber
         });
         
-        if (accountsWithSameName.Any())
+        if (accountsWithSameNumber.Any())
         {
-            return accountsWithSameName.First();
+            return accountsWithSameNumber.First();
         }
         
         _logger.LogInformation("Creating account {Name}", newAccount.Name);
@@ -66,7 +68,7 @@ public class AccountService : IAccountService
 
         if (newAccount.BalanceDate != null)
         {
-            await UpdateAccountBalance(addedAccount.Id, newAccount.BalanceDate.Value, newAccount.Balance, saveChanges);
+            await UpdateAccountBalance(addedAccount.Id, newAccount.BalanceDate.Value, newAccount.Balance, true);
         }
         
         await NotifyConsumers();
@@ -91,21 +93,18 @@ public class AccountService : IAccountService
         accountInDb.SharedAccount = updatedAccount.SharedAccount;
         accountInDb.DiscontinuedDate = updatedAccount.DiscontinuedDate;
 
-        if (!accountInDb.BalanceIsAccumulated && 
-            accountInDb.BalanceDate != updatedAccount.BalanceDate &&
+        if (!accountInDb.BalanceIsAccumulated &&
             updatedAccount.BalanceDate != null)
         {
             await UpdateAccountBalance(accountInDb.Id, updatedAccount.BalanceDate.Value, updatedAccount.Balance, saveChanges);
         }
 
+        _dbRepository.QueueUpdate<Account, AccountDto>(accountInDb);
+
         if (saveChanges)
         {
-            await _dbRepository.UpdateAsync<Account, AccountDto>(accountInDb);
+            await _dbRepository.ExecuteQueueAsync();
             await NotifyConsumers();
-        }
-        else
-        {
-            _dbRepository.QueueUpdate<Account, AccountDto>(accountInDb);
         }
         
         return true;
@@ -118,8 +117,7 @@ public class AccountService : IAccountService
     {
         var existingAccount = (await _accountProvider.Get(new AccountQuery
         {
-            AccountNumber = accountNumber,
-            IncludeExternalAccounts = true,
+            AccountNumber = accountNumber
         })).FirstOrDefault();
 
         if (existingAccount != null)
@@ -137,25 +135,48 @@ public class AccountService : IAccountService
             AccountType = accountType
         };
 
-        return await Add(newAccount, true);
+        return await Add(newAccount);
     }
     
     private async Task UpdateAccountBalance(long accountId, DateTime balanceDate, decimal balance, bool saveChanges)
     {
-        var newAccountBalance = new AccountBalanceDto
+        var accountBalance = (await _accountBalanceProvider.Get(new AccountQuery
         {
             AccountId = accountId,
-            BalanceDate = balanceDate,
-            Balance = balance
-        };
+            BalanceFromDate = balanceDate,
+            BalanceToDate = balanceDate,
+        })).FirstOrDefault();
 
-        if (saveChanges)
+        if (accountBalance == null)
         {
-            await _dbRepository.AddAsync<AccountBalance, AccountBalanceDto>(newAccountBalance);
+            accountBalance = new AccountBalanceDto
+            {
+                AccountId = accountId,
+                BalanceDate = balanceDate,
+                Balance = balance
+            };
+            
+            if (saveChanges)
+            {
+                await _dbRepository.AddAsync<AccountBalance, AccountBalanceDto>(accountBalance);
+            }
+            else
+            {
+                _dbRepository.QueueAdd<AccountBalance, AccountBalanceDto>(accountBalance);
+            }
         }
         else
         {
-            _dbRepository.QueueAdd<AccountBalance, AccountBalanceDto>(newAccountBalance);
+            accountBalance.Balance = balance;
+            
+            if (saveChanges)
+            {
+                await _dbRepository.UpdateAsync<AccountBalance, AccountBalanceDto>(accountBalance);
+            }
+            else
+            {
+                _dbRepository.QueueUpdate<AccountBalance, AccountBalanceDto>(accountBalance);
+            }
         }
     }
 

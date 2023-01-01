@@ -47,8 +47,8 @@ public class ScheduledTransactionProvider : IScheduledTransactionProvider
                 (query.AmountRange == null || entity.Amount >= query.AmountRange[0] && entity.Amount <= query.AmountRange[1]) &&
                 (query.TransactionKey == null || entity.TransactionKey == query.TransactionKey) &&
                 (query.TransactionSubCategoryId == null || entity.TransactionSubCategoryId == query.TransactionSubCategoryId) &&
-                (query.NextTransactionFromDate == null || entity.NextTransactionDate >= query.NextTransactionFromDate) &&
-                (query.NextTransactionToDate == null || entity.NextTransactionDate <= query.NextTransactionToDate) &&
+                (query.NextTransactionFromDate == null || entity.NextTransactionDate.Date >= query.NextTransactionFromDate.Value.Date) &&
+                (query.NextTransactionToDate == null || entity.NextTransactionDate.Date <= query.NextTransactionToDate.Value.Date) &&
                 (string.IsNullOrEmpty(query.Description) || entity.Text.Contains(query.Description)) &&
                 (string.IsNullOrEmpty(query.AccountType) || entity.Account.AccountType == query.AccountType) &&
                 (query.IncludeCompletedTransactions || !entity.Completed),

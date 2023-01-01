@@ -57,8 +57,8 @@ public class TransactionProvider : ITransactionProvider
                 (query.TransactionSubCategoryId == null || query.TransactionSubCategoryId == entity.TransactionSubCategoryId) &&
                 (query.TransactionCategoryId == null || query.TransactionCategoryId == entity.TransactionSubCategory.TransactionCategoryId) &&
                 (query.Source == null || query.Source == entity.Source) &&
-                (query.FromDate == null || entity.TransactionDate >= query.FromDate) &&
-                (query.ToDate == null || entity.TransactionDate <= query.ToDate) &&
+                (query.FromDate == null || entity.TransactionDate.Date >= query.FromDate.Value.Date) &&
+                (query.ToDate == null || entity.TransactionDate.Date <= query.ToDate.Value.Date) &&
                 (string.IsNullOrEmpty(query.Description) || entity.Text.Contains(query.Description)),
 
             Includes = new Expression<Func<Transaction, object>>[]

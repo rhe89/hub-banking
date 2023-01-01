@@ -54,8 +54,8 @@ public class AccountBalanceProvider : IAccountBalanceProvider
                 (query.AccountId == null || query.AccountId == entity.AccountId) &&
                 (query.AccountIds == null || query.AccountIds.Any(accountId => entity.AccountId == accountId)) &&
                 (query.BankId == null || query.BankId == 0 || query.BankId == entity.Account.BankId) &&
-                (query.BalanceFromDate == null || entity.BalanceDate >= query.BalanceFromDate.Value) &&
-                (query.BalanceToDate == null || entity.BalanceDate <= query.BalanceToDate.Value) &&
+                (query.BalanceFromDate == null || entity.BalanceDate.Date >= query.BalanceFromDate.Value.Date) &&
+                (query.BalanceToDate == null || entity.BalanceDate.Date <= query.BalanceToDate.Value.Date) &&
                 (query.IncludeExternalAccounts || entity.Account.Name != entity.Account.AccountNumber) &&
                 (query.IncludeSharedAccounts || !entity.Account.SharedAccount) &&
                 (query.DiscontinuedDate == null || query.IncludeDiscontinuedAccounts || entity.Account.DiscontinuedDate == null || entity.Account.DiscontinuedDate >= query.DiscontinuedDate),
