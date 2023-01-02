@@ -7,7 +7,6 @@ using Banking.Shared;
 using Hub.Shared.DataContracts.Banking.Dto;
 using Hub.Shared.DataContracts.Banking.Query;
 using Hub.Shared.Storage.Repository.Core;
-using Hub.Shared.Utilities;
 using Microsoft.Extensions.Logging;
 
 namespace Banking.Services;

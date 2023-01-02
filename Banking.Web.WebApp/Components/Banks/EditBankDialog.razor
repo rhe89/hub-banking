@@ -1,9 +1,14 @@
-@inherits BankingBaseComponent
+@using Banking.Providers
+@using Banking.Services
+@using Hub.Shared.DataContracts.Banking.Dto
+@using Hub.Shared.DataContracts.Banking.Query
+
+@inherits BaseComponent
 @implements IDisposable
 
 @inject IBankProvider BankProvider
 @inject IBankService BankService
-@inject UIService UiService
+@inject UIHelpers UiHelpers
 
 <Dialog
     HeaderText="@Bank?.Name"
@@ -40,10 +45,10 @@
     public long BankId { get; set; }
 
     [Parameter]
-    public Func<UIService, long, Task> OnBankUpdated { get; set; }
+    public Func<UIHelpers, long, Task> OnBankUpdated { get; set; }
 
     [Parameter]
-    public Func<UIService, long, Task> OnBankDeleted { get; set; }
+    public Func<UIHelpers, long, Task> OnBankDeleted { get; set; }
 
     [CascadingParameter]
     public MudDialogInstance MudDialog { get; set; }
@@ -67,9 +72,9 @@
 
         await BankService.Update(Bank, saveChanges: true);
 
-        await OnBankUpdated.Invoke(UiService, Bank.Id);
+        await OnBankUpdated.Invoke(UiHelpers, Bank.Id);
 
-        UiService.ShowSnackbar("Account saved", Severity.Success);
+        UiHelpers.ShowSnackbar("Account saved", Severity.Success);
 
         Working = false;
 
@@ -84,7 +89,7 @@
 
         Working = false;
 
-        await OnBankDeleted.Invoke(UiService, Bank.Id);
+        await OnBankDeleted.Invoke(UiHelpers, Bank.Id);
 
         MudDialog.Close(DialogResult.Ok(true));
     }

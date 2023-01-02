@@ -1,7 +1,13 @@
-@inject ITransactionService TransactionService
-@inject UIService UiService
+@using Banking.Providers
+@using Banking.Services
+@using Banking.Shared
+@using Banking.Web.WebApp.Models.Form
 
-@inherits BankingBaseComponent
+@inject ITransactionService TransactionService
+@inject ITransactionProvider TransactionProvider
+@inject UIHelpers UiHelpers
+
+@inherits BaseComponent
 
 <Dialog
     HeaderText="Add transaction"
@@ -44,7 +50,7 @@
 @code {
 
     [Parameter]
-    public Func<UIService, long, Task> OnTransactionAdded { get; set; }
+    public Func<UIHelpers, long, Task> OnTransactionAdded { get; set; }
 
     [CascadingParameter]
     public MudDialogInstance MudDialog { get; set; }
@@ -117,7 +123,7 @@
 
         if (OnTransactionAdded != null)
         {
-            await OnTransactionAdded.Invoke(UiService, Transaction.Id);
+            await OnTransactionAdded.Invoke(UiHelpers, Transaction.Id);
         }
 
         Working = false;

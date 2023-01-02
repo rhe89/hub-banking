@@ -1,3 +1,6 @@
+@using Hub.Shared.DataContracts.Banking.Query
+@using Banking.Web.WebApp.Services.Table
+
 @inherits TableBaseComponent<TransactionSubCategoryQuery>
 
 @inject TransactionSubCategoriesTableService TransactionSubCategoriesTableService
@@ -7,4 +10,5 @@
     TableHeader="Transaction sub categories"
     TableHeaderIcon="@IconUtils.TransactionCategoryIcon"
     TQuery="TransactionSubCategoryQuery"
-    Query="Query"/>
+    Query="Query"
+    @ref="TableRef"/>

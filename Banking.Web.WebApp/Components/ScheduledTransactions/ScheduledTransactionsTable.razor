@@ -1,3 +1,6 @@
+@using Hub.Shared.DataContracts.Banking.Query
+@using JetBrains.Annotations
+
 @inherits TableBaseComponent<ScheduledTransactionQuery> 
 
 <GenericTable  
@@ -5,4 +8,5 @@
     TableHeader="Scheduled transactions"
     TableHeaderIcon="@IconUtils.ScheduledTransactionIcon"
     TQuery="ScheduledTransactionQuery"
-    Query="Query"/>
+    Query="Query"
+    @ref="TableRef"/>

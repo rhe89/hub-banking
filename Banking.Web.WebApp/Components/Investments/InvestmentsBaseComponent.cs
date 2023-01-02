@@ -3,14 +3,14 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Banking.Providers;
+using Banking.Shared;
 using Banking.Web.WebApp.Services.Table;
 using Hub.Shared.DataContracts.Banking.Query;
-using Hub.Shared.Utilities;
 using Microsoft.AspNetCore.Components;
 
 namespace Banking.Web.WebApp.Components.Investments;
 
-public class InvestmentsBaseComponent : BankingBaseComponent, IDisposable
+public class InvestmentsBaseComponent : BaseComponent, IDisposable
 {
     private static readonly SemaphoreSlim _semaphore = new SemaphoreSlim(1);
     

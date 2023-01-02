@@ -1,8 +1,18 @@
+@using Banking.Providers
+@using Banking.Services
+@using Hub.Shared.DataContracts.Banking.Constants
+@using Hub.Shared.DataContracts.Banking.Dto
+@using Hub.Shared.DataContracts.Banking.Query
+@using JetBrains.Annotations
+@using System.Globalization
+@using Banking.Shared
+@using Banking.Web.WebApp.Models.Form
+
 @inject IScheduledTransactionProvider ScheduledTransactionProvider
 @inject IScheduledTransactionService ScheduledTransactionService
-@inject UIService UiService
+@inject UIHelpers UiHelpers
 
-@inherits BankingBaseComponent
+@inherits BaseComponent
 
 <Dialog
     HeaderText="Add scheduled transaction"
@@ -58,10 +68,10 @@
     public string TransactionDate { get; set; }
     
     [Parameter]
-    public Func<UIService, long, Task> OnScheduledTransactionAdded { get; set; }
+    public Func<UIHelpers, long, Task> OnScheduledTransactionAdded { get; set; }
     
     [Parameter]
-    public Func<UIService, long, Task> OnShowEditScheduledTransaction { get; set; }
+    public Func<UIHelpers, long, Task> OnShowEditScheduledTransaction { get; set; }
     
     [CascadingParameter] 
     public MudDialogInstance MudDialog { get; set; }
@@ -161,7 +171,7 @@
         
         var addedScheduledTransaction = await ScheduledTransactionService.Add(ScheduledTransaction, true);
 
-        await OnScheduledTransactionAdded.Invoke(UiService, addedScheduledTransaction.Id);
+        await OnScheduledTransactionAdded.Invoke(UiHelpers, addedScheduledTransaction.Id);
         
         Working = false;
         
@@ -175,6 +185,6 @@
             return;
         }
         
-        await OnShowEditScheduledTransaction.Invoke(UiService, ScheduledTransactionWithSameDescription.Id);
+        await OnShowEditScheduledTransaction.Invoke(UiHelpers, ScheduledTransactionWithSameDescription.Id);
     }
 }

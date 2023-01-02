@@ -1,6 +1,6 @@
-@inherits BankingBaseComponent
+@inherits BaseComponent
 
-@inject UIService UiService
+@inject UIHelpers UiHelpers
 
 <Widget>
     <section class="row">
@@ -33,19 +33,19 @@
             { nameof(AddTransactionCategoryDialog.OnTransactionCategoryAdded), OnItemAdded }
         };
 
-        await UiService.ShowDialog<AddTransactionCategoryDialog>(parameters);
+        await UiHelpers.ShowDialog<AddTransactionCategoryDialog>(parameters);
     }
 
-    private static Task OnItemAdded(UIService uiService, long id)
+    private static Task OnItemAdded(UIHelpers uiHelpers, long id)
     {
-        uiService.ShowSnackbar("Transaction category added", Severity.Success);
+        uiHelpers.ShowSnackbar("Transaction category added", Severity.Success);
 
         return Task.CompletedTask;
     }
 
     private async Task OpenFullVersion()
     {
-        await UiService.ShowDialog<TransactionCategoriesOverviewDialog>();
+        await UiHelpers.ShowDialog<TransactionCategoriesOverviewDialog>();
     }
 
 }

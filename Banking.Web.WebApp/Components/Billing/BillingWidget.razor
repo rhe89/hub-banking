@@ -1,6 +1,11 @@
+@using Banking.Providers
+@using Banking.Shared
+@using Hub.Shared.DataContracts.Banking.Constants
+@using Hub.Shared.DataContracts.Banking.Query
+
 @inherits BillingBaseComponent
 
-@inject UIService UiService
+@inject UIHelpers UiHelpers
 
 <Widget OnClick="OpenBillingOverview">
     <MudText class="fs-5">Bills to pay</MudText>
@@ -25,6 +30,6 @@
 @code {
     private async Task OpenBillingOverview()
     {
-        await UiService.ShowDialog<BillingOverviewDialog>();
+        await UiHelpers.ShowDialog<BillingOverviewDialog>();
     }
 }

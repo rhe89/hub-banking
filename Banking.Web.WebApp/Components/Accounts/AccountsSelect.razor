@@ -1,6 +1,13 @@
-@inherits BankingBaseComponent
+@using Hub.Shared.DataContracts.Banking.Dto
+@using Banking.Providers
+@using Banking.Services
+@using Banking.Shared
+@using Hub.Shared.DataContracts.Banking.Query
+@using JetBrains.Annotations
 
-@inject UIService UiService
+@inherits BaseComponent
+
+@inject UIHelpers UiHelpers
 @inject IAccountService AccountService
 @inject IAccountProvider AccountProvider
 
@@ -28,11 +35,11 @@
             Disabled="@(State.AccountId == 0)"
             Color="@Color.Primary"
             Icon="@Icons.Filled.OpenInNew"
-            @onclick="() => OpenEditAccountDialog(UiService, State.AccountId)"/>
+            @onclick="() => OpenEditAccountDialog(UiHelpers, State.AccountId)"/>
         <MudIconButton
             Icon="@Icons.Filled.Add"
             Color="@Color.Primary"
-            @onclick="() => OpenAddAccountDialog(UiService)"/>
+            @onclick="() => OpenAddAccountDialog(UiHelpers)"/>
     </MudButtonGroup>
 
 </div>
@@ -40,34 +47,29 @@
 @code {
     protected override void OnInitialized()
     {
-        State.OnStateUpdated += OnStateUpdated;
+        State.OnStateUpdated += async (sender, args) => await InvokeAsync(StateHasChanged);
     }
 
-    private async void OnStateUpdated(object o, EventArgs eventArgs)
-    {
-        await InvokeAsync(StateHasChanged);
-    }
-
-    protected async Task OpenAddAccountDialog(UIService uiService)
+    protected async Task OpenAddAccountDialog(UIHelpers uiHelpers)
     {
         var parameters = new DialogParameters
         {
             { nameof(AddAccountDialog.OnAccountAdded), OnAccountAdded }
         };
 
-        await uiService.ShowDialog<AddAccountDialog>(parameters);
+        await uiHelpers.ShowDialog<AddAccountDialog>(parameters);
     }
 
-    protected async Task OnAccountAdded(UIService uiService, long accountId)
+    protected async Task OnAccountAdded(UIHelpers uiHelpers, long accountId)
     {
         await State.SetAccounts();
 
-        uiService.ShowSnackbar("Account added", Severity.Success);
+        uiHelpers.ShowSnackbar("Account added", Severity.Success);
 
         await InvokeAsync(StateHasChanged);
     }
 
-    protected async Task OpenEditAccountDialog(UIService uiService, long? accountId)
+    protected async Task OpenEditAccountDialog(UIHelpers uiHelpers, long? accountId)
     {
         if (accountId == null)
         {
@@ -81,23 +83,23 @@
             { nameof(EditAccountDialog.OnAccountDeleted), OnAccountDeleted }
         };
 
-        await uiService.ShowDialog<EditAccountDialog>(parameters);
+        await uiHelpers.ShowDialog<EditAccountDialog>(parameters);
     }
 
-    protected async Task OnAccountUpdated(UIService uiService, long accountId)
+    protected async Task OnAccountUpdated(UIHelpers uiHelpers, long accountId)
     {
         await State.SetAccounts();
 
-        uiService.ShowSnackbar("Account updated", Severity.Success);
+        uiHelpers.ShowSnackbar("Account updated", Severity.Success);
 
         await InvokeAsync(StateHasChanged);
     }
 
-    protected async Task OnAccountDeleted(UIService uiService, long bankId)
+    protected async Task OnAccountDeleted(UIHelpers uiHelpers, long bankId)
     {
         await State.SetAccounts();
 
-        uiService.ShowSnackbar("Account deleted", Severity.Success);
+        uiHelpers.ShowSnackbar("Account deleted", Severity.Success);
 
         await InvokeAsync(StateHasChanged);
     }

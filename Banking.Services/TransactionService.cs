@@ -6,11 +6,11 @@ using Hub.Shared.Storage.Repository.Core;
 using Banking.Data.Entities;
 using Banking.Integration.Dto;
 using Banking.Providers;
+using Banking.Shared;
 using Hub.Shared.DataContracts.Banking.Constants;
 using Hub.Shared.DataContracts.Banking.Dto;
 using Hub.Shared.DataContracts.Banking.Query;
 using Hub.Shared.Storage.ServiceBus;
-using Hub.Shared.Utilities;
 using Microsoft.Extensions.Logging;
 
 namespace Banking.Services;
@@ -22,6 +22,7 @@ public interface ITransactionService
     Task AddFromFile(string fileName, IEnumerable<SbankenTransaction> transactionsToImport);
     Task<bool> Update(TransactionDto transaction, bool saveChanges);
     Task Delete(TransactionDto transaction, bool saveChanges);
+    Task<int> Categorize();
     Task SaveChanges();
 }
 
@@ -32,12 +33,14 @@ public class TransactionService : ITransactionService
     private readonly IScheduledTransactionService _scheduledTransactionService;
     private readonly IAccountService _accountService;
     private readonly ITransactionCategoryService _transactionCategoryService;
+    private readonly ITransactionCategoryProvider _transactionCategoryProvider;
     private readonly IHubDbRepository _dbRepository;
     private readonly IMessageSender _messageSender;
     private readonly ILogger<TransactionService> _logger;
 
     public TransactionService(
         ITransactionCategoryService transactionCategoryService,
+        ITransactionCategoryProvider transactionCategoryProvider,
         ITransactionProvider transactionProvider,
         IScheduledTransactionProvider scheduledTransactionProvider,
         IScheduledTransactionService scheduledTransactionService,
@@ -47,6 +50,7 @@ public class TransactionService : ITransactionService
         ILogger<TransactionService> logger)
     {
         _transactionCategoryService = transactionCategoryService;
+        _transactionCategoryProvider = transactionCategoryProvider;
         _transactionProvider = transactionProvider;
         _scheduledTransactionProvider = scheduledTransactionProvider;
         _scheduledTransactionService = scheduledTransactionService;
@@ -337,6 +341,58 @@ public class TransactionService : ITransactionService
         {
             await SaveChanges();
         }
+    }
+
+    public async Task<int> Categorize()
+    {
+        var uncategorizedTransactions = (await _transactionProvider.Get())
+            .Where(x => x.TransactionSubCategoryId == null);
+
+        var categorizedTransactionsCount = 0;
+
+        var transactionSubCategories = await _transactionCategoryProvider.GetTransactionSubCategories();
+        var scheduledTransactions = await _scheduledTransactionProvider.Get();
+
+        foreach (var uncategorizedTransaction in uncategorizedTransactions)
+        {
+            var scheduledTransaction = scheduledTransactions
+                .FirstOrDefault(scheduledTransaction => uncategorizedTransaction.Description.Contains(scheduledTransaction.Description) ||
+                                                        ((scheduledTransaction.Amount == uncategorizedTransaction.Amount + 10 ||
+                                                          scheduledTransaction.Amount == uncategorizedTransaction.Amount - 10) &&
+                                                         (scheduledTransaction.NextTransactionDate ==
+                                                          uncategorizedTransaction.TransactionDate.AddDays(3) ||
+                                                          scheduledTransaction.NextTransactionDate ==
+                                                          uncategorizedTransaction.TransactionDate.AddDays(-3))));
+
+            var transactionSubCategoryId = scheduledTransaction?.TransactionSubCategoryId;
+
+            if (scheduledTransaction != null)
+            {
+                scheduledTransaction.NextTransactionDate = uncategorizedTransaction.TransactionDate;
+                
+                await _scheduledTransactionService.Update(scheduledTransaction, false);
+            }
+
+            transactionSubCategoryId ??= transactionSubCategories
+                .FirstOrDefault(x => x.KeywordList.Any(keyword =>
+                                                           uncategorizedTransaction.Description.Contains(keyword.Value)))
+                ?.Id;
+
+            if (transactionSubCategoryId == null)
+            {
+                continue;
+            }
+
+            uncategorizedTransaction.TransactionSubCategoryId = transactionSubCategoryId;
+
+            await Update(uncategorizedTransaction, false);
+
+            categorizedTransactionsCount++;
+        }
+
+        await SaveChanges();
+
+        return categorizedTransactionsCount;
     }
 
     public async Task SaveChanges()

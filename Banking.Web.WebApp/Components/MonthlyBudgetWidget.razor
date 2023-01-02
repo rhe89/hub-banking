@@ -1,8 +1,15 @@
-@inherits BankingBaseComponent
+@using Banking.Providers
+@using Banking.Shared
+@using Hub.Shared.DataContracts.Banking.Constants
+@using Hub.Shared.DataContracts.Banking.Query
+@using Hub.Shared.Storage.ServiceBus
+@using Hub.Shared.DataContracts.Banking.Dto
+
+@inherits BaseComponent
 
 @implements IDisposable
 
-@inject UIService UiService
+@inject UIHelpers UiHelpers
 @inject IMonthlyBudgetProvider MonthlyBudgetProvider
 @inject IMessageSender MessageSender
 

@@ -1,3 +1,6 @@
+@using Hub.Shared.DataContracts.Banking.Query
+@using JetBrains.Annotations
+
 @inherits TableBaseComponent<AccountQuery> 
 
 <GenericTable
@@ -5,4 +8,5 @@
     TableHeader="Accounts"
     TableHeaderIcon="@IconUtils.AccountIcon"
     TQuery="AccountQuery"
-    Query="Query"/>
+    Query="Query"
+    @ref="TableRef"/>

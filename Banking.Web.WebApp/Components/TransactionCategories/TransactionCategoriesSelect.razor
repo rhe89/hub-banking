@@ -1,4 +1,10 @@
-@inject UIService UiService
+@using Banking.Providers
+@using Banking.Shared
+@using Hub.Shared.DataContracts.Banking.Dto
+@using Hub.Shared.DataContracts.Banking.Query
+@using JetBrains.Annotations
+
+@inject UIHelpers UiHelpers
 @inject ITransactionCategoryProvider TransactionCategoryProvider
 
 <div class="row">
@@ -43,11 +49,11 @@
                 Disabled="@(SelectedTransactionCategoryId == null)"
                 Color="@Color.Primary"
                 Icon="@Icons.Filled.OpenInNew"
-                @onclick="() => OpenEditTransactionCategoryDialog(UiService, SelectedTransactionCategoryId ?? 0)"/>
+                @onclick="() => OpenEditTransactionCategoryDialog(UiHelpers, SelectedTransactionCategoryId ?? 0)"/>
             <MudIconButton
                 Icon="@Icons.Filled.Add"
                 Color="@Color.Primary"
-                @onclick="() => OpenAddTransactionCategoryDialog(UiService)"/>
+                @onclick="() => OpenAddTransactionCategoryDialog(UiHelpers)"/>
         </MudButtonGroup>
     }
 </div>
@@ -111,7 +117,7 @@
         ParametersSet = true;
     }
     
-    private async Task OpenAddTransactionCategoryDialog(UIService uiService)
+    private async Task OpenAddTransactionCategoryDialog(UIHelpers uiHelpers)
     {
         var parameters = new DialogParameters
         {
@@ -119,21 +125,21 @@
             { nameof(AddTransactionCategoryDialog.OnShowEditTransactionCategory), OpenEditTransactionCategoryDialog }
         };
 
-        await uiService.ShowDialog<AddTransactionCategoryDialog>(parameters);
+        await uiHelpers.ShowDialog<AddTransactionCategoryDialog>(parameters);
     }
     
-    private async Task OnTransactionCategoryAdded(UIService uiService, long transactionCategoryId)
+    private async Task OnTransactionCategoryAdded(UIHelpers uiHelpers, long transactionCategoryId)
     {
         var addedTransactionCategory = (await TransactionCategoryProvider.Get(new TransactionCategoryQuery { Id = transactionCategoryId })).Single();
 
         TransactionCategories.Insert(0, addedTransactionCategory);
         
-        uiService.ShowSnackbar("Transaction category added", Severity.Success);
+        uiHelpers.ShowSnackbar("Transaction category added", Severity.Success);
 
         await InvokeAsync(StateHasChanged);
     }
 
-    private async Task OpenEditTransactionCategoryDialog(UIService uiService, long transactionCategoryId)
+    private async Task OpenEditTransactionCategoryDialog(UIHelpers uiHelpers, long transactionCategoryId)
     {
         var parameters = new DialogParameters
         {
@@ -142,10 +148,10 @@
             { nameof(EditTransactionCategoryDialog.OnTransactionCategoryDeleted), OnTransactionCategoryDeleted }
         };
 
-        await uiService.ShowDialog<EditTransactionCategoryDialog>(parameters);
+        await uiHelpers.ShowDialog<EditTransactionCategoryDialog>(parameters);
     }
 
-    private async Task OnTransactionCategoryUpdated(UIService uiService, long transactionCategoryId)
+    private async Task OnTransactionCategoryUpdated(UIHelpers uiHelpers, long transactionCategoryId)
     {
         var updatedTransactionCategory = (await TransactionCategoryProvider
             .Get(new TransactionCategoryQuery { Id = transactionCategoryId })).Single();
@@ -172,12 +178,12 @@
 
         TransactionCategories[index] = updatedTransactionCategory;
         
-        uiService.ShowSnackbar("Transaction category updated", Severity.Success);
+        uiHelpers.ShowSnackbar("Transaction category updated", Severity.Success);
 
         await InvokeAsync(StateHasChanged);
     }
     
-    private async Task OnTransactionCategoryDeleted(UIService uiService, long transactionCategoryId)
+    private async Task OnTransactionCategoryDeleted(UIHelpers uiHelpers, long transactionCategoryId)
     {
         var deletedTransactionCategory = TransactionCategories
             .FirstOrDefault(updatedTransactionCategory => updatedTransactionCategory.Id == transactionCategoryId);
@@ -189,7 +195,7 @@
         
         TransactionCategories.Remove(deletedTransactionCategory);
         
-        uiService.ShowSnackbar("Transaction category deleted", Severity.Success);
+        uiHelpers.ShowSnackbar("Transaction category deleted", Severity.Success);
 
         await InvokeAsync(StateHasChanged);
     }

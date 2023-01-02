@@ -1,6 +1,11 @@
-@inherits BankingBaseComponent
+@using Hub.Shared.DataContracts.Banking.Dto
+@using Banking.Providers
+@using Hub.Shared.DataContracts.Banking.Query
+@using JetBrains.Annotations
 
-@inject UIService UiService
+@inherits BaseComponent
+
+@inject UIHelpers UiHelpers
 @inject IBankProvider BankProvider
 
 <div class="row">
@@ -28,36 +33,36 @@
             Disabled="@(State.BankId == 0)"
             Color="@Color.Primary"
             Icon="@Icons.Filled.OpenInNew"
-            @onclick="() => OpenEditBankDialog(UiService, State.BankId)"/>
+            @onclick="() => OpenEditBankDialog(UiHelpers, State.BankId)"/>
         <MudIconButton
             Icon="@Icons.Filled.Add"
             Color="@Color.Primary"
-            @onclick="() => OpenAddBankDialog(UiService)"/>
+            @onclick="() => OpenAddBankDialog(UiHelpers)"/>
     </MudButtonGroup>
 </div>
 
 @code {
 
-    private async Task OpenAddBankDialog(UIService uiService)
+    private async Task OpenAddBankDialog(UIHelpers uiHelpers)
     {
         var parameters = new DialogParameters
         {
             { nameof(AddBankDialog.OnBankAdded), OnBankAdded }
         };
 
-        await uiService.ShowDialog<AddBankDialog>(parameters);
+        await uiHelpers.ShowDialog<AddBankDialog>(parameters);
     }
 
-    private async Task OnBankAdded(UIService uiService, long bankId)
+    private async Task OnBankAdded(UIHelpers uiHelpers, long bankId)
     {
         await State.SetBanks();
 
-        uiService.ShowSnackbar("Bank added", Severity.Success);
+        uiHelpers.ShowSnackbar("Bank added", Severity.Success);
 
         await InvokeAsync(StateHasChanged);
     }
 
-    private async Task OpenEditBankDialog(UIService uiService, long bankId)
+    private async Task OpenEditBankDialog(UIHelpers uiHelpers, long bankId)
     {
         var parameters = new DialogParameters
         {
@@ -66,23 +71,23 @@
             { nameof(EditBankDialog.OnBankDeleted), OnBankDeleted }
         };
 
-        await uiService.ShowDialog<EditBankDialog>(parameters);
+        await uiHelpers.ShowDialog<EditBankDialog>(parameters);
     }
 
-    private async Task OnBankUpdated(UIService uiService, long bankId)
+    private async Task OnBankUpdated(UIHelpers uiHelpers, long bankId)
     {
         await State.SetBanks();
 
-        uiService.ShowSnackbar("Bank saved", Severity.Success);
+        uiHelpers.ShowSnackbar("Bank saved", Severity.Success);
 
         await InvokeAsync(StateHasChanged);
     }
 
-    private async Task OnBankDeleted(UIService uiService, long bankId)
+    private async Task OnBankDeleted(UIHelpers uiHelpers, long bankId)
     {
         await State.SetBanks();
 
-        uiService.ShowSnackbar("Bank deleted", Severity.Success);
+        uiHelpers.ShowSnackbar("Bank deleted", Severity.Success);
 
         await InvokeAsync(StateHasChanged);
     }

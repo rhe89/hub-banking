@@ -2,13 +2,13 @@ using System;
 using System.Linq;
 using System.Threading.Tasks;
 using Banking.Providers;
+using Banking.Shared;
 using Hub.Shared.DataContracts.Banking.Query;
-using Hub.Shared.Utilities;
 using Microsoft.AspNetCore.Components;
 
 namespace Banking.Web.WebApp.Components.Billing;
 
-public class BillingBaseComponent : BankingBaseComponent, IDisposable
+public class BillingBaseComponent : BaseComponent, IDisposable
 {
     [Inject] private IScheduledTransactionProvider ScheduledTransactionProvider { get; set; }
     [Inject] private ITransactionProvider TransactionsProvider { get; set; }

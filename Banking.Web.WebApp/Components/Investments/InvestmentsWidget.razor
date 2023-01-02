@@ -1,6 +1,13 @@
+@using Banking.Providers
+@using Banking.Shared
+@using Banking.Web.WebApp.Services.Table
+@using Hub.Shared.DataContracts.Banking.Constants
+@using Hub.Shared.DataContracts.Banking.Dto
+@using Hub.Shared.DataContracts.Banking.Query
+
 @inherits InvestmentsBaseComponent
 
-@inject UIService UiService
+@inject UIHelpers UiHelpers
 
 <Widget OnClick="OpenInvestmentsOverview">
     <MudText class="fs-5">Investments</MudText>
@@ -30,7 +37,7 @@
 
     private async Task OpenInvestmentsOverview()
     {
-        await UiService.ShowDialog<InvestmentsOverviewDialog>();
+        await UiHelpers.ShowDialog<InvestmentsOverviewDialog>();
     }
 
 }

@@ -1,4 +1,13 @@
-@inherits BankingBaseComponent
+@using Microsoft.AspNetCore.Components
+@using Banking.Web.WebApp.Models
+@using Banking.Web.WebApp.Models.Form
+@using Hub.Shared.DataContracts.Banking.Constants
+@using Hub.Shared.DataContracts.Banking.Dto
+@using Hub.Shared.DataContracts.Banking.Query
+@using Hub.Shared.Extensions
+@using Banking.Providers
+
+@inherits BaseComponent
 
 @inject IAccountProvider AccountProvider
 

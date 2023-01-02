@@ -48,6 +48,9 @@ ServiceBusHostBuilder
         serviceCollection.AddSingleton<BulderBankTransactionsImporterCommand>();
         serviceCollection.AddHostedService<BulderBankTransactionsImporter>();
         
+        serviceCollection.AddSingleton<TransactionCategorizerCommand>();
+        serviceCollection.AddHostedService<TransactionCategorizer>();
+        
         serviceCollection.AddSingleton<CreditCardPaymentCalculatorCommand>();
         serviceCollection.AddHostedService<CreditCardPaymentCalculator>();
         

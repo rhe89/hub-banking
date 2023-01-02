@@ -3,38 +3,42 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Banking.Providers;
+using Banking.Shared;
+using Banking.Web.WebApp.Utils;
 using Hub.Shared.DataContracts.Banking.Dto;
 using Hub.Shared.DataContracts.Banking.Query;
-using Hub.Shared.Utilities;
 
 namespace Banking.Web.WebApp;
 
-public class BankingState : IDisposable
+public class State : IDisposable
 {
     private readonly IBankProvider _bankProvider;
     private readonly IAccountProvider _accountProvider;
-    private MonthInYear _monthInYear;
     private long _accountId;
+    private MonthInYear _monthInYear;
     private long _bankId;
 
-    public BankingState(IBankProvider bankProvider, IAccountProvider accountProvider)
+    public IList<BankDto> AllBanks { get; set; }
+    public IList<BankDto> Banks { get; set; } = new List<BankDto>();
+    public IList<AccountDto> AllAccounts { get; set; } = new List<AccountDto>();
+    public IList<AccountDto> Accounts { get; set; } = new List<AccountDto>();
+    public IList<MonthInYear> MonthsInYears { get; set; }
+
+    public State(IBankProvider bankProvider, IAccountProvider accountProvider)
     {
         _bankProvider = bankProvider;
         _accountProvider = accountProvider;
         
         OnMonthInYearChanged += MonthInYearHasChanged;
     }
+    
+    private async void MonthInYearHasChanged(object sender, EventArgs e)
+    {
+        await SetAccounts();
+        await SetBanks();
+    }
 
-    public IList<MonthInYear> MonthsInYears { get; set; }
-    public IList<BankDto> AllBanks { get; set; }
-    public IList<BankDto> Banks { get; set; } = new List<BankDto>();
-    public IList<AccountDto> AllAccounts { get; set; } = new List<AccountDto>();
-    public IList<AccountDto> Accounts { get; set; } = new List<AccountDto>();
-
-    public EventHandler OnStateUpdated { get; set; }
-    public EventHandler OnMonthInYearChanged { get; set; }
-
-    public new async Task InitState()
+    public async Task InitState()
     {
         MonthsInYears = new List<MonthInYear>();
 
@@ -127,7 +131,7 @@ public class BankingState : IDisposable
             OnStateUpdated?.Invoke(this, EventArgs.Empty);
         }
     }
-    
+
     public MonthInYear MonthInYear
     {
         get => _monthInYear;
@@ -169,23 +173,21 @@ public class BankingState : IDisposable
         
         return DateTimeUtils.LastDayOfMonth(MonthInYear.Year, MonthInYear.Month);
     }
+
+    public EventHandler OnStateUpdated { get; set; }
+    public EventHandler OnMonthInYearChanged { get; set; }
+    public EventHandler OnMonthChanged { get; set; }
+    public EventHandler OnYearChanged { get; set; }
     
     public void Dispose()
     {
         OnMonthInYearChanged -= MonthInYearHasChanged;
-    }
-    
-    private async void MonthInYearHasChanged(object sender, EventArgs e)
-    {
-        await SetAccounts();
-        await SetBanks();
     }
 }
 
 public class MonthInYear
 {
     public int Month { get; }
-    
     public int Year { get; }
 
     public MonthInYear(int month, int year)
