@@ -8,6 +8,7 @@ using Hub.Shared.DataContracts.Banking.Dto;
 using Hub.Shared.DataContracts.Banking.Query;
 using Hub.Shared.Storage.Repository;
 using Hub.Shared.Storage.Repository.Core;
+using Hub.Shared.Utilities;
 
 namespace Banking.Providers;
 

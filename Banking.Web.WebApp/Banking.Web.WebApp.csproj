@@ -4,11 +4,9 @@
 	</PropertyGroup>
 
 	<ItemGroup>
-		<PackageReference Include="JetBrains.Annotations" Version="2021.3.0" />
 		<PackageReference Include="Microsoft.AspNetCore.Mvc.Razor.RuntimeCompilation" Version="6.0.9" />
-		<PackageReference Include="MudBlazor" Version="6.0.9" />
-		<PackageReference Include="Hub.Shared.Extensions" Version="7.2" />
-		<PackageReference Include="Hub.Shared.Web.BlazorServer" Version="7.2" />
+		<PackageReference Include="Hub.Shared.Extensions" Version="7.3" />
+		<PackageReference Include="Hub.Shared.Web.BlazorServer" Version="7.3" />
 	</ItemGroup>
 
 	<ItemGroup>

@@ -1,14 +1,8 @@
-@using Banking.Providers
-@using Banking.Services
-@using Hub.Shared.DataContracts.Banking.Query
-@using System.Globalization
-@using Banking.Web.WebApp.Models.Form
-
 @inject ITransactionProvider TransactionProvider
 @inject ITransactionService TransactionService
-@inject UIHelpers UiHelpers
+@inject UIService UiService
 
-@inherits BaseComponent
+@inherits BankingBaseComponent
 
 <Dialog 
     HeaderText="@($"{Transaction?.Description}")"
@@ -73,10 +67,10 @@
     public string TransactionId { get; set; }
     
     [Parameter]
-    public Func<UIHelpers, long, Task> OnTransactionUpdated { get; set; }
+    public Func<UIService, long, Task> OnTransactionUpdated { get; set; }
     
     [Parameter]
-    public Func<UIHelpers, long, Task> OnTransactionDeleted { get; set; }
+    public Func<UIService, long, Task> OnTransactionDeleted { get; set; }
     
     [CascadingParameter]
     public MudDialogInstance MudDialog { get; set; }
@@ -132,7 +126,7 @@
         
         await TransactionService.Update(Transaction, saveChanges: true);
 
-        await OnTransactionUpdated.Invoke(UiHelpers, Transaction.Id);
+        await OnTransactionUpdated.Invoke(UiService, Transaction.Id);
         
         Working = false;
 
@@ -145,7 +139,7 @@
 
         await TransactionService.Delete(Transaction, saveChanges: true);
 
-        await OnTransactionDeleted.Invoke(UiHelpers, Transaction.Id);
+        await OnTransactionDeleted.Invoke(UiService, Transaction.Id);
         
         Working = false;
         
@@ -162,6 +156,6 @@
             { nameof(AddScheduledTransactionDialog.TransactionDate), Transaction.TransactionDate?.ToString(CultureInfo.InvariantCulture) },
         };
         
-        await UiHelpers.ShowDialog<AddScheduledTransactionDialog>(parameters);
+        await UiService.ShowDialog<AddScheduledTransactionDialog>(parameters);
     }
 }

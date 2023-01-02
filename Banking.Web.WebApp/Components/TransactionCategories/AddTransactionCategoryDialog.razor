@@ -1,14 +1,8 @@
-@using Banking.Providers
-@using Banking.Services
-@using Banking.Web.WebApp.Models.Form
-@using Hub.Shared.DataContracts.Banking.Dto
-@using Hub.Shared.DataContracts.Banking.Query
-
 @inject ITransactionCategoryService TransactionCategoryService
 @inject ITransactionCategoryProvider TransactionCategoryProvider;
-@inject UIHelpers UiHelpers
+@inject UIService UiService
 
-@inherits BaseComponent
+@inherits BankingBaseComponent
 
 <Dialog
     HeaderText="Add transaction category"
@@ -49,10 +43,10 @@
 
 @code {
     [Parameter]
-    public Func<UIHelpers, long, Task> OnTransactionCategoryAdded { get; set; }
+    public Func<UIService, long, Task> OnTransactionCategoryAdded { get; set; }
     
     [Parameter]
-    public Func<UIHelpers, long, Task> OnShowEditTransactionCategory { get; set; }
+    public Func<UIService, long, Task> OnShowEditTransactionCategory { get; set; }
 
     [CascadingParameter] 
     public MudDialogInstance MudDialog { get; set; }
@@ -121,7 +115,7 @@
 
         var addedTransactionCategory = await TransactionCategoryService.Add(TransactionCategory, true);
         
-        await OnTransactionCategoryAdded.Invoke(UiHelpers, addedTransactionCategory.Id);
+        await OnTransactionCategoryAdded.Invoke(UiService, addedTransactionCategory.Id);
         
         Working = false;
         
@@ -135,6 +129,6 @@
             return;
         }
         
-        await OnShowEditTransactionCategory.Invoke(UiHelpers, TransactionCategoryWithSameName.Id);
+        await OnShowEditTransactionCategory.Invoke(UiService, TransactionCategoryWithSameName.Id);
     }
 }

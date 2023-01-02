@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
-using Banking.Shared;
 using Hub.Shared.DataContracts.Banking.Dto;
+using Hub.Shared.Utilities;
 
 namespace Banking.Web.WebApp.Models.Form;
 

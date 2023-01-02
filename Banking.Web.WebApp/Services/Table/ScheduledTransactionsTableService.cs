@@ -4,14 +4,12 @@ using System.Globalization;
 using System.Linq;
 using System.Threading.Tasks;
 using Banking.Providers;
-using Banking.Shared;
-using Banking.Web.WebApp.Components;
 using Banking.Web.WebApp.Components.ScheduledTransactions;
-using Banking.Web.WebApp.Extensions;
-using Banking.Web.WebApp.Shared;
+using Banking.Web.WebApp.Components.Shared;
 using Banking.Web.WebApp.Utils;
 using Hub.Shared.DataContracts.Banking.Query;
 using Hub.Shared.Extensions;
+using Hub.Shared.Web.BlazorServer.Services;
 using MudBlazor;
 
 namespace Banking.Web.WebApp.Services.Table;
@@ -19,14 +17,17 @@ namespace Banking.Web.WebApp.Services.Table;
 public class ScheduledTransactionsTableService : TableService<ScheduledTransactionQuery>
 {
     private readonly IScheduledTransactionProvider _scheduledTransactionProvider;
-    public override Func<UIHelpers, long, Task> OnRowClicked => OpenEditItemDialog;
+    private readonly BankingState _state;
     
     public ScheduledTransactionsTableService(
         IScheduledTransactionProvider scheduledTransactionProvider, 
-        State state) : base(state)
+        BankingState state)
     {
         _scheduledTransactionProvider = scheduledTransactionProvider;
+        _state = state;
     }
+
+    public override Func<UIService, long, Task> OnRowClicked => OpenEditItemDialog;
 
     public override void CreateHeaderRow()
     {
@@ -76,51 +77,17 @@ public class ScheduledTransactionsTableService : TableService<ScheduledTransacti
         });
     }
 
-    public override Task CreateFilters(ScheduledTransactionQuery scheduledTransactionQuery)
-    {
-        Filter.Clear();
-
-        Filter.Add(new Input
-        {
-            FilterType = FilterType.Component,
-            Name = nameof(MonthYearSelect)
-        });
-        
-        Filter.Add(new Checkbox<ScheduledTransactionQuery>
-        {
-            FilterType = FilterType.Checkbox,
-            OnChanged = OnIncludeCompletedChanged,
-            Value = scheduledTransactionQuery.IncludeCompletedTransactions,
-            Name = "Include completed transactions"
-        });
-        
-        return Task.CompletedTask;
-    }
-
-    private Task OnIncludeCompletedChanged(Checkbox<ScheduledTransactionQuery> checkbox, bool value, ScheduledTransactionQuery scheduledTransactionQuery)
-    {
-        scheduledTransactionQuery.IncludeCompletedTransactions = value;
-        checkbox.Value = value;
-        
-        State.OnStateUpdated.Invoke(this, EventArgs.Empty);
-        
-        return Task.CompletedTask;
-    }
-
     public override async Task<IList<TableRow>> FetchData(ScheduledTransactionQuery scheduledTransactionQuery, TableState tableState)
     {
-        if (!HideFilter && !Widget && !Filter.Any())
+        if (!Widget && !Filter.Any())
         {
-            await CreateFilters(scheduledTransactionQuery);
+            CreateFilters(scheduledTransactionQuery);
         }
         
         scheduledTransactionQuery.Take = Widget ? 5 : null;
         
-        if (UseStateForQuerying)
-        {
-            scheduledTransactionQuery.NextTransactionFromDate = State.GetValidFromDateForMonthAndYear();
-            scheduledTransactionQuery.NextTransactionToDate = State.GetValidToDateForMonthAndYear();
-        }
+        scheduledTransactionQuery.NextTransactionFromDate = _state.GetValidFromDateForMonthAndYear();
+        scheduledTransactionQuery.NextTransactionToDate = _state.GetValidToDateForMonthAndYear();
         
         var scheduledTransactions = await _scheduledTransactionProvider.Get(scheduledTransactionQuery);
 
@@ -179,22 +146,46 @@ public class ScheduledTransactionsTableService : TableService<ScheduledTransacti
         return tableRows;
     }
 
-    public override async Task OpenFullVersionDialog(UIHelpers uiHelpers, ScheduledTransactionQuery scheduledTransactionQuery)
+    private void CreateFilters(ScheduledTransactionQuery scheduledTransactionQuery)
     {
-        await uiHelpers.ShowDialog<ScheduledTransactionsOverviewDialog>();
+        Filter.Clear();
+
+        Filter.Add(new Input
+        {
+            FilterType = FilterType.Component,
+            Name = nameof(MonthYearSelect)
+        });
+        
+        Filter.Add(new Checkbox<ScheduledTransactionQuery>
+        {
+            FilterType = FilterType.Checkbox,
+            OnChanged = OnIncludeCompletedChanged,
+            Value = scheduledTransactionQuery.IncludeCompletedTransactions,
+            Name = "Include completed transactions"
+        });
+    }
+    
+    private Task OnIncludeCompletedChanged(Checkbox<ScheduledTransactionQuery> checkbox, bool value, ScheduledTransactionQuery scheduledTransactionQuery)
+    {
+        scheduledTransactionQuery.IncludeCompletedTransactions = value;
+        checkbox.Value = value;
+        
+        _state.OnStateUpdated.Invoke(this, EventArgs.Empty);
+        
+        return Task.CompletedTask;
     }
 
-    public override async Task OpenAddItemDialog(UIHelpers uiHelpers)
+    public override async Task OpenAddItemDialog(UIService uiService)
     {
         var parameters = new DialogParameters
         {
             { nameof(AddScheduledTransactionDialog.OnScheduledTransactionAdded), OnItemAdded }
         };
 
-        await uiHelpers.ShowDialog<AddScheduledTransactionDialog>(parameters);
+        await uiService.ShowDialog<AddScheduledTransactionDialog>(parameters);
     }
 
-    public override async Task OpenEditItemDialog(UIHelpers uiHelpers, long id)
+    private async Task OpenEditItemDialog(UIService uiService, long id)
     {
         var parameters = new DialogParameters
         {
@@ -203,6 +194,6 @@ public class ScheduledTransactionsTableService : TableService<ScheduledTransacti
             { nameof(EditScheduledTransactionDialog.OnScheduledTransactionDeleted), OnItemDeleted }
         };
 
-        await uiHelpers.ShowDialog<EditScheduledTransactionDialog>(parameters);
+        await uiService.ShowDialog<EditScheduledTransactionDialog>(parameters);
     }
 }

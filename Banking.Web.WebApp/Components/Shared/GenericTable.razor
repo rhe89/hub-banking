@@ -1,11 +1,8 @@
-@using Hub.Shared.DataContracts.Banking.Query;
-@using System.Threading
-@using Banking.Web.WebApp.Services.Table
+@inherits BankingBaseComponent
 
-@inherits BaseComponent
 @implements IDisposable
 
-@inject UIHelpers UiHelpers
+@inject UIService UiService
 
 @typeparam TQuery where TQuery : Hub.Shared.Storage.Repository.Core.Query, new()
 
@@ -27,7 +24,7 @@
                 @if (!Widget && !string.IsNullOrWhiteSpace(TableHeader))
                 {
                     <MudTHeadRow IgnoreCheckbox="true" Class="header-centered">
-                        <MudTh colspan="@TableService.FullSizeColumns">
+                        <MudTh colspan="@TableService.Columns">
                             <header class="float-start mt-2">
                                 <MudIcon
                                     class="me-2 mb-1"
@@ -40,14 +37,14 @@
                                 class="float-end"
                                 Icon="@Icons.Filled.Add"
                                 Size="@Size.Large"
-                                @onclick="() => TableService.OpenAddItemDialog(UiHelpers)"/>
+                                @onclick="() => TableService.OpenAddItemDialog(UiService)"/>
                         </MudTh>
                     </MudTHeadRow>
                 }
                 @if (!Widget && TableService.Filter.Any())
                 {
                     <MudTHeadRow IgnoreCheckbox="true" Class="header-centered">
-                        <MudTh colspan="@TableService.FullSizeColumns">
+                        <MudTh colspan="@TableService.Columns">
                             <ExpansionSection>
                                 <TitleContent>
                                     <h2 class="fs-4">
@@ -155,7 +152,7 @@
             <FooterContent>
                 @if (TableService.Footer != null)
                 {
-                    <MudTd Class="mud-table-cell-custom-group mud-table-cell-custom-group-footer" colspan="@(Widget ? TableService.WidgetColumnsCount : TableService.FullSizeColumns)">
+                    <MudTd Class="mud-table-cell-custom-group mud-table-cell-custom-group-footer" colspan="@TableService.Columns">
                         @TableService.Footer.ColumnText.Text
                     </MudTd>
                 }
@@ -189,12 +186,6 @@
 
     [Parameter]
     public bool Widget { get; set; }
-
-    [CascadingParameter(Name = "UseState")]
-    public bool UseState { get; set; } = true;
-
-    [Parameter]
-    public bool HideFilter { get; set; }
 
     [Parameter]
     public string TableHeader { get; set; }
@@ -235,8 +226,6 @@
     protected override Task OnParametersSetAsync()
     {
         TableService.Widget = Widget;
-        TableService.HideFilter = HideFilter;
-        TableService.UseStateForQuerying = UseState;
 
         return base.OnParametersSetAsync();
     }
@@ -262,7 +251,7 @@
     {
         var itemId = obj.Item.Id;
 
-        await TableService.OnRowClicked(UiHelpers, itemId);
+        await TableService.OnRowClicked(UiService, itemId);
     }
 
     public void Dispose()

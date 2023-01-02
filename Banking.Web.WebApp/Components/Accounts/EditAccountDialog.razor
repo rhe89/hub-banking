@@ -1,15 +1,9 @@
-@using Banking.Providers
-@using Banking.Services
-@using Banking.Shared
-@using Hub.Shared.DataContracts.Banking.Dto
-@using Hub.Shared.DataContracts.Banking.Query
-
-@inherits BaseComponent
+@inherits BankingBaseComponent
 @implements IDisposable
 
 @inject IAccountProvider AccountProvider
 @inject IAccountService AccountService
-@inject UIHelpers UiHelpers
+@inject UIService UiService
 
 <Dialog
     HeaderText="@($"{Account?.Name} ({Account?.Bank?.Name})")"
@@ -48,10 +42,10 @@
     public long AccountId { get; set; }
 
     [Parameter]
-    public Func<UIHelpers, long, Task> OnAccountUpdated { get; set; }
+    public Func<UIService, long, Task> OnAccountUpdated { get; set; }
 
     [Parameter]
-    public Func<UIHelpers, long, Task> OnAccountDeleted { get; set; }
+    public Func<UIService, long, Task> OnAccountDeleted { get; set; }
 
     [CascadingParameter]
     public MudDialogInstance MudDialog { get; set; }
@@ -89,7 +83,7 @@
         
         await AccountService.Update(Account, saveChanges: true);
 
-        await OnAccountUpdated.Invoke(UiHelpers, Account.Id);
+        await OnAccountUpdated.Invoke(UiService, Account.Id);
 
         Working = false;
     }
@@ -102,7 +96,7 @@
 
         Working = false;
         
-        await OnAccountDeleted.Invoke(UiHelpers, Account.Id);
+        await OnAccountDeleted.Invoke(UiService, Account.Id);
 
         MudDialog.Close(DialogResult.Ok(true));
     }

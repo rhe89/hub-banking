@@ -3,12 +3,11 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Banking.Providers;
-using Banking.Shared;
-using Banking.Web.WebApp.Components;
 using Banking.Web.WebApp.Components.Accounts;
-using Banking.Web.WebApp.Shared;
 using Banking.Web.WebApp.Utils;
 using Hub.Shared.DataContracts.Banking.Query;
+using Hub.Shared.Utilities;
+using Hub.Shared.Web.BlazorServer.Services;
 using MudBlazor;
 
 namespace Banking.Web.WebApp.Services.Table;
@@ -17,16 +16,19 @@ public class AccountTypesTableService : TableService<AccountTypesQuery>
 {
     private readonly IAccountProvider _accountProvider;
     private readonly IScheduledTransactionProvider _scheduledTransactionProvider;
-    public override Func<UIHelpers, long, Task> OnRowClicked => OpenEditItemDialog;
-
+    private readonly BankingState _state;
+    
     public AccountTypesTableService(
         IAccountProvider accountProvider,
         IScheduledTransactionProvider scheduledTransactionProvider,
-        State state) : base(state)
+        BankingState state)
     {
         _accountProvider = accountProvider;
         _scheduledTransactionProvider = scheduledTransactionProvider;
+        _state = state;
     }
+    
+    public override Func<UIService, long, Task> OnRowClicked => OpenEditItemDialog;
 
     public override void CreateHeaderRow()
     {
@@ -46,23 +48,10 @@ public class AccountTypesTableService : TableService<AccountTypesQuery>
         });
     }
 
-    public override Task CreateFilters(AccountTypesQuery accountTypesQuery)
-    {
-        Filter.Clear();
-
-        Filter.Add(new Input
-        {
-            FilterType = FilterType.Component,
-            Name = nameof(MonthYearSelect)
-        });
-        
-        return Task.CompletedTask;
-    }
-
     public override async Task<IList<TableRow>> FetchData(AccountTypesQuery accountTypesQuery, TableState tablestate)
     {
-        accountTypesQuery.BalanceToDate = State.GetValidToDateForMonthAndYear();
-        accountTypesQuery.DiscontinuedDate = State.GetValidFromDateForMonthAndYear();
+        accountTypesQuery.BalanceToDate = _state.GetValidToDateForMonthAndYear();
+        accountTypesQuery.DiscontinuedDate = _state.GetValidFromDateForMonthAndYear();
         
         var thisMonthsAccountStates = await _accountProvider.Get(accountTypesQuery);
 
@@ -81,15 +70,15 @@ public class AccountTypesTableService : TableService<AccountTypesQuery>
             var accountBalanceThisMonth = account.Balance;
             
             //Include budgeted deposits/withdrawals in future months 
-            if (State.GetValidToDateForMonthAndYear() > DateTimeUtils.LastDayOfMonth())
+            if (_state.GetValidToDateForMonthAndYear() > DateTimeUtils.LastDayOfMonth())
             {
                 var scheduledTransactions = await _scheduledTransactionProvider.Get(new ScheduledTransactionQuery
                 {
                     AccountId = account.Id,
-                    NextTransactionToDate = State.GetValidToDateForMonthAndYear()
+                    NextTransactionToDate = _state.GetValidToDateForMonthAndYear()
                 });
                 
-                accountBalanceLastMonth += scheduledTransactions.Where(x => x.NextTransactionDate < State.GetValidFromDateForMonthAndYear())
+                accountBalanceLastMonth += scheduledTransactions.Where(x => x.NextTransactionDate < _state.GetValidFromDateForMonthAndYear())
                     .Sum(x => x.Amount);
                 accountBalanceThisMonth += scheduledTransactions.Sum(x => x.Amount);
             }
@@ -136,17 +125,12 @@ public class AccountTypesTableService : TableService<AccountTypesQuery>
         return tableRows;
     }
 
-    public override Task OpenFullVersionDialog(UIHelpers uiHelpers, AccountTypesQuery accountTypesQuery)
+    public override Task OpenAddItemDialog(UIService uiService)
     {
         return Task.CompletedTask;
     }
 
-    public override Task OpenAddItemDialog(UIHelpers uiHelpers)
-    {
-        return Task.CompletedTask;
-    }
-
-    public override async Task OpenEditItemDialog(UIHelpers uiHelpers, long id)
+    private async Task OpenEditItemDialog(UIService uiService, long id)
     {
         var parameters = new DialogParameters
         {
@@ -155,7 +139,7 @@ public class AccountTypesTableService : TableService<AccountTypesQuery>
             { nameof(EditAccountDialog.OnAccountDeleted), OnItemDeleted }
         };
 
-        await uiHelpers.ShowDialog<EditAccountDialog>(parameters);
+        await uiService.ShowDialog<EditAccountDialog>(parameters);
     }
 }
 

@@ -3,12 +3,12 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Banking.Providers;
-using Banking.Web.WebApp.Components;
 using Banking.Web.WebApp.Components.Accounts;
 using Banking.Web.WebApp.Components.Banks;
-using Banking.Web.WebApp.Shared;
+using Banking.Web.WebApp.Components.Shared;
 using Banking.Web.WebApp.Utils;
 using Hub.Shared.DataContracts.Banking.Query;
+using Hub.Shared.Web.BlazorServer.Services;
 using MudBlazor;
 
 namespace Banking.Web.WebApp.Services.Table;
@@ -16,14 +16,16 @@ namespace Banking.Web.WebApp.Services.Table;
 public class AccountsTableService : TableService<AccountQuery>
 {
     private readonly IAccountProvider _accountProvider;
-    public override Func<UIHelpers, long, Task> OnRowClicked => OpenEditItemDialog;
-    
-    public bool IncludeAccountsWithNoBalanceForGivenPeriod { get; set; }
-    
-    public AccountsTableService(IAccountProvider accountProvider, State state) : base(state)
+    private readonly BankingState _state;
+
+    public AccountsTableService(IAccountProvider accountProvider, BankingState state)
     {
         _accountProvider = accountProvider;
+        _state = state;
     }
+    
+    public override Func<UIService, long, Task> OnRowClicked => OpenEditItemDialog;
+    private bool IncludeAccountsWithNoBalanceForGivenPeriod { get; set; }
 
     public override void CreateHeaderRow()
     {
@@ -52,7 +54,57 @@ public class AccountsTableService : TableService<AccountQuery>
         });
     }
 
-    public override Task CreateFilters(AccountQuery accountQuery)
+    public override async Task<IList<TableRow>> FetchData(AccountQuery accountQuery, TableState tableState)
+    {
+        if (!Widget && !Filter.Any())
+        {
+            CreateFilters(accountQuery);
+        }
+        
+        accountQuery.BankId = _state.BankId;
+        accountQuery.BalanceToDate = _state.GetValidToDateForMonthAndYear();
+        accountQuery.DiscontinuedDate = _state.GetValidFromDateForMonthAndYear();
+        
+        var accounts = await _accountProvider.Get(accountQuery);
+        
+        return accounts.Where(account => IncludeAccountsWithNoBalanceForGivenPeriod || !account.NoBalanceForGivenPeriod).Take(Widget ? 5 : accounts.Count).Select(account => new TableRow
+        {
+            Id = account.Id,
+            Columns = new List<Column>
+            {
+                new Column
+                {
+                    ColumnText = new ColumnText
+                    {
+                        Text = $"{account.Name}{(account.Bank != null ? $" ({account.Bank.Name})" : "")}",
+                        Icon = IconUtils.GetAccountTypeIcon(account.AccountType)
+                    },
+                    TdClass = Widget ? "td-width-60" : "td-md-width-40 td-width-60" 
+                },
+                new Column
+                {
+                    ColumnText = new ColumnText
+                    {
+                        Text = account.Balance.ToString("N2"),
+                        Icon = Widget ? Icons.Sharp.Money : null,
+                        SmallText = $"{account.BalanceDate:dd.MM} {(account.BalanceIsAccumulated ? "(accumulated)" : "")}",
+                    },
+                    TdClass = Widget ? "td-width-40" : "td-md-width-40 td-width-40"
+                },
+                new Column
+                {
+                    ColumnText = new ColumnText
+                    {
+                        Text = account.AccountNumber,
+                        Icon = Widget ? Icons.Sharp.Numbers : null
+                    },
+                    TdClass = "d-none d-md-table-cell d-widget-none td-md-width-20"
+                }
+            }
+        }).ToList();
+    }
+    
+    private void CreateFilters(AccountQuery accountQuery)
     {
         Filter.Clear();
         
@@ -99,16 +151,14 @@ public class AccountsTableService : TableService<AccountQuery>
             Value = IncludeAccountsWithNoBalanceForGivenPeriod,
             Name = "Include accounts with no balance",
         });
-        
-        return Task.CompletedTask;
     }
-
+    
     private Task OnIncludeExternalAccountsChanged(Checkbox<AccountQuery> checkbox, bool value, AccountQuery query)
     {
         query.IncludeExternalAccounts = value;
         checkbox.Value = value;
         
-        State.OnStateUpdated.Invoke(this, EventArgs.Empty);
+        _state.OnStateUpdated.Invoke(this, EventArgs.Empty);
         
         return Task.CompletedTask;
     }
@@ -118,7 +168,7 @@ public class AccountsTableService : TableService<AccountQuery>
         query.IncludeDiscontinuedAccounts = value;
         checkbox.Value = value;
         
-        State.OnStateUpdated.Invoke(this, EventArgs.Empty);
+        _state.OnStateUpdated.Invoke(this, EventArgs.Empty);
         
         return Task.CompletedTask;
     }
@@ -128,7 +178,7 @@ public class AccountsTableService : TableService<AccountQuery>
         query.IncludeSharedAccounts = value;
         checkbox.Value = value;
         
-        State.OnStateUpdated.Invoke(this, EventArgs.Empty);
+        _state.OnStateUpdated.Invoke(this, EventArgs.Empty);
         
         return Task.CompletedTask;
     }
@@ -138,82 +188,22 @@ public class AccountsTableService : TableService<AccountQuery>
         IncludeAccountsWithNoBalanceForGivenPeriod = value;
         checkbox.Value = value;
         
-        State.OnStateUpdated.Invoke(this, EventArgs.Empty);
+        _state.OnStateUpdated.Invoke(this, EventArgs.Empty);
 
         return Task.CompletedTask;
     }
-
-    public override async Task<IList<TableRow>> FetchData(AccountQuery accountQuery, TableState tableState)
-    {
-        if (!HideFilter && !Widget && !Filter.Any())
-        {
-            await CreateFilters(accountQuery);
-        }
-        
-        accountQuery.BankId = State.BankId;
-        accountQuery.BalanceToDate = State.GetValidToDateForMonthAndYear();
-        accountQuery.DiscontinuedDate = State.GetValidFromDateForMonthAndYear();
-        
-        var accounts = await _accountProvider.Get(accountQuery);
-        
-        return accounts.Where(account => IncludeAccountsWithNoBalanceForGivenPeriod || !account.NoBalanceForGivenPeriod).Take(Widget ? 5 : accounts.Count).Select(account => new TableRow
-        {
-            Id = account.Id,
-            Columns = new List<Column>
-            {
-                new Column
-                {
-                    ColumnText = new ColumnText
-                    {
-                        Text = $"{account.Name}{(account.Bank != null ? $" ({account.Bank.Name})" : "")}",
-                        Icon = IconUtils.GetAccountTypeIcon(account.AccountType)
-                    },
-                    TdClass = Widget ? "td-width-60" : "td-md-width-40 td-width-60" 
-                },
-                new Column
-                {
-                    ColumnText = new ColumnText
-                    {
-                        Text = account.Balance.ToString("N2"),
-                        Icon = Widget ? Icons.Sharp.Money : null,
-                        SmallText = $"{account.BalanceDate:dd.MM} {(account.BalanceIsAccumulated ? "(accumulated)" : "")}",
-                    },
-                    TdClass = Widget ? "td-width-40" : "td-md-width-40 td-width-40"
-                },
-                new Column
-                {
-                    ColumnText = new ColumnText
-                    {
-                        Text = account.AccountNumber,
-                        Icon = Widget ? Icons.Sharp.Numbers : null
-                    },
-                    TdClass = "d-none d-md-table-cell d-widget-none td-md-width-20"
-                }
-            }
-        }).ToList();
-    }
-
-    public override async Task OpenFullVersionDialog(UIHelpers uiHelpers, AccountQuery query)
-    {
-        var parameters = new DialogParameters
-        {
-            { nameof(AccountsOverviewDialog.AccountQuery), query }
-        };
-
-        await uiHelpers.ShowDialog<AccountsOverviewDialog>(parameters);
-    }
-
-    public override async Task OpenAddItemDialog(UIHelpers uiHelpers)
+    
+    public override async Task OpenAddItemDialog(UIService uiService)
     {
         var parameters = new DialogParameters
         {
             { nameof(AddAccountDialog.OnAccountAdded), OnItemAdded }
         };
 
-        await uiHelpers.ShowDialog<AddAccountDialog>(parameters);
+        await uiService.ShowDialog<AddAccountDialog>(parameters);
     }
 
-    public override async Task OpenEditItemDialog(UIHelpers uiHelpers, long id)
+    public async Task OpenEditItemDialog(UIService uiService, long id)
     {
         var parameters = new DialogParameters
         {
@@ -222,6 +212,6 @@ public class AccountsTableService : TableService<AccountQuery>
             { nameof(EditAccountDialog.OnAccountDeleted), OnItemDeleted }
         };
 
-        await uiHelpers.ShowDialog<EditAccountDialog>(parameters);
+        await uiService.ShowDialog<EditAccountDialog>(parameters);
     }
 }

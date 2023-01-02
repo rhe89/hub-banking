@@ -7,9 +7,9 @@ using Banking.Providers;
 using Banking.Services;
 using Banking.Web.WebApp;
 using Banking.Web.WebApp.Services.Table;
-using Banking.Web.WebApp.Shared;
 using Hub.Shared.DataContracts.Banking.Query;
 using Hub.Shared.Storage.ServiceBus;
+using Hub.Shared.Web.BlazorServer.Services;
 using MudBlazor.Services;
 
 var builder = BlazorServerBuilder.CreateWebApplicationBuilder(args);
@@ -51,9 +51,9 @@ builder.Services.AddTransient<TableService<AccountQuery>, AccountsTableService>(
 builder.Services.AddTransient<TableService<BankQuery>, BanksTableService>();
 builder.Services.AddTransient<TableService<AccountTypesQuery>, AccountTypesTableService>();
 
-builder.Services.AddSingleton<State>();
+builder.Services.AddSingleton<BankingState>();
 
-builder.Services.AddScoped<UIHelpers>();
+builder.Services.AddScoped<UIService>();
 
 builder.Services.AddMudServices();
 builder.Services.AddAutoMapper(c =>

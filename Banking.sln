@@ -71,6 +71,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Hub.Shared.DataContracts.Cr
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Hub.Shared.DataContracts.Spreadsheet", "..\hub-shared\Hub.Shared.DataContracts\Hub.Shared.DataContracts.Spreadsheet\Hub.Shared.DataContracts.Spreadsheet.csproj", "{95524662-8BEF-4DFE-BFFA-EE87FC36E6D8}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Hub.Shared.Utilities", "..\hub-shared\Hub.Shared.Utilities\Hub.Shared.Utilities.csproj", "{DBD5A683-439A-4469-B9FD-7A792A4172EB}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -189,6 +191,10 @@ Global
 		{95524662-8BEF-4DFE-BFFA-EE87FC36E6D8}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{95524662-8BEF-4DFE-BFFA-EE87FC36E6D8}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{95524662-8BEF-4DFE-BFFA-EE87FC36E6D8}.Release|Any CPU.Build.0 = Release|Any CPU
+		{DBD5A683-439A-4469-B9FD-7A792A4172EB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{DBD5A683-439A-4469-B9FD-7A792A4172EB}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{DBD5A683-439A-4469-B9FD-7A792A4172EB}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{DBD5A683-439A-4469-B9FD-7A792A4172EB}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{78DC9B62-21DC-4511-AC01-63DAFF5D6A2C} = {B328846E-B016-4808-9D8E-F7D986C53CD6}
@@ -222,5 +228,6 @@ Global
 		{2EF51E7D-4A4A-43D2-946D-7AC6D428EF80} = {03B13645-89A1-43E0-823B-F98A297C1D34}
 		{CBAE0B1C-0461-4CBF-9B96-E58D47F242AC} = {43E7342C-64C4-4D14-8AA5-FBB2E23D48FF}
 		{95524662-8BEF-4DFE-BFFA-EE87FC36E6D8} = {43E7342C-64C4-4D14-8AA5-FBB2E23D48FF}
+		{DBD5A683-439A-4469-B9FD-7A792A4172EB} = {03B13645-89A1-43E0-823B-F98A297C1D34}
 	EndGlobalSection
 EndGlobal

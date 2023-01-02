@@ -4,8 +4,8 @@ using System.Linq;
 using System.Threading.Tasks;
 using Banking.Providers;
 using Banking.Web.WebApp.Components.Banks;
-using Banking.Web.WebApp.Shared;
 using Hub.Shared.DataContracts.Banking.Query;
+using Hub.Shared.Web.BlazorServer.Services;
 using MudBlazor;
 
 namespace Banking.Web.WebApp.Services.Table;
@@ -14,16 +14,16 @@ public class BanksTableService : TableService<BankQuery>
 {
     private readonly IBankProvider _bankProvider;
     private readonly IAccountProvider _accountProvider;
-    public override Func<UIHelpers, long, Task> OnRowClicked => OpenEditItemDialog;
-
+    
     public BanksTableService(
         IBankProvider bankProvider,
-        IAccountProvider accountProvider, 
-        State state) : base(state)
+        IAccountProvider accountProvider)
     {
         _bankProvider = bankProvider;
         _accountProvider = accountProvider;
     }
+    
+    public override Func<UIService, long, Task> OnRowClicked => OpenEditItemDialog;
 
     public override void CreateHeaderRow()
     {
@@ -47,12 +47,7 @@ public class BanksTableService : TableService<BankQuery>
             ColumnText = new ColumnText { Text = "Accounts" }
         });
     }
-
-    public override Task CreateFilters(BankQuery query)
-    {
-        return Task.CompletedTask;
-    }
-
+    
     public override async Task<IList<TableRow>> FetchData(BankQuery bankQuery, TableState tableState)
     {
         bankQuery.Take = Widget ? 5 : null;
@@ -86,22 +81,17 @@ public class BanksTableService : TableService<BankQuery>
         }).ToList();
     }
 
-    public override async Task OpenFullVersionDialog(UIHelpers uiHelpers, BankQuery query)
-    {
-        await uiHelpers.ShowDialog<BanksOverviewDialog>();
-    }
-
-    public override async Task OpenAddItemDialog(UIHelpers uiHelpers)
+    public override async Task OpenAddItemDialog(UIService uiService)
     {
         var parameters = new DialogParameters
         {
             { nameof(AddBankDialog.OnBankAdded), OnItemAdded }
         };
 
-        await uiHelpers.ShowDialog<AddBankDialog>(parameters);
+        await uiService.ShowDialog<AddBankDialog>(parameters);
     }
 
-    public override async Task OpenEditItemDialog(UIHelpers uiHelpers, long id)
+    private async Task OpenEditItemDialog(UIService uiService, long id)
     {
         var parameters = new DialogParameters
         {
@@ -110,6 +100,6 @@ public class BanksTableService : TableService<BankQuery>
             { nameof(EditBankDialog.OnBankDeleted), OnItemDeleted }
         };
 
-        await uiHelpers.ShowDialog<EditBankDialog>(parameters);
+        await uiService.ShowDialog<EditBankDialog>(parameters);
     }
 }

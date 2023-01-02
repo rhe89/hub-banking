@@ -1,10 +1,7 @@
-@using Banking.Services
-@using Hub.Shared.DataContracts.Banking.Dto
-
-@inherits BaseComponent
+@inherits BankingBaseComponent
 
 @inject IBankService BankService
-@inject UIHelpers UiHelpers
+@inject UIService UiService
 
 <Dialog
     HeaderText="Add bank"
@@ -25,7 +22,7 @@
 
 @code {
     [Parameter]
-    public Func<UIHelpers, long, Task> OnBankAdded { get; set; }
+    public Func<UIService, long, Task> OnBankAdded { get; set; }
 
     [CascadingParameter] 
     public MudDialogInstance MudDialog { get; set; }
@@ -57,7 +54,7 @@
         
         var addedBank = await BankService.Add(Bank, saveChanges: true);
 
-        await OnBankAdded.Invoke(UiHelpers, addedBank.Id);
+        await OnBankAdded.Invoke(UiService, addedBank.Id);
         
         Working = false;
     }

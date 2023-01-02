@@ -1,15 +1,9 @@
-@using Banking.Providers
-@using Banking.Services
-@using Banking.Web.WebApp.Models.Form
-@using Hub.Shared.DataContracts.Banking.Dto
-@using Hub.Shared.DataContracts.Banking.Query
-
 @inject IScheduledTransactionProvider ScheduledTransactionProvider
 @inject IScheduledTransactionService ScheduledTransactionService
 @inject IAccountProvider AccountProvider
-@inject UIHelpers UiHelpers
+@inject UIService UiService
 
-@inherits BaseComponent
+@inherits BankingBaseComponent
 
 <Dialog
     HeaderText="@ScheduledTransaction?.Description"
@@ -68,10 +62,10 @@
     public long ScheduledTransactionId { get; set; }
 
     [Parameter]
-    public Func<UIHelpers, long, Task> OnScheduledTransactionUpdated { get; set; }
+    public Func<UIService, long, Task> OnScheduledTransactionUpdated { get; set; }
 
     [Parameter]
-    public Func<UIHelpers, long, Task> OnScheduledTransactionDeleted { get; set; }
+    public Func<UIService, long, Task> OnScheduledTransactionDeleted { get; set; }
 
     [CascadingParameter]
     public MudDialogInstance MudDialog { get; set; }
@@ -124,7 +118,7 @@
 
         await ScheduledTransactionService.Update(ScheduledTransaction, true);
 
-        await OnScheduledTransactionUpdated.Invoke(UiHelpers, ScheduledTransaction.Id);
+        await OnScheduledTransactionUpdated.Invoke(UiService, ScheduledTransaction.Id);
 
         Working = false;
 
@@ -159,7 +153,7 @@
             { nameof(AddTransactionDialog.Transaction), transaction },
         };
 
-        await UiHelpers.ShowDialog<AddTransactionDialog>(parameters);
+        await UiService.ShowDialog<AddTransactionDialog>(parameters);
     }
 
     private async Task Delete()
@@ -170,7 +164,7 @@
 
         Working = false;
 
-        await OnScheduledTransactionDeleted.Invoke(UiHelpers, ScheduledTransaction.Id);
+        await OnScheduledTransactionDeleted.Invoke(UiService, ScheduledTransaction.Id);
 
         MudDialog.Close(DialogResult.Ok(true));
     }

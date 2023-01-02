@@ -1,13 +1,8 @@
-@using Banking.Providers
-@using Banking.Services
-@using Banking.Web.WebApp.Models.Form
-@using Hub.Shared.DataContracts.Banking.Query
-
 @inject ITransactionCategoryService TransactionCategoryService
 @inject ITransactionCategoryProvider TransactionCategoryProvider;
-@inject UIHelpers UiHelpers
+@inject UIService UiService
 
-@inherits BaseComponent
+@inherits BankingBaseComponent
 
 <Dialog
     HeaderText="@TransactionSubCategory?.Name"
@@ -66,10 +61,10 @@
     public long TransactionSubCategoryId { get; set; }
 
     [Parameter]
-    public Func<UIHelpers, long, Task> OnTransactionSubCategoryUpdated { get; set; }
+    public Func<UIService, long, Task> OnTransactionSubCategoryUpdated { get; set; }
 
     [Parameter]
-    public Func<UIHelpers, long, Task> OnTransactionSubCategoryDeleted { get; set; }
+    public Func<UIService, long, Task> OnTransactionSubCategoryDeleted { get; set; }
 
     [CascadingParameter]
     public MudDialogInstance MudDialog { get; set; }
@@ -110,7 +105,7 @@
 
         MudDialog.Close(DialogResult.Ok(true));
 
-        await OnTransactionSubCategoryUpdated.Invoke(UiHelpers, TransactionSubCategory.Id);
+        await OnTransactionSubCategoryUpdated.Invoke(UiService, TransactionSubCategory.Id);
     }
 
     private async Task Delete()
@@ -123,7 +118,7 @@
 
         Working = false;
 
-        await OnTransactionSubCategoryDeleted(UiHelpers, TransactionSubCategory.Id);
+        await OnTransactionSubCategoryDeleted(UiService, TransactionSubCategory.Id);
     }
 
 }

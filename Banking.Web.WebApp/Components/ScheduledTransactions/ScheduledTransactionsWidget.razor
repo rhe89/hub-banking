@@ -1,6 +1,4 @@
-@inherits BaseComponent
-
-@inject UIHelpers UiHelpers
+@inject UIService UiService
 
 <Widget>
     <section class="row">
@@ -32,19 +30,19 @@
             { nameof(AddScheduledTransactionDialog.OnScheduledTransactionAdded), OnItemAdded }
         };
 
-        await UiHelpers.ShowDialog<AddScheduledTransactionDialog>(parameters);
+        await UiService.ShowDialog<AddScheduledTransactionDialog>(parameters);
     }
     
-    private static Task OnItemAdded(UIHelpers uiHelpers, long id)
+    private static Task OnItemAdded(UIService uiService, long id)
     {
-        uiHelpers.ShowSnackbar("Scheduled transaction added", Severity.Success);
+        uiService.ShowSnackbar("Scheduled transaction added", Severity.Success);
         
         return Task.CompletedTask;
     }
 
     private async Task OpenFullVersion()
     {
-        await UiHelpers.ShowDialog<ScheduledTransactionsOverviewDialog>();
+        await UiService.ShowDialog<ScheduledTransactionsOverviewDialog>();
     }
 
 }

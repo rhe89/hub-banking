@@ -3,10 +3,10 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Banking.Providers;
-using Banking.Shared;
 using Banking.Web.WebApp.Components.TransactionCategories;
-using Banking.Web.WebApp.Shared;
 using Hub.Shared.DataContracts.Banking.Query;
+using Hub.Shared.Extensions;
+using Hub.Shared.Web.BlazorServer.Services;
 using MudBlazor;
 
 namespace Banking.Web.WebApp.Services.Table;
@@ -15,26 +15,24 @@ public class TransactionCategoriesTableService : TableService<TransactionCategor
 {
     private readonly ITransactionCategoryProvider _transactionCategoryProvider;
     private readonly ITransactionProvider _transactionProvider;
-    public override Func<UIHelpers, long, Task> OnRowClicked => OpenEditItemDialog;
+    private readonly BankingState _state;
 
     public TransactionCategoriesTableService(
         ITransactionCategoryProvider transactionCategoryProvider, 
         ITransactionProvider transactionProvider,
-        State state) : base(state)
+        BankingState state)
     {
         _transactionCategoryProvider = transactionCategoryProvider;
         _transactionProvider = transactionProvider;
+        _state = state;
     }
+    
+    public override Func<UIService, long, Task> OnRowClicked => OpenEditItemDialog;
 
     public override void CreateHeaderRow()
     {
         HeaderRow.Add(new Column { ColumnText = new ColumnText { Text = "Name" } });
         HeaderRow.Add(new Column { ColumnText = new ColumnText { Text = "Amount" } });
-    }
-
-    public override Task CreateFilters(TransactionCategoryQuery transactionCategoryQuery)
-    {
-        return Task.CompletedTask;
     }
 
     public override async Task<IList<TableRow>> FetchData(TransactionCategoryQuery transactionCategoryQuery, TableState tableState)
@@ -43,14 +41,12 @@ public class TransactionCategoriesTableService : TableService<TransactionCategor
 
         var transactionCategories = await _transactionCategoryProvider.Get(transactionCategoryQuery);
 
-        var transactionQuery = new TransactionQuery();
-
-        if (UseStateForQuerying)
+        var transactionQuery = new TransactionQuery
         {
-            transactionQuery.FromDate = State.GetValidFromDateForMonthAndYear();
-            transactionQuery.ToDate = State.GetValidToDateForMonthAndYear();
-        }
-        
+            FromDate = _state.GetValidFromDateForMonthAndYear(),
+            ToDate = _state.GetValidToDateForMonthAndYear()
+        };
+
         var transactions = await _transactionProvider.Get(transactionQuery);
         
         return transactionCategories.Select(transactionCategory => new TableRow
@@ -75,22 +71,17 @@ public class TransactionCategoriesTableService : TableService<TransactionCategor
         }).ToList();
     }
 
-    public override async Task OpenFullVersionDialog(UIHelpers uiHelpers, TransactionCategoryQuery transactionCategoryQuery)
-    {
-        await uiHelpers.ShowDialog<TransactionCategoriesOverviewDialog>();
-    }
-
-    public override async Task OpenAddItemDialog(UIHelpers uiHelpers)
+    public override async Task OpenAddItemDialog(UIService uiService)
     {
         var parameters = new DialogParameters
         {
             { nameof(AddTransactionCategoryDialog.OnTransactionCategoryAdded), OnItemAdded }
         };
 
-        await uiHelpers.ShowDialog<AddTransactionCategoryDialog>(parameters);
+        await uiService.ShowDialog<AddTransactionCategoryDialog>(parameters);
     }
 
-    public override async Task OpenEditItemDialog(UIHelpers uiHelpers, long id)
+    private async Task OpenEditItemDialog(UIService uiService, long id)
     {
         var parameters = new DialogParameters
         {
@@ -99,6 +90,6 @@ public class TransactionCategoriesTableService : TableService<TransactionCategor
             { nameof(EditTransactionCategoryDialog.OnTransactionCategoryDeleted), OnItemDeleted }
         };
 
-        await uiHelpers.ShowDialog<EditTransactionCategoryDialog>(parameters);
+        await uiService.ShowDialog<EditTransactionCategoryDialog>(parameters);
     }
 }

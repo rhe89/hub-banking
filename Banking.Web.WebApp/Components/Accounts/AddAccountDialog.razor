@@ -1,11 +1,7 @@
-@using Banking.Services
-@using Hub.Shared.DataContracts.Banking.Constants
-@using Hub.Shared.DataContracts.Banking.Dto
-
-@inherits BaseComponent
+@inherits BankingBaseComponent
 
 @inject IAccountService AccountService
-@inject UIHelpers UiHelpers
+@inject UIService UiService
 
 <Dialog
     HeaderText="Add account"
@@ -25,7 +21,7 @@
 
 @code { 
     [Parameter]
-    public Func<UIHelpers, long, Task> OnAccountAdded { get; set; }
+    public Func<UIService, long, Task> OnAccountAdded { get; set; }
     
     [CascadingParameter] 
     public MudDialogInstance MudDialog { get; set; }
@@ -60,7 +56,7 @@
 
         var addedAccount = await AccountService.Add(Account);
 
-        await OnAccountAdded.Invoke(UiHelpers, addedAccount.Id);
+        await OnAccountAdded.Invoke(UiService, addedAccount.Id);
         
         Working = false;
     }

@@ -1,8 +1,6 @@
-@using Hub.Shared.Storage.ServiceBus
+@inherits BankingBaseComponent
 
-@inherits BaseComponent
-
-@inject UIHelpers UiHelpers
+@inject UIService UiService
 @inject IMessageSender MessageSender
 
 <Widget>
@@ -46,19 +44,19 @@
             { nameof(AddTransactionDialog.OnTransactionAdded), OnItemAdded }
         };
 
-        await UiHelpers.ShowDialog<AddTransactionDialog>(parameters);
+        await UiService.ShowDialog<AddTransactionDialog>(parameters);
     }
 
-    private static Task OnItemAdded(UIHelpers uiHelpers, long id)
+    private static Task OnItemAdded(UIService uiService, long id)
     {
-        uiHelpers.ShowSnackbar("Item added", Severity.Success);
+        uiService.ShowSnackbar("Item added", Severity.Success);
 
         return Task.CompletedTask;
     }
 
     private async Task OpenFullVersion()
     {
-        await UiHelpers.ShowDialog<TransactionsOverviewDialog>();
+        await UiService.ShowDialog<TransactionsOverviewDialog>();
     }
 
 }

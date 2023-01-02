@@ -7,6 +7,7 @@ using Banking.Shared;
 using Hub.Shared.DataContracts.Banking.Query;
 using Hub.Shared.HostedServices.ServiceBusQueue;
 using Hub.Shared.Storage.ServiceBus;
+using Hub.Shared.Utilities;
 
 namespace Banking.HostedServices.ServiceBusQueueHost.Commands;
 

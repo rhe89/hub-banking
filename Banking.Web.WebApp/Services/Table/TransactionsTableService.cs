@@ -4,15 +4,14 @@ using System.Globalization;
 using System.Linq;
 using System.Threading.Tasks;
 using Banking.Providers;
-using Banking.Shared;
-using Banking.Web.WebApp.Components;
 using Banking.Web.WebApp.Components.Accounts;
 using Banking.Web.WebApp.Components.Banks;
+using Banking.Web.WebApp.Components.Shared;
 using Banking.Web.WebApp.Components.Transactions;
-using Banking.Web.WebApp.Extensions;
-using Banking.Web.WebApp.Shared;
 using Banking.Web.WebApp.Utils;
 using Hub.Shared.DataContracts.Banking.Query;
+using Hub.Shared.Extensions;
+using Hub.Shared.Web.BlazorServer.Services;
 using MudBlazor;
 
 namespace Banking.Web.WebApp.Services.Table;
@@ -20,21 +19,17 @@ namespace Banking.Web.WebApp.Services.Table;
 public class TransactionsTableService : TableService<TransactionQuery>
 {
     private readonly ITransactionProvider _transactionProvider;
-    private readonly IAccountProvider _accountProvider;
-    private readonly IBankProvider _bankProvider;
-    
-    public override Func<UIHelpers, long, Task> OnRowClicked => OpenEditItemDialog;
+    private readonly BankingState _state;
 
     public TransactionsTableService(
         ITransactionProvider transactionProvider,
-        IAccountProvider accountProvider,
-        IBankProvider bankProvider,
-        State state) : base(state)
+        BankingState state)
     {
         _transactionProvider = transactionProvider;
-        _accountProvider = accountProvider;
-        _bankProvider = bankProvider;
+        _state = state;
     }
+
+    public override Func<UIService, long, Task> OnRowClicked => OpenEditItemDialog;
 
     public override void CreateHeaderRow()
     {
@@ -93,43 +88,18 @@ public class TransactionsTableService : TableService<TransactionQuery>
             TdClass = "d-none d-md-table-cell d-widget-none"
         });
     }
-
-    public override Task CreateFilters(TransactionQuery transactionQuery)
-    {
-        Filter.Clear();
-        
-        Filter.Add(new Input
-        {
-            FilterType = FilterType.Component,
-            Name = nameof(BanksSelect)
-        });
-        
-        Filter.Add(new Input
-        {
-            FilterType = FilterType.Component,
-            Name = nameof(AccountsSelect)
-        });
-        
-        Filter.Add(new Input
-        {
-            FilterType = FilterType.Component,
-            Name = nameof(MonthYearSelect)
-        });
-        
-        return Task.CompletedTask;
-    }
-
+    
     public override async Task<IList<TableRow>> FetchData(TransactionQuery transactionQuery, TableState tableState)
     {
-        if (!HideFilter && !Widget && !Filter.Any())
+        if (!Widget && !Filter.Any())
         {
-            await CreateFilters(transactionQuery);
+            CreateFilters();
         }
 
-        transactionQuery.BankId = State.BankId;
-        transactionQuery.AccountId = State.AccountId;
-        transactionQuery.FromDate = State.GetValidFromDateForMonthAndYear();
-        transactionQuery.ToDate = State.GetValidToDateForMonthAndYear();
+        transactionQuery.BankId = _state.BankId;
+        transactionQuery.AccountId = _state.AccountId;
+        transactionQuery.FromDate = _state.GetValidFromDateForMonthAndYear();
+        transactionQuery.ToDate = _state.GetValidToDateForMonthAndYear();
         transactionQuery.IncludeTransactionsFromSharedAccounts = true;
         
         transactionQuery.Take = Widget ? 5 : null;
@@ -203,28 +173,41 @@ public class TransactionsTableService : TableService<TransactionQuery>
 
         return tableRows;
     }
-
-    public override async Task OpenFullVersionDialog(UIHelpers uiHelpers, TransactionQuery transactionQuery)
+    
+    private void CreateFilters()
     {
-        var parameters = new DialogParameters
+        Filter.Clear();
+        
+        Filter.Add(new Input
         {
-            { nameof(TransactionsOverviewDialog.TransactionQuery), transactionQuery }
-        };
-
-        await uiHelpers.ShowDialog<TransactionsOverviewDialog>(parameters);
+            FilterType = FilterType.Component,
+            Name = nameof(BanksSelect)
+        });
+        
+        Filter.Add(new Input
+        {
+            FilterType = FilterType.Component,
+            Name = nameof(AccountsSelect)
+        });
+        
+        Filter.Add(new Input
+        {
+            FilterType = FilterType.Component,
+            Name = nameof(MonthYearSelect)
+        });
     }
 
-    public override async Task OpenAddItemDialog(UIHelpers uiHelpers)
+    public override async Task OpenAddItemDialog(UIService uiService)
     {
         var parameters = new DialogParameters
         {
             { nameof(AddTransactionDialog.OnTransactionAdded), OnItemAdded }
         };
 
-        await uiHelpers.ShowDialog<AddTransactionDialog>(parameters);
+        await uiService.ShowDialog<AddTransactionDialog>(parameters);
     }
 
-    public override async Task OpenEditItemDialog(UIHelpers uiHelpers, long id)
+    private async Task OpenEditItemDialog(UIService uiService, long id)
     {
         var parameters = new DialogParameters
         {
@@ -233,6 +216,6 @@ public class TransactionsTableService : TableService<TransactionQuery>
             { nameof(EditTransactionDialog.OnTransactionDeleted), OnItemDeleted }
         };
 
-        await uiHelpers.ShowDialog<EditTransactionDialog>(parameters);
+        await uiService.ShowDialog<EditTransactionDialog>(parameters);
     }
 }

@@ -3,10 +3,10 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Banking.Providers;
-using Banking.Shared;
 using Banking.Web.WebApp.Components.TransactionCategories;
-using Banking.Web.WebApp.Shared;
 using Hub.Shared.DataContracts.Banking.Query;
+using Hub.Shared.Extensions;
+using Hub.Shared.Web.BlazorServer.Services;
 using MudBlazor;
 
 namespace Banking.Web.WebApp.Services.Table;
@@ -15,27 +15,24 @@ public class TransactionSubCategoriesTableService : TableService<TransactionSubC
 {
     private readonly ITransactionCategoryProvider _transactionSubCategoryProvider;
     private readonly ITransactionProvider _transactionProvider;
-    
-    public override Func<UIHelpers, long, Task> OnRowClicked => OpenEditItemDialog;
+    private readonly BankingState _state;
 
     public TransactionSubCategoriesTableService(
         ITransactionCategoryProvider transactionSubCategoryProvider, 
         ITransactionProvider transactionProvider,
-        State state) : base(state)
+        BankingState state)
     {
         _transactionSubCategoryProvider = transactionSubCategoryProvider;
         _transactionProvider = transactionProvider;
+        _state = state;
     }
+
+    public override Func<UIService, long, Task> OnRowClicked => OpenEditItemDialog;
 
     public override void CreateHeaderRow()
     {
         HeaderRow.Add(new Column { ColumnText = new ColumnText { Text = "Name" } });
         HeaderRow.Add(new Column { ColumnText = new ColumnText { Text = "Amount" } });
-    }
-
-    public override Task CreateFilters(TransactionSubCategoryQuery transactionSubCategoryQuery)
-    {
-        return Task.CompletedTask;
     }
 
     public override async Task<IList<TableRow>> FetchData(TransactionSubCategoryQuery transactionSubCategoryQuery, TableState tableState)
@@ -44,14 +41,12 @@ public class TransactionSubCategoriesTableService : TableService<TransactionSubC
 
         var transactionCategories = await _transactionSubCategoryProvider.Get(transactionSubCategoryQuery);
 
-        var transactionQuery = new TransactionQuery();
-
-        if (UseStateForQuerying)
+        var transactionQuery = new TransactionQuery
         {
-            transactionQuery.FromDate = State.GetValidFromDateForMonthAndYear();
-            transactionQuery.ToDate = State.GetValidToDateForMonthAndYear();
-        }
-        
+            FromDate = _state.GetValidFromDateForMonthAndYear(),
+            ToDate = _state.GetValidToDateForMonthAndYear()
+        };
+
         var transactions = await _transactionProvider.Get(transactionQuery);
         
         return transactionCategories.Select(transactionSubCategory => new TableRow
@@ -76,17 +71,12 @@ public class TransactionSubCategoriesTableService : TableService<TransactionSubC
         }).ToList();
     }
 
-    public override Task OpenFullVersionDialog(UIHelpers uiHelpers, TransactionSubCategoryQuery transactionSubCategoryQuery)
+    public override Task OpenAddItemDialog(UIService uiService)
     {
         return Task.CompletedTask;
     }
 
-    public override Task OpenAddItemDialog(UIHelpers uiHelpers)
-    {
-        return Task.CompletedTask;
-    }
-
-    public override async Task OpenEditItemDialog(UIHelpers uiHelpers, long id)
+    private async Task OpenEditItemDialog(UIService uiService, long id)
     {
         var parameters = new DialogParameters
         {
@@ -95,6 +85,6 @@ public class TransactionSubCategoriesTableService : TableService<TransactionSubC
             { nameof(EditTransactionSubCategoryDialog.OnTransactionSubCategoryDeleted), OnItemDeleted }
         };
 
-        await uiHelpers.ShowDialog<EditTransactionSubCategoryDialog>(parameters);
+        await uiService.ShowDialog<EditTransactionSubCategoryDialog>(parameters);
     }
 }
