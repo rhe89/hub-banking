@@ -48,21 +48,19 @@ public class TransactionCategoryProvider : ITransactionCategoryProvider
     
     private static Queryable<TransactionCategory> GetQueryable(TransactionCategoryQuery query)
     {
-        return new Queryable<TransactionCategory>
+        return new Queryable<TransactionCategory>(query)
         {
             Where = entity =>
                 (query.Id == null || query.Id == entity.Id) &&
                 (query.Name == null || query.Name == entity.Name),
             Include = entity => entity.TransactionSubCategories,
-            OrderBy = x => x.Name,
-            Take = query.Take,
-            Skip = query.Skip
+            OrderBy = x => x.Name
         };
     }
 
     private static Queryable<TransactionSubCategory> GetQueryable(TransactionSubCategoryQuery query)
     {
-        return new Queryable<TransactionSubCategory>
+        return new Queryable<TransactionSubCategory>(query)
         {
             Where = entity =>
                 (query.Id == null || query.Id == entity.Id) &&
@@ -70,9 +68,7 @@ public class TransactionCategoryProvider : ITransactionCategoryProvider
                 (query.TransactionCategoryId == null || query.TransactionCategoryId == entity.TransactionCategoryId) &&
                 (query.TransactionCategoryIds == null || query.TransactionCategoryIds.Any(transactionCategoryId => transactionCategoryId == entity.TransactionCategoryId)) &&
                 (query.TransactionCategoryName == null || query.TransactionCategoryName == entity.TransactionCategory.Name),
-            OrderByDescending = entity => entity.UpdatedDate,
-            Take = query.Take,
-            Skip = query.Skip
+            OrderByDescending = entity => entity.UpdatedDate
         };
     }
 }

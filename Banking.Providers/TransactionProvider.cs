@@ -43,7 +43,7 @@ public class TransactionProvider : ITransactionProvider
             query.IncludeTransactionsFromSharedAccounts = true;
         }
         
-        return new Queryable<Transaction>
+        return new Queryable<Transaction>(query)
         {
             Where = entity =>
                 (query.Id == null || query.Id == entity.Id) &&
@@ -68,9 +68,7 @@ public class TransactionProvider : ITransactionProvider
                 entity => entity.TransactionSubCategory,
                 entity => entity.TransactionSubCategory.TransactionCategory
             },
-            OrderByDescending = entity => entity.TransactionDate,
-            Take = query.Take,
-            Skip = query.Skip
+            OrderByDescending = entity => entity.TransactionDate
         };
     }
 }

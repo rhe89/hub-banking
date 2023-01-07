@@ -29,14 +29,12 @@ public class MonthlyBudgetProvider : IMonthlyBudgetProvider
     
     private static Queryable<MonthlyBudget> GetQueryable(MonthlyBudgetQuery query)
     {
-        return new Queryable<MonthlyBudget>
+        return new Queryable<MonthlyBudget>(query)
         {
             Where = entity =>
                 (query.Id == null || query.Id == entity.Id) &&
                 (query.Month == null || query.Month.Value.Month == entity.Month.Month && query.Month.Value.Year == entity.Month.Year),
-            OrderBy = entity => entity.Month,
-            Take = query.Take,
-            Skip = query.Skip
+            OrderBy = entity => entity.Month
         };
     }
 }

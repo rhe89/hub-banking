@@ -39,12 +39,11 @@ public class AccumulatedAccountBalanceProvider : IAccumulatedAccountBalanceProvi
     {
         if (query.Id != null || query.AccountId != null)
         {
-            query.IncludeExternalAccounts = true;
             query.IncludeSharedAccounts = true;
             query.IncludeDiscontinuedAccounts = true;
         }
         
-        return new Queryable<AccumulatedAccountBalance>
+        return new Queryable<AccumulatedAccountBalance>(query)
         {
             Where = entity =>
                 (query.Id == null || query.Id == entity.Id) &&
@@ -56,7 +55,6 @@ public class AccumulatedAccountBalanceProvider : IAccumulatedAccountBalanceProvi
                 (query.BankId == null || query.BankId == 0 || query.BankId == entity.Account.BankId) &&
                 (query.BalanceFromDate == null || entity.BalanceDate.Date >= query.BalanceFromDate.Value.Date) &&
                 (query.BalanceToDate == null || entity.BalanceDate.Date <= query.BalanceToDate.Value.Date) &&
-                (query.IncludeExternalAccounts || entity.Account.Name != entity.Account.AccountNumber) &&
                 (query.IncludeSharedAccounts || !entity.Account.SharedAccount) &&
                 (query.DiscontinuedDate == null || query.IncludeDiscontinuedAccounts || entity.Account.DiscontinuedDate == null || entity.Account.DiscontinuedDate > query.DiscontinuedDate),
             Includes = new List<Expression<Func<AccumulatedAccountBalance, object>>>
@@ -65,9 +63,7 @@ public class AccumulatedAccountBalanceProvider : IAccumulatedAccountBalanceProvi
                 entity => entity.Account.Bank
             },
             OrderByDescending = entity => entity.BalanceDate,
-            ThenOrderByDescending = entity => entity.CreatedDate,
-            Take = query.Take,
-            Skip = query.Skip
+            ThenOrderByDescending = entity => entity.CreatedDate
         };
     }
 }

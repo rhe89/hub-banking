@@ -17,9 +17,7 @@ public class AccountsTableService : TableService<AccountQuery>
 {
     private readonly IAccountProvider _accountProvider;
     public override Func<UIHelpers, long, Task> OnRowClicked => OpenEditItemDialog;
-    
-    public bool IncludeAccountsWithNoBalanceForGivenPeriod { get; set; }
-    
+
     public AccountsTableService(IAccountProvider accountProvider, State state) : base(state)
     {
         _accountProvider = accountProvider;
@@ -75,15 +73,7 @@ public class AccountsTableService : TableService<AccountQuery>
             Value = accountQuery.IncludeSharedAccounts,
             Name = "Include shared accounts",
         });
-        
-        Filter.Add(new Checkbox<AccountQuery>
-        {
-            FilterType = FilterType.Checkbox,
-            OnChanged = OnIncludeExternalAccountsChanged,
-            Value = accountQuery.IncludeExternalAccounts,
-            Name = "Include external accounts",
-        });
-        
+
         Filter.Add(new Checkbox<AccountQuery>
         {
             FilterType = FilterType.Checkbox,
@@ -92,27 +82,9 @@ public class AccountsTableService : TableService<AccountQuery>
             Name = "Include discontinued accounts",
         });
         
-        Filter.Add(new Checkbox<AccountQuery>
-        {
-            FilterType = FilterType.Checkbox,
-            OnChanged = OnIncludeAccountsWithNoBalanceForGivenPeriodChanged,
-            Value = IncludeAccountsWithNoBalanceForGivenPeriod,
-            Name = "Include accounts with no balance",
-        });
-        
         return Task.CompletedTask;
     }
 
-    private Task OnIncludeExternalAccountsChanged(Checkbox<AccountQuery> checkbox, bool value, AccountQuery query)
-    {
-        query.IncludeExternalAccounts = value;
-        checkbox.Value = value;
-        
-        State.OnStateUpdated.Invoke(this, EventArgs.Empty);
-        
-        return Task.CompletedTask;
-    }
-    
     private Task OnIncludeDiscontinuedAccountsChanged(Checkbox<AccountQuery> checkbox, bool value, AccountQuery query)
     {
         query.IncludeDiscontinuedAccounts = value;
@@ -133,16 +105,6 @@ public class AccountsTableService : TableService<AccountQuery>
         return Task.CompletedTask;
     }
     
-    private Task OnIncludeAccountsWithNoBalanceForGivenPeriodChanged(Checkbox<AccountQuery> checkbox, bool value, AccountQuery query)
-    {
-        IncludeAccountsWithNoBalanceForGivenPeriod = value;
-        checkbox.Value = value;
-        
-        State.OnStateUpdated.Invoke(this, EventArgs.Empty);
-
-        return Task.CompletedTask;
-    }
-
     public override async Task<IList<TableRow>> FetchData(AccountQuery accountQuery, TableState tableState)
     {
         if (!HideFilter && !Widget && !Filter.Any())
@@ -156,7 +118,7 @@ public class AccountsTableService : TableService<AccountQuery>
         
         var accounts = await _accountProvider.Get(accountQuery);
         
-        return accounts.Where(account => IncludeAccountsWithNoBalanceForGivenPeriod || !account.NoBalanceForGivenPeriod).Take(Widget ? 5 : accounts.Count).Select(account => new TableRow
+        return accounts.Select(account => new TableRow
         {
             Id = account.Id,
             Columns = new List<Column>

@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Banking.Data.Entities;
@@ -64,19 +63,6 @@ public class AccountProvider : IAccountProvider
                     account.BalanceIsAccumulated = accountBalance != null;
                 }
 
-                if (accountBalance?.BalanceDate != null && accountBalanceQuery.BalanceToDate != null)
-                {
-                    account.NoBalanceForGivenPeriod =
-                        DateTimeUtils.LastDayOfMonth(accountBalanceQuery.BalanceToDate.Value.Year,
-                                                     accountBalanceQuery.BalanceToDate.Value.Month) >
-                        DateTimeUtils.LastDayOfMonth(accountBalance.BalanceDate.Year, accountBalance.BalanceDate.Month);
-
-                }
-                else
-                {
-                    account.NoBalanceForGivenPeriod = accountBalance?.BalanceDate == null;
-                }
-                
                 account.Balance = accountBalance?.Balance ?? 0;
                 account.BalanceDate = accountBalance?.BalanceDate ?? DateTimeUtils.Today;
             }
@@ -104,12 +90,11 @@ public class AccountProvider : IAccountProvider
         if ((query.Id != null && query.Id != 0) ||
             query.AccountNumber != null)
         {
-            query.IncludeExternalAccounts = true;
             query.IncludeSharedAccounts = true;
             query.IncludeDiscontinuedAccounts = true;
         }
         
-        return new Queryable<Account>
+        return new Queryable<Account>(query)
         {
             Where = entity =>
                 (query.Id == null || query.Id == 0 || query.Id == entity.Id) &&
@@ -119,12 +104,10 @@ public class AccountProvider : IAccountProvider
                 (query.AccountIds == null || query.AccountIds.Any(accountId => accountId == entity.Id)) &&
                 (query.BankId == null || query.BankId == 0 || query.BankId == entity.BankId) &&
                 (query.BankName == null || query.BankName == entity.Bank.Name) &&
-                (query.IncludeExternalAccounts || entity.Name != entity.AccountNumber) && 
                 (query.IncludeSharedAccounts || !entity.SharedAccount) &&
                 (query.IncludeDiscontinuedAccounts || entity.DiscontinuedDate == null || entity.DiscontinuedDate >= query.DiscontinuedDate),
             OrderBy = entity => entity.UpdatedDate,
             Include = entity => entity.Bank,
-            Skip = query.Skip
         };
     }
 }

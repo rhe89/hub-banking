@@ -35,15 +35,13 @@ public class BankProvider : IBankProvider
     
     private static Queryable<Bank> GetQueryable(BankQuery query)
     {
-        return new Queryable<Bank>
+        return new Queryable<Bank>(query)
         {
             Where = entity =>
                 (query.Id == null || query.Id == 0 || query.Id == entity.Id) &&
                 (query.Name == null || query.Name == entity.Name) &&
                 (query.AccountNumberPrefix == null || query.AccountNumberPrefix == entity.AccountNumberPrefix),
-            OrderBy = entity => entity.Name,
-            Take = query.Take,
-            Skip = query.Skip
+            OrderBy = entity => entity.Name
         };
     }
 }

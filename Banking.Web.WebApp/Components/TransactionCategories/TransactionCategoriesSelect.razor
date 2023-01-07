@@ -99,7 +99,7 @@
     
     private TransactionCategoryDto SelectedTransactionCategory { get; set; }
     
-    protected override async Task OnParametersSetAsync()
+    protected override async Task OnInitializedAsync()
     {
         if (ParametersSet)
         {

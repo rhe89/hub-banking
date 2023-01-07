@@ -39,7 +39,7 @@ public class ScheduledTransactionProvider : IScheduledTransactionProvider
             query.IncludeCompletedTransactions = true;
         }
         
-        return new Queryable<ScheduledTransaction>
+        return new Queryable<ScheduledTransaction>(query)
         {
             Where = entity =>
                 (query.Id == null || query.Id == entity.Id) &&
@@ -53,9 +53,7 @@ public class ScheduledTransactionProvider : IScheduledTransactionProvider
                 (string.IsNullOrEmpty(query.AccountType) || entity.Account.AccountType == query.AccountType) &&
                 (query.IncludeCompletedTransactions || !entity.Completed),
             Include = entity => entity.Account,
-            OrderBy = entity => entity.NextTransactionDate,
-            Take = query.Take,
-            Skip = query.Skip
+            OrderBy = entity => entity.NextTransactionDate
         };
     }
 }
