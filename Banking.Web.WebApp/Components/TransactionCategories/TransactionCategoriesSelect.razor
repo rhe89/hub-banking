@@ -73,8 +73,6 @@
 
     IList<TransactionSubCategoryDto> TransactionSubCategories { get; set; } = new List<TransactionSubCategoryDto>();
 
-    private bool ParametersSet { get; set; }
-    
     private long? _selectedTransactionCategoryId;
     
     public long? SelectedTransactionCategoryId
@@ -88,11 +86,8 @@
             {
                 SelectedTransactionCategory = TransactionCategories.Single(x => x.Id == _selectedTransactionCategoryId);
                 
-                if (ParametersSet)
-                {
-                    SelectedTransactionSubCategoryId = SelectedTransactionCategory.TransactionSubCategories.FirstOrDefault()?.Id;
-                    SelectedTransactionSubCategoryIdChanged.InvokeAsync(SelectedTransactionSubCategoryId).GetAwaiter().GetResult();
-                }
+                SelectedTransactionSubCategoryId = SelectedTransactionCategory.TransactionSubCategories.FirstOrDefault()?.Id;
+                SelectedTransactionSubCategoryIdChanged.InvokeAsync(SelectedTransactionSubCategoryId).GetAwaiter().GetResult();
             }
         }
     }
@@ -101,11 +96,6 @@
     
     protected override async Task OnInitializedAsync()
     {
-        if (ParametersSet)
-        {
-            return;
-        }
-        
         TransactionCategories ??= await TransactionCategoryProvider.GetTransactionCategories();
 
         if (SelectedTransactionSubCategoryId != null)
@@ -113,8 +103,6 @@
             SelectedTransactionCategoryId = TransactionCategories
                 .FirstOrDefault(x => x.TransactionSubCategories.Any(y => y.Id == SelectedTransactionSubCategoryId.Value))?.Id;
         }
-
-        ParametersSet = true;
     }
     
     private async Task OpenAddTransactionCategoryDialog(UIHelpers uiHelpers)
